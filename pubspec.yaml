@@ -1,0 +1,67 @@
+name: iam_ecomm
+description: "A new Flutter project."
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+# --------------------PACKAGES-------------------------
+dependencies:
+  flutter:
+    sdk: flutter
+
+  #  Utility Package
+
+  # Icons
+  cupertino_icons: ^1.0.8
+  iconsax: ^0.0.8
+
+  # State Management
+  get: ^4.7.2
+
+  # Product Specific
+
+  # ---------------- PACKAGE END---------------------
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  # ------------------- LOCAL ASSETS --------------------
+
+  assets:
+    - assets/logos/
+    - assets/icons/
+    - assets/images/
+    # - assets/images/homescreen (example: add yung mga folder ng mga nasa assets)
+
+  # ------------------- LOCAL FONTS ---------------------
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/Poppins-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/Poppins-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Poppins-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Poppins-Black.ttf
+          weight: 900
