@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/route_manager.dart';
+import 'package:iam_ecomm/features/authentication/screens/onboarding.dart';
 import 'package:iam_ecomm/utils/theme/theme.dart';
 
 class App extends StatelessWidget {
@@ -6,10 +8,11 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       themeMode: ThemeMode.system,
       theme: IAMTheme.lightTheme,
       darkTheme: IAMTheme.darkTheme,
+      home: const OnBoardingScreen(),
     );
   }
 }

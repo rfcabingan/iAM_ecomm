@@ -19,6 +19,7 @@ dependencies:
   logger: ^2.0.1
   url_launcher: ^6.3.2
   flutter_native_splash: ^2.4.7
+  smooth_page_indicator: ^1.2.1
 
   # Icons
   cupertino_icons: ^1.0.8
@@ -47,6 +48,7 @@ flutter:
     - assets/logos/
     - assets/icons/
     - assets/images/
+    - assets/images/onboarding_images/
     # - assets/images/homescreen (example: add yung mga folder ng mga nasa assets)
 
   # ------------------- LOCAL FONTS ---------------------

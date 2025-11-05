@@ -6,7 +6,7 @@ import 'package:get/get.dart'; // Required for Get.context
 import 'package:url_launcher/url_launcher_string.dart'; // Required for launchUrlString
 
 // Utility class for device-related functionalities.
-class TDeviceUtils {
+class IAMDeviceUtils {
   /// Hides the soft keyboard if it's open.
   static void hideKeyboard(BuildContext context) {
     FocusScope.of(context).requestFocus(FocusNode());
