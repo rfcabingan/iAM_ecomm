@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class CheckboxTheme {
-  CheckboxTheme._();
+class IAMCheckboxTheme {
+  IAMCheckboxTheme._();
 
   /// Customizable Light Text Theme
   static CheckboxThemeData lightCheckboxTheme = CheckboxThemeData(
