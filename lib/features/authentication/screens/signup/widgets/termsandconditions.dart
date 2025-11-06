@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:iam_ecomm/utils/constants/colors.dart';
+import 'package:iam_ecomm/utils/constants/sizes.dart';
+import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
 class IAMTermsAndConditions extends StatelessWidget {

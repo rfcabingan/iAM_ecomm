@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:iam_ecomm/features/authentication/screens/signup.widgets/widgets/termsandconditions.dart';
+import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/screens/signup/verify_email.dart';
+import 'package:iam_ecomm/features/authentication/screens/signup/widgets/termsandconditions.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iconsax/iconsax.dart';
@@ -81,7 +83,7 @@ class IAMSignupForm extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () => Get.to(() => const VerifyEmailScreen()),
               child: const Text(IAMTexts.createAccount),
             ),
           ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/export.dart';
 import 'package:iam_ecomm/common/widgets_login_signup/form_divider.dart';
 import 'package:iam_ecomm/common/widgets_login_signup/social_buttons.dart';
-import 'package:iam_ecomm/features/authentication/screens/signup.widgets/widgets/signup.form.dart';
+import 'package:iam_ecomm/features/authentication/screens/signup/widgets/signup.form.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 

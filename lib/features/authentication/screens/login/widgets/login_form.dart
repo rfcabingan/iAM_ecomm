@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iam_ecomm/features/authentication/screens/signup.widgets/signup.dart';
+import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iconsax/iconsax.dart';

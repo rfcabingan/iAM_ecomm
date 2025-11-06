@@ -16,4 +16,9 @@ class IAMImages {
       "assets/images/onboarding_images/Online shopping  Black Friday.gif";
   static const String onBoardingImage3 =
       "assets/images/onboarding_images/Delivery Scooter.gif";
+
+  //Animations/Images
+  static const String emailSent = "assets/images/animations/sent.png";
+  static const String successRegistration =
+      "assets/images/animations/highfive.png";
 }

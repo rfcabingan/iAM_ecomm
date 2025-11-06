@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iam_ecomm/features/authentication/controllers.onboarding/onboarding_controller.dart';
+import 'package:iam_ecomm/features/authentication/controllers/onboarding_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/widgets/onboading_dot_navigation.dart';
 import 'package:iam_ecomm/features/authentication/screens/widgets/onboarding_next_button.dart';
 import 'package:iam_ecomm/features/authentication/screens/widgets/onboarding_page.dart';
