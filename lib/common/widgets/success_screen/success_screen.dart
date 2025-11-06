@@ -1,55 +1,39 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iam_ecomm/common/widgets/success_screen/success_screen.dart';
+import 'package:iam_ecomm/common/styles/spacing_styles.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/login.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
-class VerifyEmailScreen extends StatelessWidget {
-  const VerifyEmailScreen({super.key});
+class SuccessScreen extends StatelessWidget {
+  const SuccessScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            onPressed: () => Get.offAll(() => const LoginScreen()),
-            icon: const Icon(CupertinoIcons.clear),
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+          padding: IAMSpacingStyle.paddingWithAppBarHeight * 2,
           child: Column(
             children: [
-              //IMAGE
               Image(
-                image: AssetImage(IAMImages.emailSent),
+                image: AssetImage(IAMImages.successRegistration),
                 width: IAMHelperFunctions.screenWidth() * 0.6,
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
 
               // TITLE AND SUBTITLE
               Text(
-                IAMTexts.confirmEmailTitle,
+                IAMTexts.yourAccountCreatedTitle,
                 style: Theme.of(context).textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: IAMSizes.spaceBtwItems),
+
               Text(
-                'support@coding.com',
-                style: Theme.of(context).textTheme.labelLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwItems),
-              Text(
-                IAMTexts.confirmEmailSubTitle,
+                IAMTexts.yourAccountCreatedSubTitle,
                 style: Theme.of(context).textTheme.labelMedium,
                 textAlign: TextAlign.center,
               ),
@@ -58,16 +42,8 @@ class VerifyEmailScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Get.to(() => const SuccessScreen()),
+                  onPressed: () => Get.to(() => const LoginScreen()),
                   child: const Text(IAMTexts.tContinue),
-                ),
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {},
-                  child: const Text(IAMTexts.resendEmail),
                 ),
               ),
             ],
