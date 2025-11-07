@@ -62,4 +62,6 @@ class IAMTexts {
   static const String yourAccountCreatedSubTitle =
       "Welcome to your Ultimate Shopping Destination: Your Account is Created, Unleash the Joy of Seamless Online Shopping!";
   static const String tContinue = "Continue";
+  static const String submit = "Submit";
+  static const String done = "Done";
 }

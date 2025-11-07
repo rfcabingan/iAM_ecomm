@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:iam_ecomm/common/styles/spacing_styles.dart';
-import 'package:iam_ecomm/common/widgets_login_signup/form_divider.dart';
-import 'package:iam_ecomm/common/widgets_login_signup/social_buttons.dart';
+import 'package:iam_ecomm/common/widgets/login_signup/form_divider.dart';
+import 'package:iam_ecomm/common/widgets/login_signup/social_buttons.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/widgets/login_form.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/widgets/login_header.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';

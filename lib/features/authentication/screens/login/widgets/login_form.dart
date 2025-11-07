@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/screens/password_configuration/forget_password.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
@@ -49,7 +50,7 @@ class IAMLoginForm extends StatelessWidget {
 
                 //forgot password
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => Get.to(() => const ForgetPassword()),
                   child: const Text(IAMTexts.forgetPassword),
                 ),
               ],
