@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/features/authentication/screens/password_configuration/forget_password.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
+import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iconsax/iconsax.dart';
@@ -61,7 +62,7 @@ class IAMLoginForm extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () => Get.to(() => const NavigationMenu()),
                 child: Text(IAMTexts.signIn),
               ),
             ),
