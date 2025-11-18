@@ -17,7 +17,7 @@ class IAMTexts {
 
   // -- Home
   static const String homeAppbarTitle = "Good day for shopping";
-  static const String homeAppbarSubTitle = "user name or whatever";
+  static const String homeAppbarSubTitle = "IAM User";
 
   // -- Authentication Form Text
   static const String firstName = "First Name";

@@ -21,4 +21,19 @@ class IAMImages {
   static const String emailSent = "assets/images/animations/sent.png";
   static const String successRegistration =
       "assets/images/animations/highfive.png";
+
+  // Category Icons
+  static const String amazingBarley = "assets/icons/categories/bio.png";
+  static const String amazingSkinCare =
+      "assets/icons/categories/glowing-skin (1).png";
+  static const String deliciousJuiceDrinks =
+      "assets/icons/categories/orange-juice.png";
+  static const String foodSupplements = "assets/icons/categories/vitamins.png";
+  static const String healthyCoffee = "assets/icons/categories/coffee-cup.png";
+  static const String protectiveAccessories =
+      "assets/icons/categories/sunglasses.png";
+  static const String sjkProducts =
+      "assets/icons/categories/organic-product.png";
+  static const String prod1 = "assets/icons/categories/organic-product.png";
+  static const String prod2 = "assets/icons/categories/organic-product.png";
 }
