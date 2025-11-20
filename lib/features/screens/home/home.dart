@@ -1,10 +1,14 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
+import 'package:iam_ecomm/common/widgets/custom_shapes/containers/circular_container.dart';
 import 'package:iam_ecomm/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:iam_ecomm/common/widgets/custom_shapes/containers/search_bar.dart';
 import 'package:iam_ecomm/common/widgets/image_text_widgets/vertical_image_text.dart';
+import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_appbar.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_categories.dart';
+import 'package:iam_ecomm/features/screens/home/widgets/promo_slider.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
@@ -48,6 +52,17 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
+            //Body
+            Padding(
+              padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+              child: IAMPromoSlider(
+                banners: [
+                  IAMImages.banner1,
+                  IAMImages.banner2,
+                  IAMImages.banner3,
                 ],
               ),
             ),

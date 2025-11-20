@@ -23,17 +23,27 @@ class IAMImages {
       "assets/images/animations/highfive.png";
 
   // Category Icons
-  static const String amazingBarley = "assets/icons/categories/bio.png";
+  static const String amazingBarley = "assets/images/categories/bio.png";
   static const String amazingSkinCare =
-      "assets/icons/categories/glowing-skin (1).png";
+      "assets/images/categories/glowing-skin (1).png";
   static const String deliciousJuiceDrinks =
-      "assets/icons/categories/orange-juice.png";
-  static const String foodSupplements = "assets/icons/categories/vitamins.png";
-  static const String healthyCoffee = "assets/icons/categories/coffee-cup.png";
+      "assets/images/categories/orange-juice.png";
+  static const String foodSupplements = "assets/images/categories/vitamins.png";
+  static const String healthyCoffee = "assets/images/categories/coffee-cup.png";
   static const String protectiveAccessories =
-      "assets/icons/categories/sunglasses.png";
+      "assets/images/categories/sunglasses.png";
   static const String sjkProducts =
-      "assets/icons/categories/organic-product.png";
-  static const String prod1 = "assets/icons/categories/organic-product.png";
-  static const String prod2 = "assets/icons/categories/organic-product.png";
+      "assets/images/categories/organic-product.png";
+  static const String prod1 = "assets/images/categories/organic-product.png";
+  static const String prod2 = "assets/images/categories/organic-product.png";
+
+  //product banners
+  static const String banner1 = "assets/images/products/bannerpsj.png";
+  static const String banner2 = "assets/images/products/bannerheart.jpg";
+  static const String banner3 = "assets/images/products/bannerpiolo.jpg";
+
+  //product products
+  static const String barcho = "assets/images/products/BARCHO.jpg";
+  static const String barcap = "assets/images/products/bannerheart.jpg";
+  static const String bargum = "assets/images/products/bannerpiolo.jpg";
 }
