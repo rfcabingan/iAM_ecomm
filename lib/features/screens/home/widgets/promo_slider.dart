@@ -32,7 +32,7 @@ class IAMPromoSlider extends StatelessWidget {
             () => Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < banners.length; i++)
                   IAMCircularContainer(
                     width: 20,
                     height: 4,

@@ -32,7 +32,7 @@ class IAMTextTheme {
       color: Colors.black,
     ),
     titleSmall: const TextStyle().copyWith(
-      fontSize: 16.0,
+      fontSize: 10.0,
       fontWeight: FontWeight.w400,
       color: Colors.black,
     ),
@@ -94,7 +94,7 @@ class IAMTextTheme {
       color: Colors.white,
     ),
     titleSmall: const TextStyle().copyWith(
-      fontSize: 16.0,
+      fontSize: 14.0,
       fontWeight: FontWeight.w400,
       color: Colors.white,
     ),

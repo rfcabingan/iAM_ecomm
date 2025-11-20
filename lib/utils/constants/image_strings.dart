@@ -43,7 +43,18 @@ class IAMImages {
   static const String banner3 = "assets/images/products/bannerpiolo.jpg";
 
   //product products
-  static const String barcho = "assets/images/products/BARCHO.jpg";
-  static const String barcap = "assets/images/products/bannerheart.jpg";
-  static const String bargum = "assets/images/products/bannerpiolo.jpg";
+  static const String pibarcap = "assets/images/products/BARCAP.jpg";
+  static const String piblacof = "assets/images/products/BLACOF.jpg";
+  static const String pibargum = "assets/images/products/BARGUM.jpg";
+  static const String pibarcho = "assets/images/products/BARCHO.jpg";
+  static const String piiamwht = "assets/images/products/IAMWHT.jpg";
+  static const String pigarcam = "assets/images/products/GARCAM.jpg";
+  static const String piacaibr = "assets/images/products/ACAIBR.jpg";
+  static const String piiamimu = "assets/images/products/IAMIMU.jpg";
+  static const String picoftka = "assets/images/products/COFTKA.jpg";
+  static const String picofglu = "assets/images/products/COFGLU.jpg";
+  static const String picafemo = "assets/images/products/CAFEMO.jpg";
+  static const String picafela = "assets/images/products/CAFELA.jpg";
+  static const String picafema = "assets/images/products/CAFEMA.jpg";
+  static const String pibarpow = "assets/images/products/BARPOW.jpg";
 }

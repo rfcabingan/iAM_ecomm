@@ -5,7 +5,7 @@ class IAMColors {
 
   // Basic Colors
   static const Color primary = Color(0xFFFFD54F);
-  static const Color secondary = Color(0xFF4B68FF);
+  static const Color secondary = Color(0xFFFF3B30);
   static const Color accent = Color(0xFFFFF8E1);
 
   // Gradient Colors
