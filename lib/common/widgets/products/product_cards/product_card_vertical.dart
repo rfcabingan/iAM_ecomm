@@ -103,39 +103,38 @@ class IAMProductCardVertical extends StatelessWidget {
                       ),
                     ],
                   ),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      //Price
-                      IAMProductPriceText(price: '750.00'),
-
-                      //add to cart button
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: IAMColors.dark,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(IAMSizes.cardRadiusMd),
-                            bottomRight: Radius.circular(
-                              IAMSizes.productImageRadius,
-                            ),
-                          ),
-                        ),
-                        child: SizedBox(
-                          width: IAMSizes.iconLg * 1.2,
-                          height: IAMSizes.iconLg * 1.2,
-                          child: Center(
-                            child: const Icon(
-                              Iconsax.add,
-                              color: IAMColors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
+            ),
+            const Spacer(),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                //Price
+                Padding(
+                  padding: const EdgeInsets.only(left: IAMSizes.sm),
+                  child: IAMProductPriceText(price: '750.00'),
+                ),
+
+                //add to cart button
+                Container(
+                  decoration: const BoxDecoration(
+                    color: IAMColors.dark,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(IAMSizes.cardRadiusMd),
+                      bottomRight: Radius.circular(IAMSizes.productImageRadius),
+                    ),
+                  ),
+                  child: SizedBox(
+                    width: IAMSizes.iconLg * 1.2,
+                    height: IAMSizes.iconLg * 1.2,
+                    child: Center(
+                      child: const Icon(Iconsax.add, color: IAMColors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

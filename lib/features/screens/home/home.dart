@@ -70,6 +70,13 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwItems),
+
+                  //Heading
+                  IAMSectionHeading(
+                    title: 'Popular Products',
+                    onPressed: () {},
+                  ),
+                  const SizedBox(height: IAMSizes.spaceBtwItems),
                   IAMGridLayout(
                     itemCount: 4,
                     itemBuilder: (_, index) => const IAMProductCardVertical(),
