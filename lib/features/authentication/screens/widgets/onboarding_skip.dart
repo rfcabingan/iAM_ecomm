@@ -13,7 +13,7 @@ class OnBoardSkip extends StatelessWidget {
       right: IAMSizes.defaultSpace,
       child: TextButton(
         style: TextButton.styleFrom(
-          foregroundColor: Colors.black,
+          foregroundColor: Theme.of(context).colorScheme.primary,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
         onPressed: () => OnboardingController.instance.skipPage(),

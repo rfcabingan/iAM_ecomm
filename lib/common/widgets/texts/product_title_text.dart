@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iam_ecomm/utils/constants/enums.dart';
 
 class IAMProductTitleText extends StatelessWidget {
   const IAMProductTitleText({
@@ -7,6 +8,8 @@ class IAMProductTitleText extends StatelessWidget {
     this.smallSize = false,
     this.maxLines = 2,
     this.textAlign = TextAlign.left,
+    Color? color,
+    TextSizes brandTextSize = TextSizes.small,
   });
 
   final String title;

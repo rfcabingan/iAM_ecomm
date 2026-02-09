@@ -14,20 +14,25 @@ class IAMSearchBar extends StatelessWidget {
     this.showBackground = true,
     this.showBorder = true,
     this.onTap,
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: IAMSizes.defaultSpace,
+    ),
   });
 
   final String text;
   final IconData? icon;
   final bool showBackground, showBorder;
   final VoidCallback? onTap;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     final dark = IAMHelperFunctions.isDarkMode(context);
+
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: IAMSizes.defaultSpace),
+        padding: padding,
         child: Container(
           width: IAMDeviceUtils.getScreenWidth(context),
           padding: const EdgeInsets.all(IAMSizes.md),
@@ -35,14 +40,14 @@ class IAMSearchBar extends StatelessWidget {
             color: showBackground
                 ? dark
                       ? IAMColors.dark
-                      : IAMColors.white
+                      : IAMColors.light
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
-            border: showBorder ? Border.all(color: IAMColors.white) : null,
+            border: showBorder ? Border.all(color: IAMColors.grey) : null,
           ),
           child: Row(
             children: [
-              Icon(icon, color: IAMColors.darkGrey),
+              Icon(icon, color: dark ? IAMColors.darkGrey : Colors.grey),
               const SizedBox(width: IAMSizes.spaceBtwItems),
               Text(text, style: Theme.of(context).textTheme.bodySmall),
             ],

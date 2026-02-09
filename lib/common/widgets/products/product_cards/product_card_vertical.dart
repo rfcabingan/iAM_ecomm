@@ -4,6 +4,7 @@ import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/icons/circular_icon.dart';
 import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_price_text.dart';
+import 'package:iam_ecomm/common/widgets/texts/brand_title_text_verifiedicon.dart';
 import 'package:iam_ecomm/common/widgets/texts/product_title_text.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
@@ -81,28 +82,12 @@ class IAMProductCardVertical extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IAMProductTitleText(
+                  const IAMProductTitleText(
                     title: 'Amazing Organic Barley',
-
                     smallSize: true,
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwItems / 2),
-                  Row(
-                    children: [
-                      Text(
-                        'Amazing Barley',
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: Theme.of(context).textTheme.labelMedium,
-                      ),
-                      const SizedBox(width: IAMSizes.xs),
-                      Icon(
-                        Iconsax.verify5,
-                        color: IAMColors.primary,
-                        size: IAMSizes.iconXs,
-                      ),
-                    ],
-                  ),
+                  IAMBrandTitleWithVerifiedIcon(title: 'Amazing Barley'),
                 ],
               ),
             ),

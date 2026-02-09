@@ -43,7 +43,7 @@ class NavigationController extends GetxController {
 
   final screens = [
     const HomeScreen(),
-    const Store(),
+    const StoreScreen(),
     Container(color: Colors.deepPurple),
     Container(color: Colors.pink),
   ];

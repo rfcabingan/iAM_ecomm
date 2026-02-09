@@ -18,7 +18,10 @@ class IAMCartCounterIcon extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onPressed,
-          icon: Icon(Iconsax.shopping_bag, color: IAMColors.white),
+          icon: Icon(
+            Iconsax.shopping_bag,
+            color: iconColor ?? Theme.of(context).iconTheme.color,
+          ),
         ),
         Positioned(
           right: 0,
@@ -26,15 +29,16 @@ class IAMCartCounterIcon extends StatelessWidget {
             width: 18,
             height: 18,
             decoration: BoxDecoration(
-              color: IAMColors.black.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Center(
               child: Text(
                 '2',
-                style: Theme.of(context).textTheme.labelLarge!.apply(
-                  color: IAMColors.white,
-                  fontSizeFactor: 0.8,
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize:
+                      Theme.of(context).textTheme.labelLarge!.fontSize! * 0.8,
                 ),
               ),
             ),
