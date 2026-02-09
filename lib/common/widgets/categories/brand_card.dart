@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/images/iam_circular_image.dart';
 import 'package:iam_ecomm/common/widgets/texts/brand_title_text_verifiedicon.dart';
@@ -9,17 +10,23 @@ import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
 class IAMBrandCard extends StatelessWidget {
-  const IAMBrandCard({super.key});
+  const IAMBrandCard({super.key, required this.showBorder, this.onTap});
+
+  final bool showBorder;
+  final void Function()? onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
+
+      //container design
       child: IAMRoundedContainer(
         padding: const EdgeInsets.all(IAMSizes.sm),
-        showBorder: true,
+        showBorder: showBorder,
         backgroundColor: Colors.transparent,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             //Category Icons
             Flexible(
@@ -41,7 +48,7 @@ class IAMBrandCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IAMBrandTitleWithVerifiedIcon(
-                    title: 'Barley',
+                    title: 'Amazing Barley',
                     brandTextSize: TextSizes.large,
                   ),
                   Text(
