@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,7 +5,7 @@ import 'package:iam_ecomm/common/widgets/custom_shapes/containers/circular_conta
 import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/features/shop/controllers/home_controller.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
-import 'package:iam_ecomm/utils/constants/image_strings.dart';
+
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 
 class IAMPromoSlider extends StatelessWidget {

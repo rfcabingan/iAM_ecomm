@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/widgets/categories/brand_card.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
-import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 

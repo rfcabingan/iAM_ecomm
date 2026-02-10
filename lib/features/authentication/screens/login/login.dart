@@ -5,12 +5,9 @@ import 'package:iam_ecomm/common/widgets/login_signup/form_divider.dart';
 import 'package:iam_ecomm/common/widgets/login_signup/social_buttons.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/widgets/login_form.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/widgets/login_header.dart';
-import 'package:iam_ecomm/utils/constants/colors.dart';
-import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
-import 'package:iconsax/iconsax.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

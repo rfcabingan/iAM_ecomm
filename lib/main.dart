@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iam_ecomm/utils/theme/theme.dart';
 import 'app.dart';
 
 /// entry point of Flutter App

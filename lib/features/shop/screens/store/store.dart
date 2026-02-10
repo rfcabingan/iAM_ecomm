@@ -1,21 +1,13 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/appbar/tabbar.dart';
-import 'package:iam_ecomm/common/widgets/categories/brand_showcase.dart';
-import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/custom_shapes/containers/search_bar.dart';
-import 'package:iam_ecomm/common/widgets/images/iam_circular_image.dart';
 import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/products.cart/cart_menu_icon.dart';
 import 'package:iam_ecomm/common/widgets/categories/brand_card.dart';
-import 'package:iam_ecomm/common/widgets/texts/brand_title_text_verifiedicon.dart';
 import 'package:iam_ecomm/features/shop/screens/store/widgets/category_tab.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
-import 'package:iam_ecomm/utils/constants/enums.dart';
-import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 

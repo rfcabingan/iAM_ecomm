@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iam_ecomm/utils/theme/custom_themes/text_theme.dart';
 
 class IAMElevatedButtonTheme {
   IAMElevatedButtonTheme._();

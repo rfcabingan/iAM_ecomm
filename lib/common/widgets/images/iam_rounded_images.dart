@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 
 class IAMRoundedImage extends StatelessWidget {

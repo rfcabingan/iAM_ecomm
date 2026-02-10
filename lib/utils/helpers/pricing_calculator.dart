@@ -3,8 +3,11 @@ class IAMPricingCalculator {
 
   /// Calculates the total price (₱) including 12% VAT and location-based shipping cost.
   static double calculateTotalPrice(double productPrice, String location) {
-    if (productPrice < 0)
+    if (productPrice < 0) {
       throw ArgumentError('Product price cannot be negative.');
+    }
+
+    /// added curly braces
     if (location.isEmpty) throw ArgumentError('Location cannot be empty.');
 
     final taxRate = getTaxRateForLocation(location);

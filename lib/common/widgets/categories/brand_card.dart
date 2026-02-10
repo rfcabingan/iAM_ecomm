@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/images/iam_circular_image.dart';
 import 'package:iam_ecomm/common/widgets/texts/brand_title_text_verifiedicon.dart';

@@ -9,7 +9,7 @@ class IAMVerticalImageText extends StatelessWidget {
     required this.image,
     required this.title,
     this.textColor = IAMColors.white,
-    this.backgroundColor = IAMColors.white,
+    this.backgroundColor,
     this.onTap,
   });
 

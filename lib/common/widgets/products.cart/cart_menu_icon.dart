@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iconsax/iconsax.dart';
 
 class IAMCartCounterIcon extends StatelessWidget {

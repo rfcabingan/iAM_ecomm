@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:iam_ecomm/utils/constants/enums.dart';
 
 class IAMBrandTitleText extends StatelessWidget {

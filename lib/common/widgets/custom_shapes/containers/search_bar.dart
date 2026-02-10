@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get_navigation/get_navigation.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/device/device_utility.dart';
