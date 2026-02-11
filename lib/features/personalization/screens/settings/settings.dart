@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:iam_ecomm/common/widgets/list_tiles/settings_menu_tile.dart';
 import 'package:iam_ecomm/common/widgets/list_tiles/user_profile_tile.dart';
+import 'package:iam_ecomm/features/personalization/screens/profile/profile.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
@@ -31,7 +33,9 @@ class SettingScreen extends StatelessWidget {
                   ),
 
                   //user profile card
-                  const IAMUserProfile(),
+                  IAMUserProfile(
+                    onPressed: () => Get.to(() => const ProfileScreen()),
+                  ),
                   const SizedBox(height: IAMSizes.spaceBtwSections),
                 ],
               ),

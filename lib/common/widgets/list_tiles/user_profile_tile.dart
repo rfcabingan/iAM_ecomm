@@ -5,7 +5,9 @@ import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iconsax/iconsax.dart';
 
 class IAMUserProfile extends StatelessWidget {
-  const IAMUserProfile({super.key});
+  const IAMUserProfile({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +31,8 @@ class IAMUserProfile extends StatelessWidget {
         ).textTheme.bodyMedium!.apply(color: IAMColors.white),
       ),
       trailing: IconButton(
-        onPressed: () {},
-        icon: const Icon(Iconsax.edit, color: IAMColors.white),
+        onPressed: onPressed,
+        icon: Icon(Iconsax.edit, color: IAMColors.white),
       ),
     );
   }
