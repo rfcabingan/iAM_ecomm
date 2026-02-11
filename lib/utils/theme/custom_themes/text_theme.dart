@@ -11,7 +11,7 @@ class IAMTextTheme {
       color: Colors.black,
     ),
     headlineMedium: const TextStyle().copyWith(
-      fontSize: 24.0,
+      fontSize: 22.0,
       fontWeight: FontWeight.w600,
       color: Colors.black,
     ),
