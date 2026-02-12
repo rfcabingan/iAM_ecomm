@@ -52,16 +52,21 @@ class IAMProductCardVertical extends StatelessWidget {
                     left: 7,
                     child: IAMRoundedContainer(
                       radius: IAMSizes.sm,
-                      backgroundColor: IAMColors.primary.withOpacity(0.8),
+                      backgroundColor: const Color.fromARGB(
+                        255,
+                        24,
+                        24,
+                        24,
+                      ).withOpacity(0.8),
                       padding: const EdgeInsets.symmetric(
                         horizontal: IAMSizes.sm,
                         vertical: IAMSizes.xs,
                       ),
                       child: Text(
                         '25%',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.labelLarge!.apply(color: IAMColors.black),
+                        style: Theme.of(context).textTheme.labelLarge!.apply(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                        ),
                       ),
                     ),
                   ),
