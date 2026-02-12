@@ -24,11 +24,11 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   //Appbar
                   const IAMHomeAppBar(),
-                  const SizedBox(height: IAMSizes.spaceBtwSections),
+                  SizedBox(height: IAMSizes.spaceBtwSections),
 
                   //Searchbar
                   IAMSearchBar(text: 'Search in Store'),
-                  const SizedBox(height: IAMSizes.spaceBtwSections),
+                  SizedBox(height: IAMSizes.spaceBtwSections),
 
                   //Categories
                   Padding(
@@ -48,6 +48,7 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  SizedBox(height: IAMSizes.spaceBtwSections),
                 ],
               ),
             ),

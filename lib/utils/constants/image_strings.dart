@@ -57,4 +57,7 @@ class IAMImages {
   static const String picafela = "assets/images/products/CAFELA.jpg";
   static const String picafema = "assets/images/products/CAFEMA.jpg";
   static const String pibarpow = "assets/images/products/BARPOW.jpg";
+
+  //users
+  static const String pandauser = "assets/images/users/panda.png";
 }

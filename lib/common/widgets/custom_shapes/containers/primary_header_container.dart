@@ -11,30 +11,27 @@ class IAMPrimaryHeaderContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IAMCurvedEdgeWidget(
-      child: SizedBox(
-        height: 400,
-        child: Container(
-          color: IAMColors.primary,
-          child: Stack(
-            children: [
-              Positioned(
-                top: -150,
-                right: -250,
-                child: IAMCircularContainer(
-                  backgroundColor: IAMColors.textWhite.withOpacity(0.2),
-                ),
+      child: Container(
+        color: IAMColors.primary,
+        child: Stack(
+          children: [
+            Positioned(
+              top: -150,
+              right: -250,
+              child: IAMCircularContainer(
+                backgroundColor: IAMColors.textWhite.withOpacity(0.2),
               ),
+            ),
 
-              Positioned(
-                top: 100,
-                right: -300,
-                child: IAMCircularContainer(
-                  backgroundColor: IAMColors.textWhite.withOpacity(0.2),
-                ),
+            Positioned(
+              top: 100,
+              right: -300,
+              child: IAMCircularContainer(
+                backgroundColor: IAMColors.textWhite.withOpacity(0.2),
               ),
-              child,
-            ],
-          ),
+            ),
+            child,
+          ],
         ),
       ),
     );
