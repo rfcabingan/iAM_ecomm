@@ -5,6 +5,8 @@ import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:iam_ecomm/common/widgets/list_tiles/settings_menu_tile.dart';
 import 'package:iam_ecomm/common/widgets/list_tiles/user_profile_tile.dart';
+import 'package:iam_ecomm/features/personalization/screens/address/add_new_address.dart';
+import 'package:iam_ecomm/features/personalization/screens/address/address.dart';
 import 'package:iam_ecomm/features/personalization/screens/profile/profile.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
@@ -57,6 +59,7 @@ class SettingScreen extends StatelessWidget {
                     icon: Iconsax.safe_home,
                     title: 'My Addresses',
                     subTitle: 'Set Shopping delivery address',
+                    onTap: () => Get.to(() => const UserAddressScreen()),
                   ),
                   IAMSettingMenu(
                     icon: Iconsax.shopping_cart,
@@ -81,12 +84,12 @@ class SettingScreen extends StatelessWidget {
                   IAMSettingMenu(
                     icon: Iconsax.notification,
                     title: 'Notifications',
-                    subTitle: 'Set Notifications',
+                    subTitle: 'Customize your Notifications',
                   ),
                   IAMSettingMenu(
                     icon: Iconsax.security_card,
                     title: 'Account Privacy',
-                    subTitle: 'Manage data usage and connected accounts',
+                    subTitle: 'Manage security and privacy settings',
                   ),
 
                   /// -- App Settings
@@ -105,7 +108,8 @@ class SettingScreen extends StatelessWidget {
                   IAMSettingMenu(
                     icon: Iconsax.location,
                     title: 'Geolocation',
-                    subTitle: 'Set recommendation based on location',
+                    subTitle:
+                        'Use your current location to show nearby results',
                     trailing: Switch(value: true, onChanged: (value) {}),
                   ), // IAMSettingMenu
                   // IAMSettingMenu(
@@ -117,7 +121,7 @@ class SettingScreen extends StatelessWidget {
                   IAMSettingMenu(
                     icon: Iconsax.image,
                     title: 'HD Image Quality',
-                    subTitle: 'Set image quality to be seen',
+                    subTitle: 'Use high-quality images',
                     trailing: Switch(value: false, onChanged: (value) {}),
                   ),
 
