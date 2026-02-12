@@ -60,4 +60,11 @@ class IAMImages {
 
   //users
   static const String pandauser = "assets/images/users/panda.png";
+
+  //checkout payments
+  static const String maya = "assets/images/payments/maya.png";
+  static const String iamwallet = "assets/images/payments/iamwallet.png";
+  static const String successfulPaymentIcon = "assets/images/payments/successpayment.png";
+  static const String failPaymentIcon = "assets/images/payments/failpayment.png";
+  static const String successfulPaymentGif = "assets/images/payments/successpayment.gif";
 }
