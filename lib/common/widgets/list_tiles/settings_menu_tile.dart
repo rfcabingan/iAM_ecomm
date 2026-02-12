@@ -8,13 +8,14 @@ class IAMSettingMenu extends StatelessWidget {
     required this.title,
     required this.subTitle,
     this.trailing,
-    // required this.onTap,
+    // required Future<dynamic>? Function() onTap,
+    this.onTap,
   });
 
   final IconData icon;
   final String title, subTitle;
   final Widget? trailing;
-  // final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class IAMSettingMenu extends StatelessWidget {
       title: Text(title, style: Theme.of(context).textTheme.labelMedium),
       subtitle: Text(subTitle, style: Theme.of(context).textTheme.labelMedium),
       trailing: trailing,
-      // onTap: onTap,
+      onTap: onTap,
     );
   }
 }
