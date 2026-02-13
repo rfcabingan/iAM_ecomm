@@ -58,6 +58,22 @@ class IAMImages {
   static const String picafema = "assets/images/products/CAFEMA.jpg";
   static const String pibarpow = "assets/images/products/BARPOW.jpg";
 
+  //iam packages
+  static const String copper = "assets/images/packages/copper.png";
+  static const String bronze = "assets/images/packages/bronze.png";
+  static const String silver2 = "assets/images/packages/silver2.png";
+  static const String gold = "assets/images/packages/gold.png";
+  static const String platinum = "assets/images/packages/platinum.png";
+  static const String jade = "assets/images/packages/jade.png";
+
   //users
   static const String pandauser = "assets/images/users/panda.png";
+
+  //checkout payments
+  static const String maya = "assets/images/payments/maya.png";
+  static const String iamwallet = "assets/images/payments/iamwallet.png";
+  static const String cod = "assets/images/payments/cod.png";
+  static const String successfulPaymentIcon = "assets/images/payments/successpayment.png";
+  static const String failPaymentIcon = "assets/images/payments/failpayment.png";
+  static const String successfulPaymentGif = "assets/images/payments/successpayment.gif";
 }

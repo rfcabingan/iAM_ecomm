@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/device/device_utility.dart';
+import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 
 class IAMAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -29,7 +30,12 @@ class IAMAppBar extends StatelessWidget implements PreferredSizeWidget {
         leading: showBackArrow
             ? IconButton(
                 onPressed: () => Get.back(),
-                icon: const Icon(Iconsax.arrow_left),
+                icon: Icon(
+                  Iconsax.arrow_left,
+                  color: IAMHelperFunctions.isDarkMode(context)
+                      ? Colors.white
+                      : Theme.of(context).iconTheme.color,
+                ),
               )
             : leadingIcon != null
             ? IconButton(onPressed: leadingOnPressed, icon: Icon(leadingIcon))

@@ -31,6 +31,7 @@ dependencies:
   get_storage: ^2.1.1
 
   # Product Specific
+  readmore: ^3.0.0
 
   # ---------------- PACKAGE END---------------------
 
@@ -53,6 +54,8 @@ flutter:
     - assets/images/animations/
     - assets/images/categories/
     - assets/images/products/
+    - assets/images/packages/
+    - assets/images/payments/
     - assets/images/users/
     # - assets/images/homescreen (example: add yung mga folder ng mga nasa assets)
 

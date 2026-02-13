@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/image_text_widgets/vertical_image_text.dart';
+import 'package:iam_ecomm/features/shop/screens/product%20sub_category/sub_categories.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
 
 class IAMHomeCategories extends StatelessWidget {
@@ -17,7 +19,7 @@ class IAMHomeCategories extends StatelessWidget {
           return IAMVerticalImageText(
             image: IAMImages.amazingBarley,
             title: 'Amazing Barley',
-            onTap: () {},
+            onTap: () => Get.to(() => const SubCategoriesScreen()),
           );
         },
       ),
