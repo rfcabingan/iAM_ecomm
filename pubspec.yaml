@@ -54,6 +54,7 @@ flutter:
     - assets/images/animations/
     - assets/images/categories/
     - assets/images/products/
+    - assets/images/packages/
     - assets/images/payments/
     - assets/images/users/
     # - assets/images/homescreen (example: add yung mga folder ng mga nasa assets)
