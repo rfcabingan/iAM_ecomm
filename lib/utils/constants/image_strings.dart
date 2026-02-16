@@ -1,7 +1,7 @@
 class IAMImages {
   //App Logos
-  static const String darkAppLogo = "assets/images/iamlogopng.png";
-  static const String lightAppLogo = "assets/images/iamlogopng.png";
+  static const String darkAppLogo = "assets/images/iamlogo1080p.png";
+  static const String lightAppLogo = "assets/images/iamlogo1080p.png";
 
   // static const String darkAppLogo = "assets/logos/iamlogo.png";
 
