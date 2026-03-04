@@ -4,6 +4,7 @@ import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:iam_ecomm/data/products_data.dart';
 
 class AllProducts extends StatelessWidget {
   const AllProducts({super.key});
@@ -29,8 +30,18 @@ class AllProducts extends StatelessWidget {
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections,),
 
-              // -- PRODUCTS
-              IAMGridLayout(itemCount: 4, itemBuilder: (_, index) => const IAMProductCardVertical())
+              // -- PRODUCTS (products only, no packages)
+              Builder(
+                builder: (context) {
+                  final products = IAMProductsData.products;
+                  return IAMGridLayout(
+                    itemCount: products.length,
+                    itemBuilder: (_, index) => IAMProductCardVertical(
+                      product: products[index],
+                    ),
+                  );
+                },
+              )
             ],
           ),
         ),

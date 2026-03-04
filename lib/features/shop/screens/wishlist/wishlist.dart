@@ -4,6 +4,7 @@ import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/icons/circular_icon.dart';
 import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
+import 'package:iam_ecomm/features/shop/controllers/wishlist_controller.dart';
 import 'package:iam_ecomm/features/screens/home/home.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
@@ -32,10 +33,20 @@ class FavouriteScreen extends StatelessWidget {
           padding: const EdgeInsets.all(IAMSizes.defaultSpace),
           child: Column(
             children: [
-              IAMGridLayout(
-                itemCount: 6,
-                itemBuilder: (_, index) => IAMProductCardVertical(),
-              ),
+              Obx(() {
+                if (!Get.isRegistered<WishlistController>()) {
+                  Get.put(WishlistController(), permanent: true);
+                }
+
+                final items = WishlistController.instance.wishlistedItems;
+
+                return IAMGridLayout(
+                  itemCount: items.length,
+                  itemBuilder: (_, index) => IAMProductCardVertical(
+                    product: items[index],
+                  ),
+                );
+              }),
             ],
           ),
         ),

@@ -28,11 +28,11 @@ class LoginScreen extends StatelessWidget {
               IAMLoginForm(),
 
               //Divider
-              IAMFormDivider(dividerText: IAMTexts.orSignInWith.capitalize!),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
+              //IAMFormDivider(dividerText: IAMTexts.orSignInWith.capitalize!),
+              //const SizedBox(height: IAMSizes.spaceBtwSections),
 
               //Footer
-              IAMSocialButton(),
+              //IAMSocialButton(),
             ],
           ),
         ),

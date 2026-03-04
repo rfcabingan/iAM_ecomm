@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/password_configuration/forget_password.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
@@ -62,7 +63,18 @@ class IAMLoginForm extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => Get.to(() => const NavigationMenu()),
+                onPressed: () {
+                  // Mock login: enable Profile/Settings tab
+                  AuthController.instance.login();
+                  // After login, go directly to Home page (bottom-nav index 0)
+                  if (Get.isRegistered<NavigationController>()) {
+                    final nav = Get.find<NavigationController>();
+                    nav.selectedIndex.value = 0;
+                  } else {
+                    // Fallback: if user opened Login as a standalone route
+                    Get.offAll(() => const NavigationMenu());
+                  }
+                },
                 child: Text(IAMTexts.signIn),
               ),
             ),

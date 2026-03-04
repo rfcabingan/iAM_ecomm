@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -29,7 +31,14 @@ class IAMRatingAndShare extends StatelessWidget {
         ),
     
         // -- SHARE BUTTON
-        IconButton(onPressed: (){}, icon: const Icon(Icons.share, size: IAMSizes.iconMd,))
+        Obx(
+          () => AuthController.instance.isLoggedIn.value
+              ? IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.share, size: IAMSizes.iconMd),
+                )
+              : const SizedBox.shrink(),
+        )
       ],
     );
   }

@@ -24,7 +24,10 @@ class ProductDetailScreen extends StatelessWidget {
     final dark = IAMHelperFunctions.isDarkMode(context);
 
     return Scaffold(
-      bottomNavigationBar: IAMBottomAddToCart(),
+      bottomNavigationBar: const SafeArea(
+        top: false,
+        child: IAMBottomAddToCart(),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -33,7 +36,11 @@ class ProductDetailScreen extends StatelessWidget {
 
             // -- PRDOUCT DETAILS
             Padding(
-              padding: EdgeInsets.only(right: IAMSizes.defaultSpace, left: IAMSizes.defaultSpace, bottom: IAMSizes.defaultSpace,),
+              padding: EdgeInsets.only(
+                right: IAMSizes.defaultSpace,
+                left: IAMSizes.defaultSpace,
+                bottom: IAMSizes.defaultSpace,
+              ),
               child: Column(
                 children: [
                   // -- RATINGS & SHARE BUTTON
@@ -44,12 +51,18 @@ class ProductDetailScreen extends StatelessWidget {
                   const SizedBox(height: IAMSizes.spaceBtwItems / 1.5),
 
                   // -- ATTRIBUTES
-                  IAMProductAttributes(),
-                  const SizedBox(height: IAMSizes.spaceBtwSections),
+                  //IAMProductAttributes(),
+                  //const SizedBox(height: IAMSizes.spaceBtwSections),
 
                   // -- CHECOUT BUTTON
-                  SizedBox(width: double.infinity, child: ElevatedButton(onPressed: (){}, child: Text('Checkout'))),
-                  const SizedBox(height: IAMSizes.spaceBtwSections,),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      child: Text('Checkout'),
+                    ),
+                  ),
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
 
                   // -- DESCRIPTION
                   const IAMSectionHeading(
@@ -63,21 +76,33 @@ class ProductDetailScreen extends StatelessWidget {
                     trimMode: TrimMode.Line,
                     trimCollapsedText: ' Show more',
                     trimExpandedText: ' less',
-                    moreStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                    lessStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                    moreStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    lessStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                  
+
                   // -- REVIEWS
                   const Divider(),
-                  const SizedBox(height: IAMSizes.spaceBtwItems,),
+                  const SizedBox(height: IAMSizes.spaceBtwItems),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const IAMSectionHeading(title: 'Review(19)', showActionButton: false,),
-                      IconButton(onPressed: (){}, icon: const Icon(Iconsax.arrow_right_3, size: 18))
+                      const IAMSectionHeading(
+                        title: 'Review(19)',
+                        showActionButton: false,
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Iconsax.arrow_right_3, size: 18),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: IAMSizes.spaceBtwSections,),
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
                 ],
               ),
             ),

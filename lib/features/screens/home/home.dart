@@ -12,6 +12,7 @@ import 'package:iam_ecomm/features/screens/home/widgets/promo_slider.dart';
 import 'package:iam_ecomm/features/shop/screens/all_products/all_products.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
+import 'package:iam_ecomm/data/products_data.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -67,22 +68,44 @@ class HomeScreen extends StatelessWidget {
                       IAMImages.banner3,
                     ],
                   ),
-                  const SizedBox(height: IAMSizes.spaceBtwItems),
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
 
-                  //Heading
+                  // —— Popular Products (specific 4 products) ——
                   IAMSectionHeading(
                     title: 'Popular Products',
                     onPressed: () => Get.to(() => const AllProducts()),
                   ),
-                  const SizedBox(height: IAMSizes.spaceBtwItems),
+                  //const SizedBox(height: IAMSizes.spaceBtwItems),
                   IAMGridLayout(
-                    itemCount: 4,
-                    itemBuilder: (_, index) => const IAMProductCardVertical(),
+                    itemCount: IAMProductsData.popularProducts.length,
+                    itemBuilder: (_, index) => IAMProductCardVertical(
+                      product: IAMProductsData.popularProducts[index],
+                    ),
                   ),
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
+
+                  // —— IAM Packages (packages only, all packages displayed from highest to lowest) ——
+                  IAMSectionHeading(
+                    title: 'IAM Packages',
+                    showActionButton: false,
+                  ),
+                  //const SizedBox(height: IAMSizes.spaceBtwItems),
+                  Builder(
+                    builder: (context) {
+                      // Reverse order: Jade (highest) -> Platinum -> Gold -> Silver -> Bronze -> Copper (lowest)
+                      final packagesReversed = IAMProductsData.packages.reversed
+                          .toList();
+                      return IAMGridLayout(
+                        itemCount: packagesReversed.length,
+                        itemBuilder: (_, index) => IAMProductCardVertical(
+                          product: packagesReversed[index],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
                 ],
               ),
-
-              // Popular products
             ),
           ],
         ),

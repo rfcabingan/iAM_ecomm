@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iam_ecomm/utils/formatters/formatter.dart';
 
 class IAMProductPriceText extends StatelessWidget {
   const IAMProductPriceText({
@@ -15,10 +16,26 @@ class IAMProductPriceText extends StatelessWidget {
   final bool isLarge;
   final bool lineThrough;
 
+  String _formatPrice(String raw) {
+    final cleaned = raw.trim();
+    if (cleaned.isEmpty) return cleaned;
+
+    final withoutCurrency = cleaned
+        .replaceAll(currencySign, '')
+        .replaceAll(',', '')
+        .trim();
+
+    final amount = double.tryParse(withoutCurrency);
+    if (amount == null) return cleaned;
+
+    final formatted = IAMFormatter.formatCurrency(amount);
+    return formatted.replaceFirst('₱', '');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Text(
-      currencySign + price,
+      currencySign + _formatPrice(price),
       maxLines: maxLines,
       overflow: TextOverflow.ellipsis,
       style: isLarge

@@ -37,7 +37,7 @@ class CheckoutScreen extends StatelessWidget {
           child: Column(
             children: [
               // -- ITEMS IN CART
-              IAMCartItems(showAddRemoveButtons: false),
+              IAMCartItems(showAddRemoveButtons: false, showQuantity: true),
               SizedBox(height: IAMSizes.spaceBtwSections),
 
               // -- REFERRAL CODE or COUPON CODE

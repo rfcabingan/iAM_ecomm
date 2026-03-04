@@ -31,7 +31,7 @@ class IAMProductImageSlider extends StatelessWidget {
                   IAMSizes.productImageRadius * 2,
                 ),
                 child: Center(
-                  child: Image(image: AssetImage(IAMImages.pibarpow)),
+                  child: Image(image: AssetImage(IAMImages.pibarpowwht)),
                 ),
               ),
             ),
@@ -57,7 +57,7 @@ class IAMProductImageSlider extends StatelessWidget {
                         : IAMColors.white,
                     border: Border.all(color: IAMColors.primary),
                     padding: const EdgeInsets.all(IAMSizes.sm),
-                    imageUrl: IAMImages.piacaibr,
+                    imageUrl: IAMImages.pibarpow,
                   ),
                 ),
               ),

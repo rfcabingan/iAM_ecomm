@@ -6,10 +6,13 @@ import 'package:iam_ecomm/utils/constants/sizes.dart';
 
 class IAMCartItems extends StatelessWidget {
   const IAMCartItems({
-    super.key, this.showAddRemoveButtons = true,
+    super.key,
+    this.showAddRemoveButtons = true,
+    this.showQuantity = false,
   });
 
   final bool showAddRemoveButtons;
+  final bool showQuantity;
 
   @override
   Widget build(BuildContext context) {
@@ -21,21 +24,34 @@ class IAMCartItems extends StatelessWidget {
       itemBuilder: (_, index) => Column(
         children: [
           IAMCartItem(),
-          if(showAddRemoveButtons) const SizedBox(height: IAMSizes.spaceBtwItems),
-          
-          if(showAddRemoveButtons)
+          if (showAddRemoveButtons || showQuantity)
+            const SizedBox(height: IAMSizes.spaceBtwItems),
+
+          if (showAddRemoveButtons)
             const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  SizedBox(width: 85),
-                  IAMProductQuantityWithAddRemoveButton(),
-                ],
-              ),
-              IAMProductPriceText(price: '1000.00'),
-            ],
-          ),
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(width: 85),
+                    IAMProductQuantityWithAddRemoveButton(),
+                  ],
+                ),
+                IAMProductPriceText(price: '1000.00'),
+              ],
+            ),
+
+          if (!showAddRemoveButtons && showQuantity)
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 85),
+                  child: Text('Qty: 2'),
+                ),
+                IAMProductPriceText(price: '1000.00'),
+              ],
+            ),
         ],
       ),
     );
