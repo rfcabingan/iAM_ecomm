@@ -50,18 +50,34 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
         _isLoading = false;
       });
 
-      // Safe snackbar display
-      Get.snackbar(
-        res.success ? "Success" : "Signup Failed",
-        res.message ??
-            (res.success ? "Account created successfully" : "Server error"),
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
-      );
-
+      /// -------- ADDED: Handle API response properly --------
       if (res.success) {
+        /// Save token if returned by API
+        if (res.data != null &&
+            res.data["token"] != null &&
+            res.data["token"]["accessToken"] != null) {
+          await ApiMiddleware.setToken(res.data["token"]["accessToken"]);
+        }
+
+        Get.snackbar(
+          "Success",
+          res.message ?? "Account created successfully",
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+        );
+
+        /// Navigate to verify email
         Get.to(() => const VerifyEmailScreen());
+      } else {
+        Get.snackbar(
+          "Signup Failed",
+          res.message ?? "Unable to create account",
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+        );
       }
+
+      /// -----------------------------------------------------
     } catch (e) {
       if (!mounted) return;
 
@@ -128,17 +144,6 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
 
           const SizedBox(height: IAMSizes.spaceBtwInputFields),
 
-          // Username field commented out
-          // TextFormField(
-          //   controller: _usernameController,
-          //   expands: false,
-          //   decoration: const InputDecoration(
-          //     labelText: IAMTexts.username,
-          //     prefixIcon: Icon(Iconsax.user_edit),
-          //   ),
-          //   validator: (v) =>
-          //       (v == null || v.isEmpty) ? 'Required Field*' : null,
-          // ),
           TextFormField(
             controller: _emailController,
             expands: false,

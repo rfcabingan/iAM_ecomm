@@ -21,6 +21,8 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _loading = false;
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -31,18 +33,35 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() => _loading = true);
+
+    setState(() {
+      _loading = true;
+      _emailError = null;
+      _passwordError = null;
+    });
+
     final res = await ApiMiddleware.auth.login(
       _usernameController.text.trim(),
       _passwordController.text,
     );
+
     if (!mounted) return;
+
     setState(() => _loading = false);
+
     if (res.success && res.data?.token != null) {
       await ApiMiddleware.setToken(res.data!.token!.accessToken);
       Get.offAll(() => const NavigationMenu());
     } else {
-      Get.snackbar('Sign in failed', res.message);
+      // Detect backend message
+      if (res.message.toLowerCase().contains("email")) {
+        _emailError = "Email not found";
+      } else if (res.message.toLowerCase().contains("password")) {
+        _passwordError = "Password Incorrect";
+      }
+
+      setState(() {});
+      _formKey.currentState?.validate();
     }
   }
 
@@ -59,19 +78,32 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
           children: [
             // username
             TextFormField(
+              onChanged: (_) {
+                if (_emailError != null) {
+                  setState(() => _emailError = null);
+                }
+              },
               controller: _usernameController,
               decoration: const InputDecoration(
                 prefixIcon: Icon(Iconsax.sms),
                 labelText: IAMTexts.email,
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required Field*' : null,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Required Field*';
+                if (_emailError != null) return _emailError;
+                return null;
+              },
               textInputAction: TextInputAction.next,
             ),
 
             const SizedBox(height: IAMSizes.spaceBtwInputFields),
             // password
             TextFormField(
+              onChanged: (_) {
+                if (_emailError != null) {
+                  setState(() => _emailError = null);
+                }
+              },
               controller: _passwordController,
               obscureText: _obscurePassword,
               obscuringCharacter: '•', //Hide Password
@@ -86,9 +118,13 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
                       setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Required Field*' : null,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Required Field*';
+                if (_passwordError != null) return _passwordError;
+                return null;
+              },
               textInputAction: TextInputAction.done,
+
               onFieldSubmitted: (_) => _submit(),
             ),
 
