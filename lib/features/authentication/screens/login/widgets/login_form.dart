@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/password_configuration/forget_password.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
+import 'package:iam_ecomm/navigation_menu.dart' show NavigationController;
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
@@ -17,7 +19,7 @@ class IAMLoginForm extends StatefulWidget {
 
 class _IAMLoginFormState extends State<IAMLoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _loading = false;
@@ -26,7 +28,7 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -41,7 +43,7 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
     });
 
     final res = await ApiMiddleware.auth.login(
-      _usernameController.text.trim(),
+      _emailController.text.trim(),
       _passwordController.text,
     );
 
@@ -49,19 +51,29 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
 
     setState(() => _loading = false);
 
-    if (res.success && res.data?.token != null) {
-      await ApiMiddleware.setToken(res.data!.token!.accessToken);
-      Get.offAll(() => const NavigationMenu());
-    } else {
-      // Detect backend message
-      if (res.message.toLowerCase().contains("email")) {
-        _emailError = "Email not found";
-      } else if (res.message.toLowerCase().contains("password")) {
-        _passwordError = "Password Incorrect";
-      }
+    if (!res.success || res.data?.token == null) {
+      final msg =
+          res.message.isNotEmpty ? res.message : 'Invalid credentials.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: $msg')),
+      );
+      return;
+    }
 
-      setState(() {});
-      _formKey.currentState?.validate();
+    await ApiMiddleware.setToken(res.data!.token!.accessToken);
+    AuthController.instance.login();
+
+    final successMsg =
+        res.message.isNotEmpty ? res.message : 'You are now signed in.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(successMsg)),
+    );
+
+    if (Get.isRegistered<NavigationController>()) {
+      final nav = Get.find<NavigationController>();
+      nav.selectedIndex.value = 0;
+    } else {
+      Get.offAll(() => const NavigationMenu());
     }
   }
 
@@ -76,16 +88,11 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
         ),
         child: Column(
           children: [
-            // username
+            //email
             TextFormField(
-              onChanged: (_) {
-                if (_emailError != null) {
-                  setState(() => _emailError = null);
-                }
-              },
-              controller: _usernameController,
+              controller: _emailController,
               decoration: const InputDecoration(
-                prefixIcon: Icon(Iconsax.sms),
+                prefixIcon: Icon(Iconsax.direct_right),
                 labelText: IAMTexts.email,
               ),
               validator: (v) {
@@ -97,7 +104,7 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
             ),
 
             const SizedBox(height: IAMSizes.spaceBtwInputFields),
-            // password
+            //password
             TextFormField(
               onChanged: (_) {
                 if (_emailError != null) {
@@ -111,9 +118,7 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
                 prefixIcon: const Icon(Iconsax.password_check),
                 labelText: IAMTexts.password,
                 suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
-                  ),
+                  icon: Icon(_obscurePassword ? Iconsax.eye_slash : Iconsax.eye),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
                 ),
@@ -134,14 +139,15 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // remember me
+                //remeber me
                 Row(
                   children: [
                     Checkbox(value: true, onChanged: (value) {}),
                     const Text(IAMTexts.rememberMe),
                   ],
                 ),
-                // forgot password
+
+                //forgot password
                 TextButton(
                   onPressed: () => Get.to(() => const ForgetPassword()),
                   child: const Text(IAMTexts.forgetPassword),
@@ -151,7 +157,7 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
 
             const SizedBox(height: IAMSizes.spaceBtwSections),
 
-            // Sign in button
+            //Sign in button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -168,13 +174,12 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
 
             const SizedBox(height: IAMSizes.spaceBtwItems),
 
-            // Create Account Button
+            //Create Account Button
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: _loading
-                    ? null
-                    : () => Get.to(() => const SignupScreen()),
+                onPressed:
+                    _loading ? null : () => Get.to(() => const SignupScreen()),
                 child: Text(IAMTexts.createAccount),
               ),
             ),
