@@ -4,7 +4,6 @@ import 'package:iam_ecomm/features/authentication/controllers/auth_controller.da
 import 'package:iam_ecomm/features/authentication/screens/password_configuration/forget_password.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
-import 'package:iam_ecomm/navigation_menu.dart' show NavigationController;
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
@@ -51,34 +50,45 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
 
     setState(() => _loading = false);
 
-    if (!res.success || res.data?.token == null) {
-      final msg =
-          res.message.isNotEmpty ? res.message : 'Invalid credentials.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $msg')),
-      );
+    if (!res.success || res.data?.user == null) {
+      final msg = res.message.isNotEmpty ? res.message : 'Invalid credentials.';
+      setState(() {
+        _emailError = null;
+        _passwordError = msg;
+      });
       return;
     }
 
-    await ApiMiddleware.setToken(res.data!.token!.accessToken);
+    final accessToken = res.data?.token?.accessToken ?? '';
+    if (accessToken.isNotEmpty) {
+      await ApiMiddleware.setToken(accessToken);
+    } else {
+      await ApiMiddleware.clearToken();
+    }
     AuthController.instance.login(res.data!.user);
 
-    final successMsg =
-        res.message.isNotEmpty ? res.message : 'You are now signed in.';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(successMsg)),
-    );
+    final successMsg = res.message.isNotEmpty
+        ? res.message
+        : 'You are now signed in.';
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(successMsg)));
 
-    if (Get.isRegistered<NavigationController>()) {
-      final nav = Get.find<NavigationController>();
-      nav.selectedIndex.value = 0;
-    } else {
-      Get.offAll(() => const NavigationMenu());
-    }
+    Get.offAll(() => const NavigationMenu());
   }
 
   @override
   Widget build(BuildContext context) {
+    final hasCredentialError =
+        _passwordError != null && _passwordError!.isNotEmpty;
+    final errorBorder = OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Theme.of(context).colorScheme.error,
+        width: 1.5,
+      ),
+      borderRadius: BorderRadius.circular(14),
+    );
+
     return Form(
       key: _formKey,
       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -91,13 +101,22 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
             //email
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Iconsax.direct_right),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Iconsax.direct_right),
                 labelText: IAMTexts.email,
+                enabledBorder: hasCredentialError ? errorBorder : null,
+                focusedBorder: hasCredentialError ? errorBorder : null,
               ),
+              onChanged: (_) {
+                if (_emailError != null || _passwordError != null) {
+                  setState(() {
+                    _emailError = null;
+                    _passwordError = null;
+                  });
+                }
+              },
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required Field*';
-                if (_emailError != null) return _emailError;
                 return null;
               },
               textInputAction: TextInputAction.next,
@@ -107,8 +126,11 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
             //password
             TextFormField(
               onChanged: (_) {
-                if (_emailError != null) {
-                  setState(() => _emailError = null);
+                if (_emailError != null || _passwordError != null) {
+                  setState(() {
+                    _emailError = null;
+                    _passwordError = null;
+                  });
                 }
               },
               controller: _passwordController,
@@ -117,15 +139,19 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
               decoration: InputDecoration(
                 prefixIcon: const Icon(Iconsax.password_check),
                 labelText: IAMTexts.password,
+                errorText: _passwordError,
+                enabledBorder: hasCredentialError ? errorBorder : null,
+                focusedBorder: hasCredentialError ? errorBorder : null,
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Iconsax.eye_slash : Iconsax.eye),
+                  icon: Icon(
+                    _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
+                  ),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Required Field*';
-                if (_passwordError != null) return _passwordError;
                 return null;
               },
               textInputAction: TextInputAction.done,
@@ -178,8 +204,9 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed:
-                    _loading ? null : () => Get.to(() => const SignupScreen()),
+                onPressed: _loading
+                    ? null
+                    : () => Get.to(() => const SignupScreen()),
                 child: Text(IAMTexts.createAccount),
               ),
             ),

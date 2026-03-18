@@ -12,6 +12,27 @@ class AuthController extends GetxController {
   final RxBool isLoggedIn = false.obs;
   final Rx<UserInfo?> user = Rx<UserInfo?>(null);
 
+  bool get isGuest {
+    final id = user.value?.idno ?? '';
+    if (id.isEmpty) return false;
+    return id.toUpperCase().startsWith('NON');
+  }
+
+  bool get isMemberAccount {
+    final id = user.value?.idno ?? '';
+    if (id.isEmpty) return false;
+    if (isGuest) return false;
+    return RegExp(r'^\d{8}$').hasMatch(id);
+  }
+
+  bool get isMember {
+    final u = user.value;
+    if (u == null) return false;
+    if (isGuest) return false;
+    if (u.isMember) return true;
+    return isMemberAccount;
+  }
+
   void login(UserInfo? userInfo) {
     isLoggedIn.value = true;
     user.value = userInfo;
@@ -22,4 +43,3 @@ class AuthController extends GetxController {
     user.value = null;
   }
 }
-

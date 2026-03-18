@@ -29,6 +29,8 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   late Future<_CartViewModel> _cartFuture;
 
+  static const double _deliveryFee = 100.00;
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +39,9 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<_CartViewModel> _loadCart() async {
     final isLoggedIn =
-        Get.isRegistered<AuthController>() && AuthController.instance.isLoggedIn.value;
+        Get.isRegistered<AuthController>() &&
+        AuthController.instance.isLoggedIn.value;
+    final showMemberPrice = isLoggedIn && AuthController.instance.isMember;
 
     if (isLoggedIn) {
       ///////Integrated Logged-in Cart
@@ -58,10 +62,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
           )
           .toList();
-      return _CartViewModel(
-        items: items,
-        subtotal: cart.subtotal,
-      );
+      return _CartViewModel(items: items, subtotal: cart.subtotal);
     }
 
     ////TEmporary section while waiting for guest session api
@@ -88,9 +89,11 @@ class _CartScreenState extends State<CartScreen> {
 
       final product = productMap[code];
       final name = product?.productName ?? code;
-      final price = product?.memberPrice ?? 0;
+      final price =
+          (showMemberPrice ? product?.memberPrice : product?.regularPrice) ?? 0;
+      final unitPrice = price;
       final imageUrl = product?.imageUrl ?? '';
-      final lineTotal = price * qty;
+      final lineTotal = unitPrice * qty;
       subtotal += lineTotal;
 
       items.add(
@@ -99,8 +102,8 @@ class _CartScreenState extends State<CartScreen> {
           name: name,
           imageUrl: imageUrl,
           qty: qty,
-          price: price,
-          lineTotal: lineTotal,
+          price: price.toDouble(),
+          lineTotal: lineTotal.toDouble(),
         ),
       );
     }
@@ -110,7 +113,8 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<void> _updateQuantity(_CartItemView item, int newQty) async {
     final isLoggedIn =
-        Get.isRegistered<AuthController>() && AuthController.instance.isLoggedIn.value;
+        Get.isRegistered<AuthController>() &&
+        AuthController.instance.isLoggedIn.value;
 
     if (isLoggedIn) {
       final safeQty = newQty < 0 ? 0 : newQty;
@@ -119,7 +123,9 @@ class _CartScreenState extends State<CartScreen> {
       final storage = IAMLocalStorage();
       final raw = storage.readData<List>('guest_cart') ?? [];
       final cart = raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-      final index = cart.indexWhere((e) => e['productCode'] == item.productCode);
+      final index = cart.indexWhere(
+        (e) => e['productCode'] == item.productCode,
+      );
       if (index >= 0) {
         if (newQty <= 0) {
           cart.removeAt(index);
@@ -139,10 +145,6 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subtotal = _calculateSubtotal();
-    final delivery = _deliveryFee();
-    final total = subtotal + delivery;
-
     return Scaffold(
       appBar: IAMAppBar(
         showBackArrow: true,
@@ -168,7 +170,8 @@ class _CartScreenState extends State<CartScreen> {
             }
             return ListView.separated(
               itemCount: model.items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: IAMSizes.spaceBtwSections),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
               itemBuilder: (context, index) {
                 final item = model.items[index];
                 return Container(
@@ -219,39 +222,38 @@ class _CartScreenState extends State<CartScreen> {
                         children: [
                           Text(
                             '₱${item.lineTotal.toStringAsFixed(2)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(IAMSizes.cardRadiusSm),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .dividerColor
-                            .withOpacity(0.6),
-                      ),
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(
+                                    IAMSizes.cardRadiusSm,
+                                  ),
+                                  border: Border.all(
+                                    color: Theme.of(
+                                      context,
+                                    ).dividerColor.withOpacity(0.6),
+                                  ),
+                                  color: Theme.of(context).colorScheme.surface,
+                                ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     GestureDetector(
                                       onTap: item.qty > 1
                                           ? () => _updateQuantity(
-                                                item,
-                                                item.qty - 1,
-                                              )
+                                              item,
+                                              item.qty - 1,
+                                            )
                                           : () => _removeItem(item),
                                       child: const Icon(Icons.remove, size: 16),
                                     ),
@@ -261,9 +263,9 @@ class _CartScreenState extends State<CartScreen> {
                                       ),
                                       child: Text(
                                         '${item.qty}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
                                       ),
                                     ),
                                     GestureDetector(
@@ -300,7 +302,9 @@ class _CartScreenState extends State<CartScreen> {
         builder: (context, snapshot) {
           final model = snapshot.data;
           final hasItems = model != null && model.items.isNotEmpty;
-          final subtotal = model?.subtotal ?? 0;
+          final subtotal = (model?.subtotal ?? 0).toDouble();
+          final delivery = hasItems ? _deliveryFee : 0.0;
+          final grandTotal = subtotal + delivery;
           return Padding(
             padding: const EdgeInsets.all(IAMSizes.defaultSpace),
             child: Column(
@@ -316,10 +320,43 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     Text(
                       '₱${subtotal.toStringAsFixed(2)}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwItems / 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Delivery Fee',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    Text(
+                      '₱${delivery.toStringAsFixed(2)}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwItems),
+                const Divider(),
+                const SizedBox(height: IAMSizes.spaceBtwItems),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Grand Total',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      '₱${grandTotal.toStringAsFixed(2)}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 ),
@@ -331,16 +368,14 @@ class _CartScreenState extends State<CartScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: IAMColors.warning,
                     foregroundColor: IAMColors.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: IAMSizes.md,
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(IAMSizes.cardRadiusLg),
+                      borderRadius: BorderRadius.circular(
+                        IAMSizes.cardRadiusLg,
+                      ),
                     ),
                   ),
-                  child:
-                      Text('Checkout ₱${subtotal.toStringAsFixed(2)}'),
+                  child: Text('Checkout ₱${grandTotal.toStringAsFixed(2)}'),
                 ),
               ],
             ),

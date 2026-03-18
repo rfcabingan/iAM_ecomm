@@ -37,7 +37,7 @@ class IAMProductCardVertical extends StatelessWidget {
           : 'Amazing Barley';
       final memberPrice = product?.memberPrice ?? 750;
       final regularPrice = product?.regularPrice ?? 1000;
-      final showMember = auth.isLoggedIn.value;
+      final showMember = auth.isLoggedIn.value && auth.isMember;
       final displayPrice = showMember ? memberPrice : regularPrice;
       final discountPercent =
           showMember && regularPrice > 0 && memberPrice < regularPrice

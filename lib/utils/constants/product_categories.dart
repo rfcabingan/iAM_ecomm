@@ -23,7 +23,7 @@ class ProductCategories {
   static const List<String> names = [
     //'IAM Packages',
     'Amazing Barley',
-    'Awesome Beauty Products',
+    'Awesome Beauty',
     'Delicious Juice Drinks',
     'Food Supplements',
     'Healthy Coffee',
