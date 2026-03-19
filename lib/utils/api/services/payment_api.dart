@@ -30,7 +30,7 @@ class PaymentApi {
     );
   }
 
-  Future<ApiResponse<dynamic>> createPayment({
+  Future<ApiResponse<PaymentData?>> createPayment({
     required String orderNo,
     required String idno,
     required num amount,
@@ -40,7 +40,7 @@ class PaymentApi {
     required String description,
     required String clientReferenceNo,
   }) {
-    return _client.post<dynamic>(
+    return _client.post<PaymentData?>(
       ApiEndpoints.paymentCreate,
       body: {
         'orderNo': orderNo,
@@ -52,6 +52,7 @@ class PaymentApi {
         'description': description,
         'clientReferenceNo': clientReferenceNo,
       },
+      fromJsonData: PaymentData.fromJson,
     );
   }
 
