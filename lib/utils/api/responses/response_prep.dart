@@ -315,6 +315,52 @@ class PaymentProviderItem {
   }
 }
 
+class PaymentData {
+  final String paymentTxnId;
+  final String orderNo;
+  final String idno;
+  final num amount;
+  final String currency;
+  final int paymentStatusId;
+  final String paymentStatusMessage;
+  final String paymentProvider;
+  final String paymentMethod;
+  final String providerReferenceNumber;
+  final String checkoutUrl;
+
+  PaymentData({
+    required this.paymentTxnId,
+    required this.orderNo,
+    required this.idno,
+    required this.amount,
+    required this.currency,
+    required this.paymentStatusId,
+    required this.paymentStatusMessage,
+    required this.paymentProvider,
+    required this.paymentMethod,
+    required this.providerReferenceNumber,
+    required this.checkoutUrl,
+  });
+
+  static PaymentData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PaymentData(
+      paymentTxnId: m['paymentTxnId'] as String? ?? '',
+      orderNo: m['orderNo'] as String? ?? '',
+      idno: m['idno'] as String? ?? '',
+      amount: (m['amount'] as num?) ?? 0,
+      currency: m['currency'] as String? ?? '',
+      paymentStatusId: (m['paymentStatusId'] as int?) ?? 0,
+      paymentStatusMessage: m['paymentStatusMessage'] as String? ?? '',
+      paymentProvider: m['paymentProvider'] as String? ?? '',
+      paymentMethod: m['paymentMethod'] as String? ?? '',
+      providerReferenceNumber: m['providerReferenceNumber'] as String? ?? '',
+      checkoutUrl: m['checkoutUrl'] as String? ?? '',
+    );
+  }
+}
+
 
 class CartItemPayload {
   final String productCode;

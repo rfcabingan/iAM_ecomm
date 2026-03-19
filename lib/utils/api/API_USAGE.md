@@ -57,7 +57,7 @@ await ApiMiddleware.init();
 
 - `ApiMiddleware.payment.getPaymentMethods()` → `ApiResponse<List<PaymentMethodItem?>>`
 - `ApiMiddleware.payment.getPaymentProviders()` → `ApiResponse<List<PaymentProviderItem?>>`
-- `ApiMiddleware.payment.createPayment(...)` → `ApiResponse<dynamic>`
+- `ApiMiddleware.payment.createPayment(orderNo: ..., idno: ..., amount: ..., currency: ..., paymentProvider: ..., paymentMethod: ..., description: ..., clientReferenceNo: ...)` → `ApiResponse<PaymentData?>`
 - `ApiMiddleware.payment.callbackPayment(...)` → `ApiResponse<dynamic>`
 - `ApiMiddleware.payment.getPaymentByTransaction(transactionId)` → `ApiResponse<dynamic>`
 - `ApiMiddleware.payment.getPaymentStatus(refNo)` → `ApiResponse<dynamic>`
