@@ -6,7 +6,6 @@ import 'package:iam_ecomm/common/widgets/login_signup/social_buttons.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/widgets/login_form.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/widgets/login_header.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
-import 'package:iam_ecomm/navigation_menu.dart' show NavigationController;
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
@@ -22,12 +21,7 @@ class LoginScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            if (Get.isRegistered<NavigationController>()) {
-              final nav = Get.find<NavigationController>();
-              nav.selectedIndex.value = 0;
-            } else {
-              Get.offAll(() => const NavigationMenu());
-            }
+            Get.offAll(() => const NavigationMenu());
           },
         ),
       ),

@@ -31,6 +31,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   late Future<_CartViewModel> _cartFuture;
   final _notesController = TextEditingController();
+  AddressItem? _selectedAddress;
 
   @override
   void initState() {
@@ -148,17 +149,42 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    final notes = _notesController.text.trim();
-    if (notes.isEmpty) {
+    final selectedAddress = _selectedAddress;
+    if (selectedAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter order notes before checkout.'),
+        const SnackBar(content: Text('Please select a shipping address.')),
+      );
+      return;
+    }
+
+    final memberRes = await ApiMiddleware.member.getMember();
+    if (!memberRes.success || memberRes.data == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            memberRes.message.isNotEmpty ? memberRes.message : 'Unable to load your profile.',
+          ),
         ),
       );
       return;
     }
 
-    final res = await ApiMiddleware.checkout.checkout(notes: notes);
+    final member = memberRes.data!;
+    final notes = _notesController.text.trim();
+
+    final res = await ApiMiddleware.checkout.checkout(
+      fullName: selectedAddress.recipientName,
+      mobileNo: selectedAddress.mobileNo,
+      emailAddress: member.emailAddress,
+      country: selectedAddress.country,
+      province: selectedAddress.province,
+      city: selectedAddress.city,
+      barangay: selectedAddress.barangay,
+      streetAddress: selectedAddress.streetAddress,
+      postalCode: selectedAddress.postalCode,
+      completeAddress: selectedAddress.completeAddress,
+      notes: notes.isEmpty ? null : notes,
+    );
     if (!res.success) {
       final msg = res.message.isNotEmpty ? res.message : 'Checkout failed.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
@@ -274,7 +300,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const SizedBox(height: IAMSizes.spaceBtwItems),
                         IAMBillingPaymentSection(),
                         const SizedBox(height: IAMSizes.spaceBtwItems),
-                        const IAMBillingAddressSection(),
+                        IAMBillingAddressSection(
+                          onAddressSelected: (addr) {
+                            setState(() => _selectedAddress = addr);
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -290,10 +320,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           final model = snapshot.data;
           final hasItems = model != null && model.items.isNotEmpty;
           final subtotal = model?.subtotal ?? 0;
+          final canCheckout = hasItems && _selectedAddress != null;
           return Padding(
             padding: const EdgeInsets.all(IAMSizes.defaultSpace),
             child: ElevatedButton(
-              onPressed: hasItems ? () => _placeOrder(model!) : null,
+              onPressed: canCheckout ? () => _placeOrder(model) : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: IAMColors.warning,
                 foregroundColor: IAMColors.white,
@@ -302,7 +333,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
                 ),
               ),
-              child: Text('Checkout ₱${subtotal.toStringAsFixed(2)}'),
+              child: Text(
+                canCheckout
+                    ? 'Checkout ₱${subtotal.toStringAsFixed(2)}'
+                    : 'Select a shipping address',
+              ),
             ),
           );
         },
