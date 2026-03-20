@@ -139,8 +139,8 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subtotal = _calculateSubtotal();
-    final delivery = _deliveryFee();
+    final subtotal = widget._calculateSubtotal();
+    final delivery = widget._deliveryFee();
     final total = subtotal + delivery;
 
     return Scaffold(

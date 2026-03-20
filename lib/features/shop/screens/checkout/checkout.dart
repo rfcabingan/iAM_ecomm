@@ -152,7 +152,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    // Placeholder address data - should be replaced with actual user address input
+    const fullName = 'Juan Dela Cruz';
+    const mobileNo = '0911-222-3333';
+    const emailAddress = 'juan.delacruz@example.com';
+    const country = 'Philippines';
+    const province = 'Metro Manila';
+    const city = 'San Juan City';
+    const barangay = 'Greenhills';
+    const streetAddress = '123 Pedro St.';
+    const postalCode = '1500';
+    const completeAddress = '123 Pedro St., Greenhills, San Juan City, Metro Manila, Philippines';
+
     final res = await ApiMiddleware.checkout.checkout(
+      fullName: fullName,
+      mobileNo: mobileNo,
+      emailAddress: emailAddress,
+      country: country,
+      province: province,
+      city: city,
+      barangay: barangay,
+      streetAddress: streetAddress,
+      postalCode: postalCode,
+      completeAddress: completeAddress,
       notes: notes,
     );
     if (!res.success) {
