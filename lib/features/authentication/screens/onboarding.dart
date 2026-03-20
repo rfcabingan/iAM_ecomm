@@ -25,17 +25,17 @@ class OnBoardingScreen extends StatelessWidget {
             onPageChanged: controller.updatePageIndicator,
             children: [
               OnboardingPage(
-                image: IAMImages.onBoardingImage4,
+                image: IAMImages.onBoardingImage1,
                 title: IAMTexts.onBoardingTitle1,
                 subTitle: IAMTexts.onBoardingSubTitle1,
               ),
               OnboardingPage(
-                image: IAMImages.onBoardingImage7,
+                image: IAMImages.onBoardingImage2,
                 title: IAMTexts.onBoardingTitle2,
                 subTitle: IAMTexts.onBoardingSubTitle2,
               ),
               OnboardingPage(
-                image: IAMImages.onBoardingImage8,
+                image: IAMImages.onBoardingImage3,
                 title: IAMTexts.onBoardingTitle3,
                 subTitle: IAMTexts.onBoardingSubTitle3,
               ),
