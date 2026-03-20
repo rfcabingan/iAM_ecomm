@@ -44,8 +44,8 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
       final qty = qtyValue is int
           ? qtyValue
           : qtyValue is num
-              ? qtyValue.toInt()
-              : int.tryParse(qtyValue?.toString() ?? '') ?? 0;
+          ? qtyValue.toInt()
+          : int.tryParse(qtyValue?.toString() ?? '') ?? 0;
       if (qty <= 0) continue;
 
       qtyByCode[code] = (qtyByCode[code] ?? 0) + qty;
@@ -69,24 +69,25 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
   }
 
   Future<void> _ensureHasAddressOrPrompt() async {
-    // Some newly created accounts (and guest->member conversions) may not
-    // have any saved shipping address yet.
-    const maxAttempts = 5;
+    // Check if user has existing addresses
+    const maxAttempts = 3; // Reduced attempts since we're checking first
 
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       final res = await ApiMiddleware.address.getAddresses();
-      final addresses =
-          res.data?.whereType<AddressItem>().toList() ?? const [];
+      final addresses = res.data?.whereType<AddressItem>().toList() ?? const [];
 
-      if (res.success && addresses.isNotEmpty) return;
+      if (res.success && addresses.isNotEmpty) {
+        // User has addresses, no need to prompt
+        return;
+      }
 
       if (res.success && addresses.isEmpty) {
-        // Force the user to add at least one address before continuing.
+        // User has no addresses, force them to add one
         await Get.to(() => const AddNewAddressScreen());
         continue;
       }
 
-      // If the address API fails, don't block login forever.
+      // If address API fails, don't block login forever
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -148,12 +149,66 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
     await _mergeGuestCartIntoServer();
     if (!mounted) return;
 
+    // Check if user has existing addresses
+    print('DEBUG: Checking for existing addresses...');
+    final addressRes = await ApiMiddleware.address.getAddresses();
+    final addresses =
+        addressRes.data?.whereType<AddressItem>().toList() ?? const [];
+    print(
+      'DEBUG: Address API success: ${addressRes.success}, addresses found: ${addresses.length}',
+    );
+    print('DEBUG: addresses.isNotEmpty: ${addresses.isNotEmpty}');
+    print('DEBUG: addressRes.success: ${addressRes.success}');
+    print(
+      'DEBUG: Combined condition: ${addressRes.success && addresses.isNotEmpty}',
+    );
+    print('DEBUG: mounted status: ${!mounted}');
+
+    if (addressRes.success && addresses.isNotEmpty) {
+      // User has addresses, go directly to NavigationMenu with Home tab selected
+      print(
+        'DEBUG: User has addresses, navigating to NavigationMenu with Home tab',
+      );
+      final successMsg = res.message.isNotEmpty
+          ? res.message
+          : 'You are now signed in.';
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(successMsg)));
+      }
+
+      // Set NavigationController to Home tab (index 0) with delay to override any other initialization
+      final navController = Get.put(NavigationController());
+
+      // Small delay to ensure our navigation overrides any other initialization
+      await Future.delayed(const Duration(milliseconds: 0));
+
+      navController.selectedIndex.value = 0;
+      print(
+        'DEBUG: NavigationController selectedIndex set to: ${navController.selectedIndex.value}',
+      );
+
+      print('DEBUG: About to call Get.offAll(NavigationMenu)');
+      Get.offAll(const NavigationMenu());
+      print('DEBUG: Get.offAll(NavigationMenu) called');
+      return;
+    }
+
+    print(
+      'DEBUG: User has no addresses or API failed, prompting to add address',
+    );
+    // User has no addresses or API failed, prompt to add one
     await _ensureHasAddressOrPrompt();
     if (!mounted) return;
 
-    // Always go to Home tab after login
-    final navController = Get.find<NavigationController>();
+    print('DEBUG: Address prompt completed, navigating to NavigationMenu');
+    // After adding address, go to NavigationMenu with Home tab selected
+    final navController = Get.put(NavigationController());
     navController.selectedIndex.value = 0;
+    print(
+      'DEBUG: NavigationController selectedIndex set to: ${navController.selectedIndex.value}',
+    );
 
     final successMsg = res.message.isNotEmpty
         ? res.message
@@ -162,7 +217,12 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
       context,
     ).showSnackBar(SnackBar(content: Text(successMsg)));
 
-    Get.offAll(() => const NavigationMenu());
+    // Small delay to ensure all reactive updates complete
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+
+    print('DEBUG: About to call Get.offAll(NavigationMenu)');
+    Get.offAll(const NavigationMenu());
   }
 
   @override
