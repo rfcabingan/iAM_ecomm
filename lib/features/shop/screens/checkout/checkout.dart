@@ -73,18 +73,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         Text(
                           'Opening checkout page…',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(color: onSurface, fontWeight: FontWeight.w700),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: onSurface,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Please wait while we prepare your payment.',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: onSurface.withOpacity(0.72), height: 1.2),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: onSurface.withOpacity(0.72),
+                                height: 1.2,
+                              ),
                         ),
                       ],
                     ),
@@ -571,7 +573,8 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
   @override
   void initState() {
     super.initState();
-    _canEmbedWebView = !kIsWeb &&
+    _canEmbedWebView =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS ||
             defaultTargetPlatform == TargetPlatform.macOS);
@@ -630,7 +633,9 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
               ),
               const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: IAMSizes.defaultSpace),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: IAMSizes.defaultSpace,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -643,14 +648,20 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                           end: Alignment.bottomRight,
                           colors: dark
                               ? [
-                                  IAMColors.warning.withOpacity(0.95),
-                                  IAMColors.warning.withOpacity(0.65),
+                                  IAMColors.primary.withOpacity(0.95),
+                                  IAMColors.primary.withOpacity(0.65),
                                 ]
-                              : [IAMColors.warning, IAMColors.warning.withOpacity(0.7)],
+                              : [
+                                  IAMColors.primary,
+                                  IAMColors.primary.withOpacity(0.7),
+                                ],
                         ),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.payments_outlined, color: Colors.white),
+                      child: const Icon(
+                        Icons.payments_outlined,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -659,7 +670,8 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                         children: [
                           Text(
                             'Secure checkout',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
                                   color: onSurface,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -669,7 +681,8 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                             widget.orderRef.isNotEmpty
                                 ? 'Order ${widget.orderRef} · ₱${widget.totalAmount.toStringAsFixed(2)}'
                                 : 'Complete your payment to confirm the order.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
                                   color: onSurface.withOpacity(0.72),
                                   height: 1.25,
                                 ),
@@ -680,7 +693,10 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                     IconButton(
                       tooltip: 'Close',
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.close_rounded, color: onSurface.withOpacity(0.8)),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: onSurface.withOpacity(0.8),
+                      ),
                     ),
                   ],
                 ),
@@ -692,18 +708,22 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                     value: _progress / 100.0,
                     minHeight: 2.5,
                     backgroundColor: onSurface.withOpacity(dark ? 0.12 : 0.08),
-                    color: IAMColors.warning,
+                    color: IAMColors.primary,
                   ),
                 )
               else
                 const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: IAMSizes.defaultSpace),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: IAMSizes.defaultSpace,
+                ),
                 child: Row(
                   children: [
                     OutlinedButton.icon(
                       onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: widget.checkoutUrl));
+                        await Clipboard.setData(
+                          ClipboardData(text: widget.checkoutUrl),
+                        );
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Checkout URL copied.')),
@@ -713,28 +733,48 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                       label: const Text('Copy'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: onSurface,
-                        side: BorderSide(color: onSurface.withOpacity(dark ? 0.22 : 0.18)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        side: BorderSide(
+                          color: onSurface.withOpacity(dark ? 0.22 : 0.18),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     OutlinedButton.icon(
-                      onPressed: () => IAMDeviceUtils.launchUrl(widget.checkoutUrl),
+                      onPressed: () =>
+                          IAMDeviceUtils.launchUrl(widget.checkoutUrl),
                       icon: const Icon(Icons.open_in_new_rounded, size: 18),
                       label: const Text('Browser'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: onSurface,
-                        side: BorderSide(color: onSurface.withOpacity(dark ? 0.22 : 0.18)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        side: BorderSide(
+                          color: onSurface.withOpacity(dark ? 0.22 : 0.18),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                     const Spacer(),
                     IconButton(
                       tooltip: 'Refresh',
-                      onPressed: _canEmbedWebView ? () => _controller?.reload() : null,
-                      icon: Icon(Icons.refresh_rounded, color: onSurface.withOpacity(0.8)),
+                      onPressed: _canEmbedWebView
+                          ? () => _controller?.reload()
+                          : null,
+                      icon: Icon(
+                        Icons.refresh_rounded,
+                        color: onSurface.withOpacity(0.8),
+                      ),
                     ),
                   ],
                 ),
@@ -753,7 +793,9 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: onSurface.withOpacity(dark ? 0.05 : 0.03),
-                        border: Border.all(color: onSurface.withOpacity(dark ? 0.14 : 0.10)),
+                        border: Border.all(
+                          color: onSurface.withOpacity(dark ? 0.14 : 0.10),
+                        ),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: _canEmbedWebView
@@ -765,7 +807,10 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                                 children: [
                                   Text(
                                     'In-app checkout isn’t available on Windows.',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
                                           color: onSurface,
                                           fontWeight: FontWeight.w800,
                                         ),
@@ -773,7 +818,10 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                                   const SizedBox(height: 6),
                                   Text(
                                     'Tap “Browser” to open the secure checkout page.',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
                                           color: onSurface.withOpacity(0.72),
                                           height: 1.25,
                                         ),
@@ -781,7 +829,8 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                                   const SizedBox(height: 14),
                                   SelectableText(
                                     widget.checkoutUrl,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
                                           color: onSurface,
                                           height: 1.25,
                                         ),
