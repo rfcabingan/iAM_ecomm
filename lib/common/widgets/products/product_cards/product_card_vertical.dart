@@ -18,6 +18,7 @@ import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:iam_ecomm/features/shop/controllers/wishlist_controller.dart';
 
 class IAMProductCardVertical extends StatelessWidget {
   const IAMProductCardVertical({super.key, this.product});
@@ -27,9 +28,18 @@ class IAMProductCardVertical extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = AuthController.instance;
+    final wishlistController = Get.put(WishlistController());
 
     return Obx(() {
       final dark = IAMHelperFunctions.isDarkMode(context);
+      final productCode = product?.productCode;
+      final wishlisted = productCode == null
+          ? false
+          : (wishlistController.wishlistedByCode[productCode] ?? false);
+      final toggling = productCode == null
+          ? false
+          : (wishlistController.togglingByCode[productCode] ?? false);
+
       final imageUrl = product?.imageUrl ?? IAMImages.pibarcap;
       final isNetwork = product != null;
       final title = product?.productName ?? 'Amazing Organic Barley';
@@ -105,8 +115,43 @@ class IAMProductCardVertical extends StatelessWidget {
                       top: 2,
                       right: 2,
                       child: IAMCircularIcon(
-                        icon: Iconsax.heart5,
-                        color: Colors.red,
+                        icon: wishlisted ? Iconsax.heart : Iconsax.heart5,
+                        color: wishlisted
+                            ? Colors.red
+                            : (dark
+                                ? IAMColors.lightGrey
+                                : IAMColors.darkGrey),
+                        onPressed: productCode == null || toggling
+                            ? null
+                            : () {
+                                wishlistController
+                                    .toggleWishlist(productCode)
+                                    .then((result) {
+                                  if (!context.mounted) return;
+                                  if (result.message.isEmpty) return;
+
+                                  final backgroundColor = result.wishlisted
+                                      ? Colors.green[300]
+                                      : Colors.red[300];
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        result.message,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      backgroundColor: backgroundColor,
+                                      behavior: SnackBarBehavior.floating,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                    ),
+                                  );
+                                });
+                              },
                       ),
                     ),
                   ],
