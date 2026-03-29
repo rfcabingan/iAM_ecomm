@@ -30,7 +30,7 @@ class IAMImages {
   static const String deliciousJuiceDrinks = "assets/images/categories/orange-juice.png";
   static const String deliciousJuiceDrinks1 = "assets/images/categories/cat-juice.png";
   static const String foodSupplements = "assets/images/categories/vitamins.png";
-  static const String foodSupplements1 = "assets/images/categories/cat-supplement.png";
+  static const String foodSupplements1 = "assets/images/categories/cat-supplements.png";
   static const String healthyCoffee = "assets/images/categories/coffee-cup.png";
   static const String healthyCoffee1 = "assets/images/categories/cat-coffee.png";
   static const String protectiveAccessories =

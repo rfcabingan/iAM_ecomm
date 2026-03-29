@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
@@ -6,6 +7,7 @@ import 'package:iam_ecomm/common/widgets/custom_shapes/containers/primary_header
 import 'package:iam_ecomm/common/widgets/custom_shapes/containers/search_bar.dart';
 import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_appbar.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_categories.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/promo_slider.dart';
@@ -85,25 +87,36 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: IAMSizes.spaceBtwSections),
 
                   // —— IAM Packages (packages only, all packages displayed from highest to lowest) ——
-                  IAMSectionHeading(
-                    title: 'IAM Packages',
-                    showActionButton: false,
-                  ),
-                  //const SizedBox(height: IAMSizes.spaceBtwItems),
-                  Builder(
-                    builder: (context) {
-                      // Reverse order: Jade (highest) -> Platinum -> Gold -> Silver -> Bronze -> Copper (lowest)
-                      final packagesReversed = IAMProductsData.packages.reversed
-                          .toList();
-                      return IAMGridLayout(
-                        itemCount: packagesReversed.length,
-                        itemBuilder: (_, index) => IAMProductCardVertical(
-                          product: packagesReversed[index],
+                  Obx(() {
+                    final authController = AuthController.instance;
+                    if (!authController.isLoggedIn.value) {
+                      return const SizedBox.shrink(); // Hide when not logged in
+                    }
+                    
+                    return Column(
+                      children: [
+                        IAMSectionHeading(
+                          title: 'IAM Packages',
+                          showActionButton: false,
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: IAMSizes.spaceBtwSections),
+                        //const SizedBox(height: IAMSizes.spaceBtwItems),
+                        Builder(
+                          builder: (context) {
+                            // Reverse order: Jade (highest) -> Platinum -> Gold -> Silver -> Bronze -> Copper (lowest)
+                            final packagesReversed = IAMProductsData.packages.reversed
+                                .toList();
+                            return IAMGridLayout(
+                              itemCount: packagesReversed.length,
+                              itemBuilder: (_, index) => IAMProductCardVertical(
+                                product: packagesReversed[index],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: IAMSizes.spaceBtwSections),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),

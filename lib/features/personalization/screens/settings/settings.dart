@@ -76,7 +76,7 @@ class SettingScreen extends StatelessWidget {
                     subTitle: 'Track In-Progress and Completed Orders',
                     onTap: () => Get.to(() => const OrderScreen()),
                   ),
-                  IAMSettingMenu(
+                  /*IAMSettingMenu(
                     icon: Iconsax.bank,
                     title: 'Bank Account',
                     subTitle: 'Manage Connected Banks',
@@ -91,7 +91,7 @@ class SettingScreen extends StatelessWidget {
                     title: 'Invite Friends',
                     subTitle: 'Share and Referral Settings',
                   ),
-                  //INVITE FRIENDS VIEWS USER ID WHRE USERS CAN COPY AND WILL THEN SEND A DOWNLOADABLE APP URL WITH THEIR REFERRAL CODE AUTOMATICALLY INSERTED
+*/                  //INVITE FRIENDS VIEWS USER ID WHRE USERS CAN COPY AND WILL THEN SEND A DOWNLOADABLE APP URL WITH THEIR REFERRAL CODE AUTOMATICALLY INSERTED
                   IAMSettingMenu(
                     icon: Iconsax.message_question,
                     title: 'Help Center',
@@ -153,12 +153,12 @@ class SettingScreen extends StatelessWidget {
                   //
                   //
                   //// IAMSettingMenu
-                  IAMSettingMenu(
+                  /*IAMSettingMenu(
                     icon: Iconsax.image,
                     title: 'HD Image Quality',
                     subTitle: 'Use high-quality images',
                     trailing: Switch(value: false, onChanged: (value) {}),
-                  ),
+                  ),*/
 
                   //Logout Button
                   const SizedBox(height: IAMSizes.spaceBtwSections),
