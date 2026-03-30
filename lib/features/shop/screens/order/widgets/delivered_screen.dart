@@ -4,6 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:intl/intl.dart';
 
 class DeliveredTab extends StatelessWidget {
   const DeliveredTab({super.key});
@@ -13,10 +14,9 @@ class DeliveredTab extends StatelessWidget {
     final dark = IAMHelperFunctions.isDarkMode(context);
     return Scaffold(
       backgroundColor: IAMColors.white,
-
       body: ListView.separated(
         padding: const EdgeInsets.all(IAMSizes.md),
-        itemCount: 5, // sample count
+        itemCount: 2, // sample count
         separatorBuilder: (_, __) =>
             const SizedBox(height: IAMSizes.spaceBtwItems),
         itemBuilder: (_, index) {
@@ -28,90 +28,150 @@ class DeliveredTab extends StatelessWidget {
 
   /// ---------------- ORDER CARD ----------------
   Widget _orderCard(BuildContext context) {
-    return IAMRoundedContainer(
-      padding: const EdgeInsets.all(IAMSizes.md),
-      backgroundColor: IAMColors.light,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// HEADER (Status)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Order Delivered',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: IAMColors.primary,
+    final orderDate =
+        DateTime.now(); //sample date habang wala pang delivered :D
+    return GestureDetector(
+      onTap: () {
+        print('Tapped on order card');
+      },
+      child: IAMRoundedContainer(
+        padding: const EdgeInsets.all(IAMSizes.md),
+        backgroundColor: IAMColors.light,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 6),
+
+            /// ---------------- HEADER ----------------
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: IAMColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Iconsax.tick_circle,
+                    size: 20,
+                    color: IAMColors.grey,
+                  ),
                 ),
-              ),
-              const Icon(Iconsax.tick_circle, color: IAMColors.primary),
-            ],
-          ),
+                const SizedBox(width: IAMSizes.spaceBtwItems / 2),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Delivered",
+                      style: Theme.of(context).textTheme.bodyMedium!.apply(
+                        color: IAMColors.primary,
+                        fontWeightDelta: 1,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('dd-MMM-yyyy, h:mma').format(orderDate),
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ],
+                ),
+              ],
+            ),
 
-          const SizedBox(height: IAMSizes.spaceBtwItems),
+            const SizedBox(height: IAMSizes.spaceBtwItems),
 
-          /// ITEM LIST
-          _itemRow('iPhone 15 Pro Max', '₱75,990', 'x1'),
-          const SizedBox(height: IAMSizes.sm),
-          _itemRow('AirPods Pro', '₱14,990', 'x1'),
+            /// ---------------- SUBTITLE BELOW TITLE ----------------
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: IAMColors.lightGrey,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Iconsax.hashtag,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Order 123456789',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall!.copyWith(color: Colors.grey[600]),
+                ),
+              ],
+            ),
 
-          const SizedBox(height: IAMSizes.spaceBtwItems),
+            const SizedBox(height: IAMSizes.spaceBtwItems),
 
-          /// TOTAL
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Order Total', style: TextStyle(color: Colors.grey)),
-              Text('₱90,980', style: TextStyle(fontWeight: FontWeight.bold)),
-            ],
-          ),
+            /// ---------------- ITEM LIST ----------------
+            _itemRow('Item 1', '₱100.00', 'x1'),
+            const SizedBox(height: IAMSizes.sm),
+            _itemRow('Item 2', '₱0.00', 'x2'),
 
-          const SizedBox(height: IAMSizes.spaceBtwItems),
+            const SizedBox(height: IAMSizes.spaceBtwItems),
 
-          Divider(color: Colors.grey[300]),
+            /// ---------------- TOTAL ----------------
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text('Order Total', style: TextStyle(color: Colors.grey)),
+                Text('₱00.00', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
 
-          const SizedBox(height: IAMSizes.spaceBtwItems),
+            const SizedBox(height: IAMSizes.spaceBtwItems),
 
-          /// ACTIONS
-          Row(
-            children: [
-              /// RATE (LEFT)
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showRatingModal(context),
-                  icon: const Icon(Iconsax.star, size: 18),
-                  label: const Text('Rate'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: IAMColors.dark,
-                    side: const BorderSide(color: IAMColors.grey),
-                    padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+            Divider(color: Colors.grey[300]),
+
+            const SizedBox(height: IAMSizes.spaceBtwItems),
+
+            /// ---------------- ACTIONS ----------------
+            Row(
+              children: [
+                /// RATE (LEFT)
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showRatingModal(context),
+                    icon: const Icon(Iconsax.star, size: 18),
+                    label: const Text('Rate'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: IAMColors.dark,
+                      side: const BorderSide(color: IAMColors.grey),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: IAMSizes.md,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              const SizedBox(width: IAMSizes.spaceBtwItems),
+                const SizedBox(width: IAMSizes.spaceBtwItems),
 
-              /// BUY AGAIN (RIGHT)
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: IAMColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                /// BUY AGAIN (RIGHT)
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: IAMColors.primary,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: IAMSizes.md,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
+                    child: const Text('Buy Again'),
                   ),
-                  child: const Text('Buy Again'),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -277,7 +337,6 @@ class _RatingSheetState extends State<_RatingSheet>
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  // You can handle the submitted rating and comment here
                   print('Rating: $_rating');
                   print('Comment: ${_commentController.text}');
                   Navigator.of(context).pop();
