@@ -6,7 +6,6 @@ import 'package:iam_ecomm/common/widgets/products.cart/coupon_widget.dart';
 import 'package:iam_ecomm/common/widgets/success_screen/success_screen.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller.dart';
-import 'package:iam_ecomm/features/screens/home/home.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_address_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_amount_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_payment_provider_section.dart';
@@ -23,6 +22,7 @@ import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:math' as math;
 import 'package:webview_flutter/webview_flutter.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -633,6 +633,18 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
   WebViewController? _controller;
   int _progress = 0;
   late final bool _canEmbedWebView;
+  double _dragOffsetY = 0;
+  bool _isExiting = false;
+
+  void _redirectToHomeWithBottomNav() {
+    if (_isExiting) return;
+    _isExiting = true;
+
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+    Get.offAll(() => const NavigationMenu());
+  }
 
   @override
   void initState() {
@@ -670,27 +682,59 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
       heightFactor: 0.92,
       alignment: Alignment.bottomCenter,
       child: Container(
-          decoration: BoxDecoration(
-            color: surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(dark ? 0.55 : 0.25),
-                blurRadius: 24,
-                offset: const Offset(0, -8),
-              ),
-            ],
-          ),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(dark ? 0.55 : 0.25),
+              blurRadius: 24,
+              offset: const Offset(0, -8),
+            ),
+          ],
+        ),
+        child: Transform.translate(
+          offset: Offset(0, _dragOffsetY),
           child: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
               const SizedBox(height: 10),
-              Container(
-                width: 44,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: onSurface.withOpacity(dark ? 0.22 : 0.16),
-                  borderRadius: BorderRadius.circular(999),
+              GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onVerticalDragUpdate: (details) {
+                  if (_isExiting) return;
+                  // Only react when the user drags downward.
+                  if (details.delta.dy <= 0) return;
+
+                  setState(() {
+                    _dragOffsetY = math.min(
+                      _dragOffsetY + details.delta.dy,
+                      220,
+                    );
+                  });
+                },
+                onVerticalDragEnd: (_) {
+                  if (_isExiting) return;
+
+                  const closeThreshold = 120.0;
+                  if (_dragOffsetY >= closeThreshold) {
+                    _redirectToHomeWithBottomNav();
+                  } else {
+                    setState(() => _dragOffsetY = 0);
+                  }
+                },
+                child: SizedBox(
+                  height: 28,
+                  child: Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: onSurface.withOpacity(dark ? 0.22 : 0.16),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -755,9 +799,7 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                     IconButton(
                       tooltip: 'Close',
                       onPressed: () {
-                        // Redirect to home since payment wasn't completed
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                        Get.offAll(() => const HomeScreen());
+                        _redirectToHomeWithBottomNav();
                       },
                       icon: Icon(
                         Icons.close_rounded,
@@ -922,6 +964,7 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
             ],
           ),
         ),
+      ),
     );
   }
 }
