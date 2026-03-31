@@ -6,6 +6,7 @@ import 'package:iam_ecomm/common/widgets/products.cart/coupon_widget.dart';
 import 'package:iam_ecomm/common/widgets/success_screen/success_screen.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller.dart';
+import 'package:iam_ecomm/features/screens/home/home.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_address_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_amount_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_payment_provider_section.dart';
@@ -115,6 +116,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: false,
       builder: (_) {
         return _CheckoutWebViewSheet(
           checkoutUrl: checkoutUrl,
@@ -663,25 +666,10 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
     final surface = dark ? const Color(0xFF0F1115) : IAMColors.white;
     final onSurface = dark ? IAMColors.white : IAMColors.black;
 
-    return NotificationListener<DraggableScrollableNotification>(
-      onNotification: (notification) {
-        // When sheet is dragged down to minimum size, navigate to home
-        if (notification.extent <= notification.minExtent + 0.1) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              Get.offAll(() => const NavigationMenu());
-            }
-          });
-        }
-        return false;
-      },
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.92,
-        minChildSize: 0.55,
-        maxChildSize: 1.0, // Increased from 0.98 to 1.0 for full screen scrolling
-        builder: (context, scrollController) {
-        return Container(
+    return FractionallySizedBox(
+      heightFactor: 0.92,
+      alignment: Alignment.bottomCenter,
+      child: Container(
           decoration: BoxDecoration(
             color: surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
@@ -767,9 +755,9 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                     IconButton(
                       tooltip: 'Close',
                       onPressed: () {
-                        // Navigate to home instead of just popping
+                        // Redirect to home since payment wasn't completed
                         Navigator.of(context).popUntil((route) => route.isFirst);
-                        Get.offAll(() => const NavigationMenu());
+                        Get.offAll(() => const HomeScreen());
                       },
                       icon: Icon(
                         Icons.close_rounded,
@@ -933,9 +921,7 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
               ),
             ],
           ),
-        );
-      },
-      ),
+        ),
     );
   }
 }
