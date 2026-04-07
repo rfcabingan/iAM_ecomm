@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
@@ -13,8 +14,6 @@ class DeliveredTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = IAMHelperFunctions.isDarkMode(context);
-
     return FutureBuilder(
       future: ApiMiddleware.orders.getOrders(),
       builder: (context, snapshot) {
@@ -28,7 +27,13 @@ class DeliveredTab extends StatelessWidget {
           return const Center(child: Text('No orders found'));
         }
 
-        final orders = snapshot.data!.data ?? [];
+        final orders = (snapshot.data!.data ?? [])
+            .where(
+              (order) =>
+                  order != null &&
+                  order.orderStatusName.toLowerCase() == 'delivered',
+            )
+            .toList();
 
         if (orders.isEmpty) {
           return const Center(child: Text('No orders found'));
@@ -47,7 +52,7 @@ class DeliveredTab extends StatelessWidget {
             try {
               orderDate = DateFormat(
                 'yyyy-MM-dd HH:mm:ss',
-              ).parse(order.orderDate!);
+              ).parse(order.orderDate);
             } catch (_) {
               orderDate = DateTime.now();
             }
@@ -61,197 +66,242 @@ class DeliveredTab extends StatelessWidget {
 
   /// ---------------- ORDER CARD ----------------
   Widget _orderCard(BuildContext context, OrderItem order, DateTime orderDate) {
-    return GestureDetector(
-      onTap: () {
-        print('Tapped on order card');
+    return FutureBuilder<ApiResponse<OrderDetailItem?>>(
+      future: ApiMiddleware.orders.getOrderDetail(order.orderRefno),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return IAMRoundedContainer(
+            padding: const EdgeInsets.all(IAMSizes.md),
+            backgroundColor: IAMColors.light,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (!snapshot.hasData ||
+            snapshot.data == null ||
+            !(snapshot.data?.success ?? false) ||
+            snapshot.data!.data == null) {
+          return IAMRoundedContainer(
+            padding: const EdgeInsets.all(IAMSizes.md),
+            backgroundColor: IAMColors.light,
+            child: const Text('Failed to load order details'),
+          );
+        }
+
+        final orderDetail = snapshot.data!.data!;
+        final items = orderDetail.items ?? [];
+
+        return IAMRoundedContainer(
+          padding: const EdgeInsets.all(IAMSizes.md),
+          backgroundColor: IAMColors.light,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// ---------------- HEADER ----------------
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: IAMColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.tick_circle,
+                      size: 20,
+                      color: IAMColors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: IAMSizes.spaceBtwItems / 2),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        order.orderStatusName,
+                        style: Theme.of(context).textTheme.bodyMedium!.apply(
+                          color: IAMColors.primary,
+                          fontWeightDelta: 1,
+                        ),
+                      ),
+                      Text(
+                        DateFormat(
+                          'dd-MMM-yyyy, hh:mma',
+                        ).format(DateTime.parse(order.orderDate)),
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: IAMSizes.spaceBtwItems),
+
+              /// ---------------- ORDER NUMBER ----------------
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: IAMColors.lightGrey,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.hashtag,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Order ${order.orderRefno}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall!.copyWith(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: IAMSizes.spaceBtwItems),
+
+              /// ---------------- ITEM LIST ----------------
+              Column(
+                children: items.where((item) => item != null).map((item) {
+                  final nonNullItem = item!;
+                  return _itemRow(
+                    nonNullItem.productName ?? 'Unnamed Product',
+                    NumberFormat.currency(
+                      locale: 'en_PH',
+                      symbol: '₱',
+                      decimalDigits: 2,
+                    ).format(nonNullItem.sellingPrice ?? 0),
+                    'x${nonNullItem.qty ?? 1}',
+                    nonNullItem.imageUrl,
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: IAMSizes.spaceBtwItems),
+              const SizedBox(height: IAMSizes.spaceBtwItems),
+
+              /// ---------------- TOTAL ----------------
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Order Total',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    NumberFormat.currency(
+                      locale: 'en_PH',
+                      symbol: '₱',
+                      decimalDigits: 2,
+                    ).format(orderDetail.totalAmount),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+
+              Divider(color: Colors.grey[300]),
+              const SizedBox(height: IAMSizes.spaceBtwItems),
+
+              /// ---------------- ACTIONS ----------------
+              Row(
+                children: [
+                  /// RATE BUTTON
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showRatingModal(context),
+                      icon: const Icon(Iconsax.star, size: 18),
+                      label: const Text('Rate'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: IAMColors.dark,
+                        side: const BorderSide(color: IAMColors.grey),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: IAMSizes.md,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: IAMSizes.spaceBtwItems),
+
+                  /// BUY AGAIN BUTTON
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: IAMColors.primary,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: IAMSizes.md,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text('Buy Again'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
       },
-      child: IAMRoundedContainer(
-        padding: const EdgeInsets.all(IAMSizes.md),
-        backgroundColor: IAMColors.light,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 6),
-
-            /// ---------------- HEADER ----------------
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: IAMColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Iconsax.tick_circle,
-                    size: 20,
-                    color: IAMColors.grey,
-                  ),
-                ),
-                const SizedBox(width: IAMSizes.spaceBtwItems / 2),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Delivered",
-                      style: Theme.of(context).textTheme.bodyMedium!.apply(
-                        color: IAMColors.primary,
-                        fontWeightDelta: 1,
-                      ),
-                    ),
-
-                    Text(
-                      DateFormat(
-                        'dd-MMM-yyyy, hh:mma',
-                      ).format(DateTime.parse(order.orderDate)),
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems),
-
-            /// ---------------- SUBTITLE BELOW TITLE ----------------
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: IAMColors.lightGrey,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Iconsax.hashtag,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-                // const SizedBox(width: 8),
-                // Text(
-                //   'Order 123456789',
-                //   style: Theme.of(
-                //     context,
-                //   ).textTheme.bodySmall!.copyWith(color: Colors.grey[600]),
-                // ),
-                const SizedBox(width: 4),
-
-                Text(
-                  'Order ${order.orderRefno}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall!.copyWith(color: Colors.grey[600]),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems),
-
-            /// ---------------- ITEM LIST ----------------
-            _itemRow('Item 1', '₱100.00', 'x1'),
-            const SizedBox(height: IAMSizes.sm),
-            _itemRow('Item 2', '₱0.00', 'x2'),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems),
-
-            /// ---------------- TOTAL ----------------
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('Order Total', style: TextStyle(color: Colors.grey)),
-                Text('₱00.00', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems),
-
-            Divider(color: Colors.grey[300]),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems),
-
-            /// ---------------- ACTIONS ----------------
-            Row(
-              children: [
-                /// RATE (LEFT)
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showRatingModal(context),
-                    icon: const Icon(Iconsax.star, size: 18),
-                    label: const Text('Rate'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: IAMColors.dark,
-                      side: const BorderSide(color: IAMColors.grey),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: IAMSizes.md,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: IAMSizes.spaceBtwItems),
-
-                /// BUY AGAIN (RIGHT)
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: IAMColors.primary,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: IAMSizes.md,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text('Buy Again'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 
   /// ---------------- ITEM ROW ----------------
-  Widget _itemRow(String title, String price, String qty) {
-    return Row(
-      children: [
-        /// IMAGE PLACEHOLDER
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(IAMSizes.sm),
+  Widget _itemRow(String title, String price, String qty, String? imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          /// IMAGE
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(IAMSizes.sm),
+              image: (imageUrl != null && imageUrl.isNotEmpty)
+                  ? DecorationImage(
+                      image: NetworkImage(imageUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: (imageUrl == null || imageUrl.isEmpty)
+                ? const Icon(Iconsax.box, size: 20)
+                : null,
           ),
-          child: const Icon(Iconsax.box, size: 20),
-        ),
 
-        const SizedBox(width: IAMSizes.spaceBtwItems),
+          const SizedBox(width: IAMSizes.spaceBtwItems),
 
-        /// NAME
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+          /// NAME
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
           ),
-        ),
 
-        /// PRICE + QTY
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(price),
-            Text(qty, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          ],
-        ),
-      ],
+          /// PRICE + QTY
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(price),
+              Text(
+                qty,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -285,8 +335,7 @@ class _RatingSheet extends StatefulWidget {
   State<_RatingSheet> createState() => _RatingSheetState();
 }
 
-class _RatingSheetState extends State<_RatingSheet>
-    with SingleTickerProviderStateMixin {
+class _RatingSheetState extends State<_RatingSheet> {
   int _rating = 0;
   final TextEditingController _commentController = TextEditingController();
 
@@ -316,8 +365,6 @@ class _RatingSheetState extends State<_RatingSheet>
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: IAMSizes.md),
-
-        /// ---------------- STARS ----------------
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (index) {
@@ -340,10 +387,7 @@ class _RatingSheetState extends State<_RatingSheet>
             );
           }),
         ),
-
         const SizedBox(height: IAMSizes.md),
-
-        /// ---------------- COMMENT FIELD ----------------
         TextField(
           controller: _commentController,
           maxLines: 4,
@@ -355,10 +399,7 @@ class _RatingSheetState extends State<_RatingSheet>
             ),
           ),
         ),
-
         const SizedBox(height: IAMSizes.lg),
-
-        /// ---------------- CANCEL / CONFIRM ----------------
         Row(
           children: [
             Expanded(

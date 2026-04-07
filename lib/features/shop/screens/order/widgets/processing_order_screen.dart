@@ -31,7 +31,13 @@ class ProcessingTab extends StatelessWidget {
           return const Center(child: Text('No orders found'));
         }
 
-        final List<OrderItem?> orders = snapshot.data!.data ?? [];
+        final List<OrderItem?> orders = (snapshot.data!.data ?? [])
+            .where(
+              (order) =>
+                  order != null &&
+                  order.orderStatusName.toLowerCase() == 'pending',
+            )
+            .toList();
 
         if (orders.isEmpty) {
           return const Center(child: Text('No orders found'));
