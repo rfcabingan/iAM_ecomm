@@ -180,8 +180,7 @@ class DeliveredTab extends StatelessWidget {
                 }).toList(),
               ),
 
-              const SizedBox(height: IAMSizes.spaceBtwItems),
-              const SizedBox(height: IAMSizes.spaceBtwItems),
+              const SizedBox(height: IAMSizes.spaceBtwItems * 2),
 
               /// ---------------- TOTAL ----------------
               Row(
@@ -208,12 +207,46 @@ class DeliveredTab extends StatelessWidget {
               /// ---------------- ACTIONS ----------------
               Row(
                 children: [
-                  /// RATE BUTTON
+                  /// RATE / VIEW REVIEW BUTTON
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => _showRatingModal(context),
-                      icon: const Icon(Iconsax.star, size: 18),
-                      label: const Text('Rate'),
+                      onPressed: () async {
+                        if (items.isEmpty || items.first?.productCode == null)
+                          return;
+
+                        final productCode = items.first!.productCode!;
+
+                        // Fetch first review safely
+                        final reviewsResponse = await ApiMiddleware
+                            .productReview
+                            .getReviews(productCode);
+
+                        final hasReviewed =
+                            reviewsResponse.success &&
+                            reviewsResponse.data != null &&
+                            reviewsResponse.data!.isNotEmpty;
+
+                        if (hasReviewed) {
+                          final firstReview = reviewsResponse.data!.firstWhere(
+                            (r) => r != null,
+                            orElse: () => null,
+                          );
+
+                          if (firstReview != null) {
+                            _showViewReviewModal(context, firstReview);
+                            return;
+                          }
+                        }
+
+                        _showRatingModal(context, productCode);
+                      },
+
+                      icon: Icon(
+                        Iconsax.star1, // filled star
+                        size: 23,
+                        color: IAMColors.primary,
+                      ),
+                      label: const Text('View Rating'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: IAMColors.dark,
                         side: const BorderSide(color: IAMColors.grey),
@@ -253,84 +286,165 @@ class DeliveredTab extends StatelessWidget {
       },
     );
   }
+}
 
-  /// ---------------- ITEM ROW ----------------
-  Widget _itemRow(String title, String price, String qty, String? imageUrl) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          /// IMAGE
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(IAMSizes.sm),
-              image: (imageUrl != null && imageUrl.isNotEmpty)
-                  ? DecorationImage(
-                      image: NetworkImage(imageUrl),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: (imageUrl == null || imageUrl.isEmpty)
-                ? const Icon(Iconsax.box, size: 20)
+/// ---------------- ITEM ROW ----------------
+Widget _itemRow(String title, String price, String qty, String? imageUrl) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      children: [
+        /// IMAGE
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(IAMSizes.sm),
+            image: (imageUrl != null && imageUrl.isNotEmpty)
+                ? DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                  )
                 : null,
           ),
+          child: (imageUrl == null || imageUrl.isEmpty)
+              ? const Icon(Iconsax.box, size: 20)
+              : null,
+        ),
 
-          const SizedBox(width: IAMSizes.spaceBtwItems),
+        const SizedBox(width: IAMSizes.spaceBtwItems),
 
-          /// NAME
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
+        /// NAME
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
+        ),
 
-          /// PRICE + QTY
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(price),
-              Text(
-                qty,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+        /// PRICE + QTY
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(price),
+            Text(qty, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+/// ---------------- SHOW RATING MODAL ----------------
+void _showRatingModal(BuildContext context, String productCode) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: IAMColors.white,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) {
+      return Padding(
+        padding: EdgeInsets.only(
+          left: IAMSizes.md,
+          right: IAMSizes.md,
+          top: IAMSizes.md,
+          bottom: MediaQuery.of(context).viewInsets.bottom + IAMSizes.md,
+        ),
+        child: _RatingSheet(productCode: productCode),
+      );
+    },
+  );
+}
+
+// sho0w rating details
+
+void _showViewReviewModal(BuildContext context, ProductReviewItem review) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: IAMColors.white,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) {
+      return Padding(
+        padding: EdgeInsets.only(
+          left: IAMSizes.md,
+          right: IAMSizes.md,
+          top: IAMSizes.md,
+          bottom: MediaQuery.of(context).viewInsets.bottom + IAMSizes.md,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+            const SizedBox(height: IAMSizes.md),
+            const Text(
+              'Your Review',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: IAMSizes.md),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                final rating = review.rating ?? 0;
+                final isSelected = index < rating;
+                final double size = isSelected ? 44 : 36;
 
-  /// ---------------- SHOW RATING MODAL ----------------
-  void _showRatingModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: IAMColors.white,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: IAMSizes.md,
-            right: IAMSizes.md,
-            top: IAMSizes.md,
-            bottom: MediaQuery.of(context).viewInsets.bottom + IAMSizes.md,
-          ),
-          child: _RatingSheet(),
-        );
-      },
-    );
-  }
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Icon(
+                    isSelected ? Iconsax.star1 : Iconsax.star,
+                    color: IAMColors.primary,
+                    size: size,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: IAMSizes.md),
+            Text(
+              review.reviewComment ?? '',
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: IAMSizes.lg),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: IAMColors.dark,
+                side: const BorderSide(color: IAMColors.grey),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+            const SizedBox(height: IAMSizes.md),
+          ],
+        ),
+      );
+    },
+  );
 }
 
 /// ---------------- RATING SHEET ----------------
 class _RatingSheet extends StatefulWidget {
+  final String productCode;
+
+  const _RatingSheet({required this.productCode});
+
   @override
   State<_RatingSheet> createState() => _RatingSheetState();
 }
@@ -375,13 +489,23 @@ class _RatingSheetState extends State<_RatingSheet> {
                   _rating = index + 1;
                 });
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                child: Icon(
-                  isSelected ? Iconsax.star1 : Iconsax.star,
-                  color: isSelected ? IAMColors.primary : Colors.grey,
-                  size: 40,
+              child: AnimatedRotation(
+                turns: isSelected ? 0.75 : 0.0,
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutBack,
+                child: AnimatedScale(
+                  scale: isSelected ? 1.3 : 1.0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutBack,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Icon(
+                      isSelected ? Iconsax.star1 : Iconsax.star,
+                      color: isSelected ? IAMColors.primary : Colors.grey,
+                      size: isSelected ? 44 : 36,
+                    ),
+                  ),
                 ),
               ),
             );
@@ -392,7 +516,7 @@ class _RatingSheetState extends State<_RatingSheet> {
           controller: _commentController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: 'Write your comment...',
+            hintText: 'Write your review here!',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: const BorderSide(color: Colors.grey),
@@ -419,12 +543,68 @@ class _RatingSheetState extends State<_RatingSheet> {
             const SizedBox(width: IAMSizes.spaceBtwItems),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {
-                  print('Rating: $_rating');
-                  print('Comment: ${_commentController.text}');
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                  if (_rating == 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select a rating')),
+                    );
+                    return;
+                  }
+
+                  try {
+                    final response = await ApiMiddleware.productReview
+                        .addReview(
+                          productCode: widget.productCode,
+                          rating: _rating,
+                          reviewComment: _commentController.text,
+                        );
+
+                    if (response.success) {
+                      Navigator.of(context).pop();
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Review submitted successfully!'),
+                          backgroundColor: Colors.green[300],
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.all(16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            response.message ?? 'Failed to submit review',
+                          ),
+                          backgroundColor: Colors.red[300],
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.all(16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Something went wrong'),
+                        backgroundColor: Colors.red[300],
+                        behavior: SnackBarBehavior.floating,
+                        margin: const EdgeInsets.all(16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }
                 },
+
                 child: const Text('Confirm'),
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: IAMColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),

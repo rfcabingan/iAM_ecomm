@@ -163,7 +163,7 @@ class ProductDetailScreen extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: IAMSizes.spaceBtwSections),
+                  const SizedBox(height: IAMSizes.spaceBtwItems),
 
                   FutureBuilder(
                     future: product?.productCode != null
