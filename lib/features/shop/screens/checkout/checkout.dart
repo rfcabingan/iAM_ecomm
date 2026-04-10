@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/common/widgets/products.cart/coupon_widget.dart';
 import 'package:iam_ecomm/common/widgets/success_screen/success_screen.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
@@ -163,6 +164,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               qty: i.qty,
               price: i.sellingPrice,
               lineTotal: i.lineTotal,
+              imageUrl: i.imageUrl,
             ),
           )
           .toList();
@@ -204,6 +206,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           qty: qty,
           price: price,
           lineTotal: lineTotal,
+          imageUrl: product?.imageUrl ?? '',
         ),
       );
     }
@@ -422,12 +425,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     itemBuilder: (context, index) {
                       final item = model.items[index];
                       return ListTile(
+                        leading: item.imageUrl.isNotEmpty
+                            ? IAMRoundedImage(
+                                width: 48,
+                                height: 48,
+                                imageUrl: item.imageUrl,
+                                isNetworkImage: true,
+                                fit: BoxFit.cover,
+                                backgroundColor:
+                                    dark ? IAMColors.black : IAMColors.white,
+                              )
+                            : Container(
+                                width: 48,
+                                height: 48,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: dark
+                                      ? IAMColors.darkGrey
+                                      : IAMColors.light,
+                                  borderRadius:
+                                      BorderRadius.circular(IAMSizes.md),
+                                ),
+                                child: const Icon(
+                                  Icons.image_not_supported_outlined,
+                                  size: 20,
+                                ),
+                              ),
                         title: Text(
                           item.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        subtitle: Text('x${item.qty}  ·  ${item.productCode}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('x${item.qty}  ·  ${item.productCode}'),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Price: ${IAMFormatter.formatCurrency(item.price.toDouble())}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
                         trailing: Text(
                           IAMFormatter.formatCurrency(item.lineTotal.toDouble()),
                           style: Theme.of(context).textTheme.bodyLarge
@@ -502,8 +542,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             } else if (!paymentProviderSelected) {
               warningMessage = 'Please select a payment provider.';
             }
-            return Padding(
-              padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+            return SafeArea(
+              top: false,
+              minimum: const EdgeInsets.all(IAMSizes.defaultSpace),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -517,7 +558,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           SnackBar(
                             content: const Text(
                               'Your cart is empty.',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Color.fromARGB(255, 35, 35, 35)),
                             ),
                             backgroundColor: Colors.red[300],
                             behavior: SnackBarBehavior.floating,
@@ -534,7 +575,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           SnackBar(
                             content: const Text(
                               'Please select a payment method.',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Color.fromARGB(255, 35, 35, 35)),
                             ),
                             backgroundColor: Colors.red[300],
                             behavior: SnackBarBehavior.floating,
@@ -552,6 +593,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: IAMColors.primary,
                       foregroundColor: IAMColors.white,
+                      disabledBackgroundColor: IAMColors.grey,
+                      disabledForegroundColor: IAMColors.white,
                       padding: const EdgeInsets.symmetric(
                         vertical: IAMSizes.md,
                       ),
@@ -562,20 +605,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                     child: Text(
-                      'Checkout ${IAMFormatter.formatCurrency(subtotal.toDouble())}',
-                    ),
-                  ),
-                  if (warningMessage != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      warningMessage,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      ((!hasItems || !paymentProviderSelected) &&
+                                  warningMessage !=
+                                      null)
+                              ? warningMessage
+                              : 'Checkout ${IAMFormatter.formatCurrency(subtotal.toDouble())}',
                       textAlign: TextAlign.center,
                     ),
-                  ],
+                  ),
                 ],
               ),
             );
@@ -589,6 +626,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 class _CheckoutItemView {
   final String productCode;
   final String name;
+  final String imageUrl;
   final int qty;
   final num price;
   final num lineTotal;
@@ -596,6 +634,7 @@ class _CheckoutItemView {
   _CheckoutItemView({
     required this.productCode,
     required this.name,
+    required this.imageUrl,
     required this.qty,
     required this.price,
     required this.lineTotal,
