@@ -16,13 +16,20 @@ import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:readmore/readmore.dart';
 import 'package:iconsax/iconsax.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key, this.product});
 
   final ProductItem? product;
 
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  int selectedRating = 0;
+
   Future<void> _checkoutProduct(BuildContext context) async {
-    final code = product?.productCode;
+    final code = widget.product?.productCode;
     if (code == null || code.isEmpty) return;
 
     const qty = 1;
@@ -74,11 +81,11 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: IAMBottomAddToCart(product: product),
+      bottomNavigationBar: IAMBottomAddToCart(product: widget.product),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            IAMProductImageSlider(product: product),
+            IAMProductImageSlider(product: widget.product),
             Padding(
               padding: EdgeInsets.only(
                 right: IAMSizes.defaultSpace,
@@ -87,14 +94,15 @@ class ProductDetailScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  IAMRatingAndShare(),
-                  IAMProductMetaData(product: product),
+                  if (widget.product?.productCode != null)
+                    IAMRatingAndShare(productCode: widget.product!.productCode),
+                  IAMProductMetaData(product: widget.product),
                   const SizedBox(height: IAMSizes.spaceBtwItems / 1.5),
 
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: product != null
+                      onPressed: widget.product != null
                           ? () => _checkoutProduct(context)
                           : null,
                       child: const Text('Checkout'),
@@ -109,8 +117,8 @@ class ProductDetailScreen extends StatelessWidget {
                   const SizedBox(height: IAMSizes.spaceBtwItems),
 
                   ReadMoreText(
-                    product?.longDesc.isNotEmpty == true
-                        ? product!.longDesc
+                    widget.product?.longDesc.isNotEmpty == true
+                        ? widget.product!.longDesc
                         : 'No description available.',
                     trimLines: 2,
                     trimMode: TrimMode.Line,
@@ -133,9 +141,9 @@ class ProductDetailScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder(
-                        future: product?.productCode != null
+                        future: widget.product?.productCode != null
                             ? ApiMiddleware.productReview.getReviews(
-                                product!.productCode,
+                                widget.product!.productCode,
                               )
                             : null,
                         builder: (context, snapshot) {
@@ -145,7 +153,14 @@ class ProductDetailScreen extends StatelessWidget {
                               snapshot.data != null &&
                               snapshot.data!.success) {
                             final reviews = snapshot.data!.data ?? [];
-                            reviewCount = reviews
+
+                            final filtered = selectedRating == 0
+                                ? reviews
+                                : reviews
+                                      .where((r) => r?.rating == selectedRating)
+                                      .toList();
+
+                            reviewCount = filtered
                                 .where((r) => r != null)
                                 .length;
                           }
@@ -156,9 +171,22 @@ class ProductDetailScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Iconsax.arrow_right_3, size: 18),
+                      DropdownButton<int>(
+                        value: selectedRating,
+                        underline: const SizedBox(),
+                        items: const [
+                          DropdownMenuItem(value: 0, child: Text('All')),
+                          DropdownMenuItem(value: 5, child: Text('5 ⭐')),
+                          DropdownMenuItem(value: 4, child: Text('4 ⭐')),
+                          DropdownMenuItem(value: 3, child: Text('3 ⭐')),
+                          DropdownMenuItem(value: 2, child: Text('2 ⭐')),
+                          DropdownMenuItem(value: 1, child: Text('1 ⭐')),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            selectedRating = value ?? 0;
+                          });
+                        },
                       ),
                     ],
                   ),
@@ -166,9 +194,9 @@ class ProductDetailScreen extends StatelessWidget {
                   const SizedBox(height: IAMSizes.spaceBtwItems),
 
                   FutureBuilder(
-                    future: product?.productCode != null
+                    future: widget.product?.productCode != null
                         ? ApiMiddleware.productReview.getReviews(
-                            product!.productCode,
+                            widget.product!.productCode,
                           )
                         : null,
                     builder: (context, snapshot) {
@@ -184,12 +212,18 @@ class ProductDetailScreen extends StatelessWidget {
 
                       final reviews = snapshot.data!.data ?? [];
 
-                      if (reviews.isEmpty) {
+                      final filteredReviews = selectedRating == 0
+                          ? reviews
+                          : reviews
+                                .where((r) => r?.rating == selectedRating)
+                                .toList();
+
+                      if (filteredReviews.isEmpty) {
                         return const Text('No reviews yet');
                       }
 
                       return Column(
-                        children: reviews.map((review) {
+                        children: filteredReviews.map((review) {
                           if (review == null) return const SizedBox();
 
                           return Container(
@@ -205,16 +239,21 @@ class ProductDetailScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Row(
+                                  children: List.generate(5, (index) {
+                                    return Icon(
+                                      index < (review.rating ?? 0)
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: Colors.amber,
+                                      size: 18,
+                                    );
+                                  }),
+                                ),
+                                const SizedBox(height: 8),
                                 Text(
                                   review.reviewComment ?? 'No comment',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Rating: ${review.rating ?? 0}',
-                                  style: const TextStyle(color: Colors.grey),
+                                  style: const TextStyle(fontSize: 14),
                                 ),
                               ],
                             ),

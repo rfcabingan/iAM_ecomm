@@ -216,7 +216,7 @@ class DeliveredTab extends StatelessWidget {
 
                         final productCode = items.first!.productCode!;
 
-                        // Fetch first review safely
+                        // Fetch review
                         final reviewsResponse = await ApiMiddleware
                             .productReview
                             .getReviews(productCode);
