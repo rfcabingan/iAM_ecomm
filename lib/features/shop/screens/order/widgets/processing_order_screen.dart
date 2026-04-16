@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:iam_ecomm/common/widgets/payments/checkout_webview_sheet.dart';
 import 'package:iam_ecomm/common/widgets/payments/iam_wallet_pay_sheet.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
@@ -10,7 +11,6 @@ import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_detail_screen.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
-import 'package:iam_ecomm/utils/device/device_utility.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
@@ -382,7 +382,12 @@ class _ProcessingTabState extends State<ProcessingTab> {
       return false;
     }
 
-    IAMDeviceUtils.launchUrl(checkoutUrl);
+    await showCheckoutWebViewSheet(
+      context: context,
+      checkoutUrl: checkoutUrl,
+      orderRef: orderRef,
+      totalAmount: amount,
+    );
     return true;
   }
 }
