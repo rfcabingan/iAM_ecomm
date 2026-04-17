@@ -66,7 +66,7 @@ await ApiMiddleware.init();
 
 ## Checkout
 
-- `ApiMiddleware.checkout.checkout(fullName: ..., mobileNo: ..., emailAddress: ..., country: ..., province: ..., city: ..., barangay: ..., streetAddress: ..., postalCode: ..., completeAddress: ..., notes: 'optional note')` → `ApiResponse<dynamic>`
+- `ApiMiddleware.checkout.checkout(fullName: ..., mobileNo: ..., emailAddress: ..., paymentProviderCode: ..., country: ..., province: ..., city: ..., barangay: ..., streetAddress: ..., postalCode: ..., completeAddress: ..., notes: 'optional note')` → `ApiResponse<dynamic>`
 
 ## Location
 
@@ -91,7 +91,7 @@ await ApiMiddleware.init();
 
 ## Product Review
 
-- `ApiMiddleware.productReview.addReview(productCode: ..., rating: ..., reviewComment: ...)` → `ApiResponse<dynamic>`
+- `ApiMiddleware.productReview.addReview(orderRefNo: ..., productCode: ..., rating: ..., reviewComment: ...)` → `ApiResponse<dynamic>` (POST `/ProductReview/Create`)
 - `ApiMiddleware.productReview.getReviews(productCode)` → `ApiResponse<List<ProductReviewItem?>>`
 
 ## Wishlist
@@ -100,6 +100,13 @@ await ApiMiddleware.init();
 - `ApiMiddleware.wishlist.getWishlist()` → `ApiResponse<List<WishlistItem?>>`
 - `ApiMiddleware.wishlist.removeWishlist(productCode)` → `ApiResponse<dynamic>`
 - `ApiMiddleware.wishlist.checkWishlist(productCode)` → `ApiResponse<WishlistCheckItem?>`
+
+## Wallet (JWT required)
+
+- `ApiMiddleware.wallet.getBalance()` → `ApiResponse<WalletBalanceData?>` (GET `/Wallet/Balance`)
+- `ApiMiddleware.wallet.validateOrder(amount: ..., orderRefNo: ..., remarks: ...)` → `ApiResponse<WalletOrderPaymentData?>` (POST `/Wallet/ValidateOrder`)
+- `ApiMiddleware.wallet.payOrder(amount: ..., orderRefNo: ..., remarks: ...)` → `ApiResponse<WalletOrderPaymentData?>` (POST `/Wallet/PayOrder`)
+- `ApiMiddleware.wallet.getTransaction(tranno)` → `ApiResponse<dynamic>` (GET `/Wallet/Transaction/{tranno}`)
 
 ## Response handling
 

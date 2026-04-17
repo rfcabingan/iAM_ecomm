@@ -46,11 +46,17 @@ class ApiEndpoints {
   static String orderByRefNo(String refNo) => '/Orders/$refNo';
 
   // Product Review APIs
-  static const String productReview = '/ProductReview';
+  static const String productReviewCreate = '/ProductReview/Create';
   static String productReviewsByCode(String productCode) => '/ProductReview/$productCode';
 
   // Wishlist APIs
   static const String wishlist = '/Wishlist';
   static String wishlistByProductCode(String productCode) => '/Wishlist/$productCode';
   static String wishlistCheck(String productCode) => '/Wishlist/Check/$productCode';
+
+  // Wallet APIs
+  static const String walletBalance = '/Wallet/Balance';
+  static const String walletValidateOrder = '/Wallet/ValidateOrder';
+  static const String walletPayOrder = '/Wallet/PayOrder';
+  static String walletTransaction(String tranno) => '/Wallet/Transaction/$tranno';
 }

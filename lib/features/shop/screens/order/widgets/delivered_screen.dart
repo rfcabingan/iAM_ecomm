@@ -238,7 +238,11 @@ class DeliveredTab extends StatelessWidget {
                           }
                         }
 
-                        _showRatingModal(context, productCode);
+                        _showRatingModal(
+                          context,
+                          productCode,
+                          order.orderRefno,
+                        );
                       },
 
                       icon: Icon(
@@ -337,7 +341,11 @@ Widget _itemRow(String title, String price, String qty, String? imageUrl) {
 }
 
 /// ---------------- SHOW RATING MODAL ----------------
-void _showRatingModal(BuildContext context, String productCode) {
+void _showRatingModal(
+  BuildContext context,
+  String productCode,
+  String orderRefNo,
+) {
   showModalBottomSheet(
     context: context,
     backgroundColor: IAMColors.white,
@@ -353,7 +361,10 @@ void _showRatingModal(BuildContext context, String productCode) {
           top: IAMSizes.md,
           bottom: MediaQuery.of(context).viewInsets.bottom + IAMSizes.md,
         ),
-        child: _RatingSheet(productCode: productCode),
+        child: _RatingSheet(
+          productCode: productCode,
+          orderRefNo: orderRefNo,
+        ),
       );
     },
   );
@@ -442,8 +453,9 @@ void _showViewReviewModal(BuildContext context, ProductReviewItem review) {
 /// ---------------- RATING SHEET ----------------
 class _RatingSheet extends StatefulWidget {
   final String productCode;
+  final String orderRefNo;
 
-  const _RatingSheet({required this.productCode});
+  const _RatingSheet({required this.productCode, required this.orderRefNo});
 
   @override
   State<_RatingSheet> createState() => _RatingSheetState();
@@ -555,6 +567,7 @@ class _RatingSheetState extends State<_RatingSheet> {
                     final response = await ApiMiddleware.productReview
                         .addReview(
                           productCode: widget.productCode,
+                          orderRefNo: widget.orderRefNo,
                           rating: _rating,
                           reviewComment: _commentController.text,
                         );
@@ -577,7 +590,9 @@ class _RatingSheetState extends State<_RatingSheet> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            response.message ?? 'Failed to submit review',
+                            response.message.isNotEmpty
+                                ? response.message
+                                : 'Failed to submit review',
                           ),
                           backgroundColor: Colors.red[300],
                           behavior: SnackBarBehavior.floating,

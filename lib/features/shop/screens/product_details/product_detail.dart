@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
+import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
+import 'package:iam_ecomm/common/widgets/icons/circular_icon.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/features/shop/controllers/wishlist_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/cart/cart.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/checkout.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/widgets/bottom_add_to_cart_widget.dart';
-import 'package:iam_ecomm/features/shop/screens/product_details/widgets/product_attributes.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/widgets/product_detail_image_slider.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/widgets/product_meta_data.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/widgets/rating_share_widget.dart';
@@ -13,8 +15,11 @@ import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
+import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:readmore/readmore.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:iam_ecomm/utils/constants/colors.dart';
+import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key, this.product});
@@ -27,6 +32,18 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int selectedRating = 0;
+  final AuthController _auth = AuthController.instance;
+  final WishlistController _wishlistController = Get.put(WishlistController());
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Keep cache warm so the icon reflects server state when possible.
+    if (_auth.isLoggedIn.value) {
+      _wishlistController.loadWishlistItems();
+    }
+  }
 
   Future<void> _checkoutProduct(BuildContext context) async {
     final code = widget.product?.productCode;
@@ -80,8 +97,95 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final product = widget.product;
+
+    if (product == null) {
+      return Scaffold(
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                IAMSkeleton(height: 280, radius: IAMSizes.cardRadiusLg),
+                SizedBox(height: IAMSizes.spaceBtwSections),
+                IAMSkeleton(height: 18, width: 180),
+                SizedBox(height: IAMSizes.spaceBtwItems),
+                IAMSkeleton(height: 14, width: 120),
+                SizedBox(height: IAMSizes.spaceBtwSections),
+                IAMSkeleton(height: 46, radius: IAMSizes.cardRadiusMd),
+                SizedBox(height: IAMSizes.spaceBtwSections),
+                IAMSkeleton(height: 16, width: 130),
+                SizedBox(height: IAMSizes.spaceBtwItems),
+                IAMSkeleton(height: 80, radius: IAMSizes.cardRadiusMd),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      bottomNavigationBar: IAMBottomAddToCart(product: widget.product),
+      extendBodyBehindAppBar: true,
+      appBar: IAMAppBar(
+        showBackArrow: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        actions: [
+          Obx(() {
+            final productCode = product.productCode;
+            final isLoggedIn = _auth.isLoggedIn.value;
+            final wishlisted = (!isLoggedIn || productCode.isEmpty)
+                ? false
+                : (_wishlistController.wishlistedByCode[productCode] ?? false);
+            final toggling = (!isLoggedIn || productCode.isEmpty)
+                ? false
+                : (_wishlistController.togglingByCode[productCode] ?? false);
+
+            return IAMCircularIcon(
+              icon: wishlisted ? Iconsax.heart : Iconsax.heart5,
+              color: !isLoggedIn ? IAMColors.darkGrey : (wishlisted ? Colors.red : (IAMHelperFunctions.isDarkMode(context)
+                                ? IAMColors.lightGrey
+                                : IAMColors.darkGrey)),
+              onPressed: (!isLoggedIn || productCode.isEmpty || toggling)
+                  ? null
+                  : () {
+                      _wishlistController
+                          .toggleWishlist(productCode)
+                          .then((result) {
+                        if (!context.mounted) return;
+                        if (result.message.isEmpty) return;
+
+                        final backgroundColor = result.wishlisted
+                            ? Colors.green[300]
+                            : Colors.red[300];
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              result.message,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: backgroundColor,
+                            behavior: SnackBarBehavior.floating,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                          ),
+                        );
+                      });
+                    },
+            );
+          }),
+          IAMCircularIcon(
+            icon: Iconsax.shopping_bag,
+            onPressed: () => Get.to(() => const CartScreen())),
+        ],
+      ),
+      bottomNavigationBar: IAMBottomAddToCart(product: product),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -102,9 +206,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: widget.product != null
-                          ? () => _checkoutProduct(context)
-                          : null,
+                      onPressed: () => _checkoutProduct(context),
                       child: const Text('Checkout'),
                     ),
                   ),
@@ -117,8 +219,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(height: IAMSizes.spaceBtwItems),
 
                   ReadMoreText(
-                    widget.product?.longDesc.isNotEmpty == true
-                        ? widget.product!.longDesc
+                    product.longDesc.isNotEmpty
+                        ? product.longDesc
                         : 'No description available.',
                     trimLines: 2,
                     trimMode: TrimMode.Line,

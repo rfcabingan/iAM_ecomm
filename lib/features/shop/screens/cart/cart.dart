@@ -10,6 +10,8 @@ import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
+import 'package:iam_ecomm/utils/formatters/formatter.dart';
+import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 
 class CartScreen extends StatefulWidget {
@@ -134,6 +136,8 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final dark = IAMHelperFunctions.isDarkMode(context);
+
     return Scaffold(
       appBar: IAMAppBar(
         showBackArrow: true,
@@ -169,13 +173,19 @@ class _CartScreenState extends State<CartScreen> {
                   background: Container(
                     alignment: Alignment.centerLeft,
                     padding: const EdgeInsets.only(left: 16),
-                    color: Colors.green,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: const Icon(Icons.favorite, color: Colors.white),
                   ),
                   secondaryBackground: Container(
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 16),
-                    color: Colors.red,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   confirmDismiss: (direction) async {
@@ -242,11 +252,11 @@ class _CartScreenState extends State<CartScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(IAMSizes.md),
                     decoration: BoxDecoration(
-                      color: IAMColors.white,
+                      color: dark ? IAMColors.dark : IAMColors.white,
                       borderRadius: BorderRadius.circular(
                         IAMSizes.cardRadiusLg,
                       ),
-                      boxShadow: kElevationToShadow[1],
+                      boxShadow: dark ? null : kElevationToShadow[1],
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -276,6 +286,16 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
+                                'Price: ${IAMFormatter.formatCurrency(item.price.toDouble())}',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: dark
+                                          ? IAMColors.lightGrey
+                                          : IAMColors.darkerGrey,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
                                 'x${item.qty}  ·  ${item.productCode}',
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
@@ -283,55 +303,68 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                         ),
                         const SizedBox(width: IAMSizes.spaceBtwItems),
-                        // Quantity Selector
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            GestureDetector(
-                              onTap: item.qty > 1
-                                  ? () => _updateQuantity(item, item.qty - 1)
-                                  : () => _removeItem(item),
-                              child: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: IAMColors.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.remove,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
+                            Text(
+                              IAMFormatter.formatCurrency(
+                                item.lineTotal.toDouble(),
                               ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: Text(
-                                '${item.qty}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                            const SizedBox(height: 8),
+                            // Quantity Selector
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: item.qty > 1
+                                      ? () => _updateQuantity(item, item.qty - 1)
+                                      : () => _removeItem(item),
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: IAMColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.remove,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () => _updateQuantity(item, item.qty + 1),
-                              child: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: IAMColors.primary,
-                                  shape: BoxShape.circle,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    '${item.qty}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                  size: 18,
+                                GestureDetector(
+                                  onTap: () => _updateQuantity(item, item.qty + 1),
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: IAMColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ],
                         ),
@@ -356,8 +389,7 @@ class _CartScreenState extends State<CartScreen> {
                 final model = snapshot.data;
                 final hasItems = model != null && model.items.isNotEmpty;
                 final subtotal = (model?.subtotal ?? 0).toDouble();
-                final shippingFee =
-                    50.0; // replace with your calculation if needed
+                final shippingFee = 50.0; // replace with your calculation if needed
 
                 return Container(
                   padding: const EdgeInsets.symmetric(
@@ -365,9 +397,9 @@ class _CartScreenState extends State<CartScreen> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: IAMColors.white,
+                    color: dark ? IAMColors.dark : IAMColors.white,
                     borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
-                    boxShadow: kElevationToShadow[1],
+                    boxShadow: dark ? null : kElevationToShadow[1],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -377,19 +409,19 @@ class _CartScreenState extends State<CartScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Subtotal: ₱${subtotal.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            'Subtotal: ${IAMFormatter.formatCurrency(subtotal)}',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Shipping: ₱${shippingFee.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
+                            'Shipping: ${IAMFormatter.formatCurrency(shippingFee)}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: dark
+                                      ? IAMColors.lightGrey
+                                      : Colors.grey,
+                                ),
                           ),
                         ],
                       ),
