@@ -165,6 +165,53 @@ class WishlistCheckItem {
   }
 }
 
+class WalletBalanceData {
+  final String accountId;
+  final num balance;
+
+  WalletBalanceData({
+    required this.accountId,
+    required this.balance,
+  });
+
+  static WalletBalanceData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return WalletBalanceData(
+      accountId: m['accountId'] as String? ?? '',
+      balance: (m['balance'] as num?) ?? 0,
+    );
+  }
+}
+
+class WalletOrderPaymentData {
+  final String accountId;
+  final String orderRefNo;
+  final String paymentRefNo;
+  final num amount;
+  final num remainingBalance;
+
+  WalletOrderPaymentData({
+    required this.accountId,
+    required this.orderRefNo,
+    required this.paymentRefNo,
+    required this.amount,
+    required this.remainingBalance,
+  });
+
+  static WalletOrderPaymentData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return WalletOrderPaymentData(
+      accountId: m['accountId'] as String? ?? '',
+      orderRefNo: m['orderRefNo'] as String? ?? '',
+      paymentRefNo: m['paymentRefNo'] as String? ?? '',
+      amount: (m['amount'] as num?) ?? 0,
+      remainingBalance: (m['remainingBalance'] as num?) ?? 0,
+    );
+  }
+}
+
 class UserInfo {
   final String idno;
   final String codedIdno;
@@ -212,6 +259,8 @@ class ProductItem {
   final String shortDesc;
   final String longDesc;
   final bool isActive;
+  final bool isFeatured;
+  final bool isPopular;
   final String imageUrl;
   final String altText;
 
@@ -225,6 +274,8 @@ class ProductItem {
     required this.shortDesc,
     required this.longDesc,
     required this.isActive,
+    required this.isFeatured,
+    required this.isPopular,
     required this.imageUrl,
     required this.altText,
   });
@@ -242,6 +293,8 @@ class ProductItem {
       shortDesc: m['shortDesc'] as String? ?? '',
       longDesc: m['longDesc'] as String? ?? '',
       isActive: m['isActive'] as bool? ?? false,
+      isFeatured: m['isFeatured'] as bool? ?? false,
+      isPopular: m['isPopular'] as bool? ?? false,
       imageUrl: m['imageUrl'] as String? ?? '',
       altText: m['altText'] as String? ?? '',
     );
