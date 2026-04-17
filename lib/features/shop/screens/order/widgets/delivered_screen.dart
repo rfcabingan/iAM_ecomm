@@ -247,21 +247,33 @@ class DeliveredTab extends StatelessWidget {
                     }
 
                     return OutlinedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         if (items.isEmpty || items.first?.productCode == null)
                           return;
 
                         final productCode = items.first!.productCode!;
 
-                        if (hasReviewed && firstReview != null) {
-                          _showViewReviewModal(context, firstReview);
-                        } else {
-                          _showRatingModal(
-                            context,
-                            productCode,
-                            order.orderRefno,
+                        final reviewsResponse = await ApiMiddleware
+                            .productReview
+                            .getReviews(productCode);
+
+                        final hasReviewed =
+                            reviewsResponse.success &&
+                            reviewsResponse.data != null &&
+                            reviewsResponse.data!.isNotEmpty;
+
+                        if (hasReviewed) {
+                          final firstReview = reviewsResponse.data!.firstWhere(
+                            (r) => r != null,
+                            orElse: () => null,
                           );
                         }
+
+                        _showRatingModal(
+                          context,
+                          productCode,
+                          order.orderRefno,
+                        );
                       },
                       icon: const Icon(
                         Iconsax.star1,
@@ -350,6 +362,7 @@ Widget _itemRow(String title, String price, String qty, String? imageUrl) {
   );
 }
 
+/// ---------------- SHOW RATING MODAL ----------------
 void _showRatingModal(
   BuildContext context,
   String productCode,
@@ -527,15 +540,58 @@ class _RatingSheetState extends State<_RatingSheet> {
                 onPressed: () async {
                   if (_rating == 0) return;
 
-                  final response = await ApiMiddleware.productReview.addReview(
-                    productCode: widget.productCode,
-                    rating: _rating,
-                    reviewComment: _commentController.text,
-                    orderRefNo: widget.orderRefNo,
-                  );
+                  try {
+                    final response = await ApiMiddleware.productReview
+                        .addReview(
+                          productCode: widget.productCode,
+                          orderRefNo: widget.orderRefNo,
+                          rating: _rating,
+                          reviewComment: _commentController.text,
+                        );
 
-                  if (response.success) {
-                    Navigator.of(context).pop();
+                    if (response.success) {
+                      Navigator.of(context).pop();
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Review submitted successfully!'),
+                          backgroundColor: Colors.green[300],
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.all(16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            response.message.isNotEmpty
+                                ? response.message
+                                : 'Failed to submit review',
+                          ),
+                          backgroundColor: Colors.red[300],
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.all(16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Something went wrong'),
+                        backgroundColor: Colors.red[300],
+                        behavior: SnackBarBehavior.floating,
+                        margin: const EdgeInsets.all(16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
                   }
                 },
                 child: const Text('Confirm'),

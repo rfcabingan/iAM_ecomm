@@ -18,6 +18,8 @@ import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:readmore/readmore.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:iam_ecomm/utils/constants/colors.dart';
+import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key, this.product});
@@ -30,6 +32,18 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int selectedRating = 0;
+  final AuthController _auth = AuthController.instance;
+  final WishlistController _wishlistController = Get.put(WishlistController());
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Keep cache warm so the icon reflects server state when possible.
+    if (_auth.isLoggedIn.value) {
+      _wishlistController.loadWishlistItems();
+    }
+  }
 
   Future<void> _checkoutProduct(BuildContext context) async {
     final code = widget.product?.productCode;
@@ -112,7 +126,71 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     return Scaffold(
-      bottomNavigationBar: IAMBottomAddToCart(product: widget.product),
+      extendBodyBehindAppBar: true,
+      appBar: IAMAppBar(
+        showBackArrow: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        actions: [
+          Obx(() {
+            final productCode = product.productCode;
+            final isLoggedIn = _auth.isLoggedIn.value;
+            final wishlisted = (!isLoggedIn || productCode.isEmpty)
+                ? false
+                : (_wishlistController.wishlistedByCode[productCode] ?? false);
+            final toggling = (!isLoggedIn || productCode.isEmpty)
+                ? false
+                : (_wishlistController.togglingByCode[productCode] ?? false);
+
+            return IAMCircularIcon(
+              icon: wishlisted ? Iconsax.heart : Iconsax.heart5,
+              color: !isLoggedIn
+                  ? IAMColors.darkGrey
+                  : (wishlisted
+                        ? Colors.red
+                        : (IAMHelperFunctions.isDarkMode(context)
+                              ? IAMColors.lightGrey
+                              : IAMColors.darkGrey)),
+              onPressed: (!isLoggedIn || productCode.isEmpty || toggling)
+                  ? null
+                  : () {
+                      _wishlistController.toggleWishlist(productCode).then((
+                        result,
+                      ) {
+                        if (!context.mounted) return;
+                        if (result.message.isEmpty) return;
+
+                        final backgroundColor = result.wishlisted
+                            ? Colors.green[300]
+                            : Colors.red[300];
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              result.message,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: backgroundColor,
+                            behavior: SnackBarBehavior.floating,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                          ),
+                        );
+                      });
+                    },
+            );
+          }),
+          IAMCircularIcon(
+            icon: Iconsax.shopping_bag,
+            onPressed: () => Get.to(() => const CartScreen()),
+          ),
+        ],
+      ),
+      bottomNavigationBar: IAMBottomAddToCart(product: product),
       body: SingleChildScrollView(
         child: Column(
           children: [
