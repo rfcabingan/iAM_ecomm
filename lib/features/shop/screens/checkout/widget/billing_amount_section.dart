@@ -42,7 +42,7 @@ class IAMBillingAmountSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Tax', style: Theme.of(context).textTheme.bodyMedium),
+            Text('Processing Fee', style: Theme.of(context).textTheme.bodyMedium),
             Text(IAMFormatter.formatAccountingAmount(tax.toDouble()),
                 style: Theme.of(context).textTheme.labelLarge),
           ],
