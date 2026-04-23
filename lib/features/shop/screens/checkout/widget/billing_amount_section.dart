@@ -8,13 +8,15 @@ class IAMBillingAmountSection extends StatelessWidget {
     required this.subtotal,
     this.shipping = 0,
     this.tax = 0,
+    this.totalOverride,
   });
 
   final num subtotal;
   final num shipping;
   final num tax;
+  final num? totalOverride;
 
-  num get total => subtotal + shipping + tax;
+  num get total => totalOverride ?? (subtotal + shipping + tax);
 
   @override
   Widget build(BuildContext context) {
