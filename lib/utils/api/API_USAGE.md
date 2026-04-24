@@ -76,6 +76,11 @@ await ApiMiddleware.init();
 - `ApiMiddleware.location.getCities(country, province)` → `ApiResponse<List<CityItem?>>`
 - `ApiMiddleware.location.getBarangays(country, province, city)` → `ApiResponse<List<BarangayItem?>>`
 
+## Fulfillment
+
+- `ApiMiddleware.fulfillment.getFulfillmentTypes()` → `ApiResponse<List<FulfillmentTypeItem?>>` (GET `/FulfillmentTypes`) — returns options like `DELIVERY`, `PICKUP`
+- `ApiMiddleware.fulfillment.getBranches()` → `ApiResponse<List<BranchItem?>>` (GET `/Branches`) — returns branch list (`areaCode`, `areaName`)
+
 ## Address
 
 - `ApiMiddleware.address.getAddresses()` → `ApiResponse<List<AddressItem?>>`
@@ -94,7 +99,7 @@ await ApiMiddleware.init();
 ## Product Review
 
 - `ApiMiddleware.productReview.addReview(orderRefNo: ..., productCode: ..., rating: ..., reviewComment: ...)` → `ApiResponse<dynamic>` (POST `/ProductReview/Create`)
-- `ApiMiddleware.productReview.getReviews(productCode)` → `ApiResponse<List<ProductReviewItem?>>`
+- `ApiMiddleware.productReview.getReviews(productCode)` → `ApiResponse<List<ProductReviewItem?>>` (GET `/ProductReview/{productCode}`) — items now include `reviewId/autoId`, `idno`, `orderRefNo`, `rating`, `reviewComment`, `createdAt`, `reviewerName`
 
 ## Wishlist
 

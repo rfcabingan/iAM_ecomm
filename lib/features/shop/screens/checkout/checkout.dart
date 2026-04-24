@@ -41,6 +41,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   AddressItem? _selectedAddress;
   bool _hasSavedAddress = false;
   late final CheckoutController _checkoutController;
+  late final Worker _paymentProviderWorker;
+  num _shippingFee = 0;
+  num _processingFee = 0;
+  num _computedGrandTotal = 0;
+  bool _hasComputedFees = false;
+  bool _isComputingFees = false;
 
   Future<void> _showOpeningCheckoutSpinner() async {
     if (!mounted) return;
@@ -128,12 +134,69 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _checkoutController = Get.isRegistered<CheckoutController>()
         ? CheckoutController.instance
         : Get.put(CheckoutController());
+    _paymentProviderWorker = ever<String>(
+      _checkoutController.selectedPaymentProviderCode,
+      (_) => _refreshComputedFees(),
+    );
+    _refreshComputedFees();
   }
 
   @override
   void dispose() {
+    _paymentProviderWorker.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshComputedFees() async {
+    final model = await _cartFuture;
+    if (!mounted) return;
+
+    final providerCode = _checkoutController.selectedPaymentProviderCode.value
+        .trim();
+    final address = _selectedAddress;
+    final fallbackSubtotal = model.subtotal;
+
+    if (model.items.isEmpty || providerCode.isEmpty || address == null) {
+      setState(() {
+        _shippingFee = 0;
+        _processingFee = 0;
+        _computedGrandTotal = fallbackSubtotal;
+        _hasComputedFees = true;
+        _isComputingFees = false;
+      });
+      return;
+    }
+
+    setState(() => _isComputingFees = true);
+
+    final res = await ApiMiddleware.checkout.computeFees(
+      paymentProviderCode: providerCode,
+      country: address.country,
+      province: address.province,
+      city: address.city,
+    );
+    if (!mounted) return;
+
+    final data = res.data;
+    if (res.success && data != null) {
+      setState(() {
+        _shippingFee = data.shippingAmount;
+        _processingFee = data.processingFeeAmount;
+        _computedGrandTotal = data.totalAmount;
+        _hasComputedFees = true;
+        _isComputingFees = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _shippingFee = 0;
+      _processingFee = 0;
+      _computedGrandTotal = fallbackSubtotal;
+      _hasComputedFees = true;
+      _isComputingFees = false;
+    });
   }
 
   Future<_CartViewModel> _loadCart() async {
@@ -234,21 +297,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (isLoggedIn) {
       final memberRes = await ApiMiddleware.member.getMember();
       if (!memberRes.success || memberRes.data == null) {
+        final msg = memberRes.message.trim();
+        final isMemberNotFound = memberRes.status == 404 ||
+            msg.toLowerCase().contains('Member not found');
+
         // Fallback: use idNo from selected address if available
         memberIdno = selectedAddress.idNo;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              memberRes.message.isNotEmpty
-                  ? memberRes.message
-                  : 'Unable to load your profile. Proceeding with address info.',
-              style: const TextStyle(color: Colors.white),
+
+        // Expected for non-members checking out: do not show an error.
+        if (!isMemberNotFound) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                msg.isNotEmpty
+                    ? msg
+                    : 'Unable to load your profile. Proceeding with address info.',
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red[300],
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            backgroundColor: Colors.red[300],
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        );
+          );
+        }
       } else {
         final member = memberRes.data!;
         emailAddress = member.emailAddress;
@@ -307,7 +378,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     final orderRef = res.data?.orderRefNo ?? '';
-    final totalAmount = res.data?.totalAmount ?? model.subtotal;
+    final totalAmount = res.data?.totalAmount ??
+        (_hasComputedFees ? _computedGrandTotal : model.subtotal);
 
     // After a successful checkout, create a payment record using the selected
     // payment provider/method and the order reference from the checkout API.
@@ -573,7 +645,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     backgroundColor: dark ? IAMColors.black : IAMColors.white,
                     child: Column(
                       children: [
-                        IAMBillingAmountSection(subtotal: model.subtotal),
+                        IAMBillingAmountSection(
+                          subtotal: model.subtotal,
+                          shipping: _shippingFee,
+                          tax: _processingFee,
+                          totalOverride: _hasComputedFees
+                              ? _computedGrandTotal
+                              : model.subtotal,
+                        ),
                         const SizedBox(height: IAMSizes.spaceBtwItems),
                         const Divider(),
                         const SizedBox(height: IAMSizes.spaceBtwItems),
@@ -595,6 +674,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 _hasSavedAddress = addr != null;
                               });
                             }
+                            _refreshComputedFees();
                           },
                         ),
                       ],
@@ -612,12 +692,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           final model = snapshot.data;
           final hasItems = model != null && model.items.isNotEmpty;
           final subtotal = model?.subtotal ?? 0;
+          final payableTotal = _hasComputedFees ? _computedGrandTotal : subtotal;
           return Obx(() {
             final paymentProviderSelected =
                 _checkoutController.selectedPaymentProviderCode.isNotEmpty;
             String? warningMessage;
             if (!hasItems) {
               warningMessage = 'Your cart is empty.';
+            } else if (_isComputingFees) {
+              warningMessage = 'Computing fees...';
             } else if (!paymentProviderSelected) {
               warningMessage = 'Please select a payment provider.';
             }
@@ -629,7 +712,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ElevatedButton(
-                    onPressed: (!hasItems || !paymentProviderSelected)
+                    onPressed: (!hasItems ||
+                            !paymentProviderSelected ||
+                            _isComputingFees)
                         ? null
                         : () {
                       if (!hasItems) {
@@ -684,11 +769,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                     child: Text(
-                      ((!hasItems || !paymentProviderSelected) &&
+                      ((!hasItems || !paymentProviderSelected || _isComputingFees) &&
                                   warningMessage !=
                                       null)
                               ? warningMessage
-                              : 'Checkout ${IAMFormatter.formatCurrency(subtotal.toDouble())}',
+                              : 'Checkout ${IAMFormatter.formatCurrency(payableTotal.toDouble())}',
                       textAlign: TextAlign.center,
                     ),
                   ),
