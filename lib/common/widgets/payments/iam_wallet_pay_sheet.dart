@@ -165,7 +165,9 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
   }
 
   Future<bool> _validateOrder({bool showSuccessMessage = true}) async {
-    if (_isValidating || _isPaying) return false;
+    // Allow validation when pay flow is already in progress.
+    // The pay button sets `_isPaying` first, then calls validate.
+    if (_isValidating) return false;
     setState(() {
       _isValidating = true;
       _statusText = null;
