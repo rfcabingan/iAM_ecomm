@@ -66,8 +66,8 @@ await ApiMiddleware.init();
 
 ## Checkout
 
-- `ApiMiddleware.checkout.checkout(fullName: ..., mobileNo: ..., emailAddress: ..., paymentProviderCode: ..., country: ..., province: ..., city: ..., barangay: ..., streetAddress: ..., postalCode: ..., completeAddress: ..., notes: 'optional note', fulfillmentTypeId: 1, areaCode: '101')` → `ApiResponse<CheckoutData?>` (POST `/Checkout`) — `fulfillmentTypeId` matches fulfillment types (e.g. `1` delivery, `2` pickup from `getFulfillmentTypes()`); `areaCode` is the branch code from `getBranches()` when pickup applies (defaults `1` / `''` if omitted)
-- `ApiMiddleware.checkout.computeFees(paymentProviderCode: 'IAMWALLET', country: 'PHILIPPINES', province: 'METRO-MANILA', city: 'QUEZON-CITY', fulfillmentTypeId: 2)` → `ApiResponse<ComputeFeesData?>` (POST `/Checkout/ComputeFees`) — same location fields as checkout; `fulfillmentTypeId` affects fee calculation (defaults `1`). Success `data` includes `cartRefno`, amounts, `totalBoxes`. On failure (e.g. no active cart), `success` is false, `data` is null, and `message` explains the error.
+- `ApiMiddleware.checkout.checkout(fullName: ..., mobileNo: ..., emailAddress: ..., paymentProviderCode: ..., country: ..., province: ..., city: ..., barangay: ..., streetAddress: ..., postalCode: ..., completeAddress: ..., notes: 'optional note', fulfillmentTypeId: 2, areaCode: '101')` → `ApiResponse<CheckoutData?>` (POST `/Checkout`) — latest API body includes `fulfillmentTypeId` and `areaCode`; use fulfillment type from `getFulfillmentTypes()` and branch `areaCode` from `getBranches()` for pickup flows.
+- `ApiMiddleware.checkout.computeFees(paymentProviderCode: 'IAMWALLET', country: 'PHILIPPINES', province: 'METRO-MANILA', city: 'QUEZON-CITY', fulfillmentTypeId: 2)` → `ApiResponse<ComputeFeesData?>` (POST `/Checkout/ComputeFees`) — latest API body includes `fulfillmentTypeId`; keep this value aligned with checkout request. Success `data` includes `cartRefno`, amounts, `totalBoxes`. On failure (e.g. no active cart), `success` is false, `data` is null, and `message` explains the error.
 
 ## Location
 
@@ -78,8 +78,8 @@ await ApiMiddleware.init();
 
 ## Fulfillment
 
-- `ApiMiddleware.fulfillment.getFulfillmentTypes()` → `ApiResponse<List<FulfillmentTypeItem?>>` (GET `/FulfillmentTypes`) — returns options like `DELIVERY`, `PICKUP`
-- `ApiMiddleware.fulfillment.getBranches()` → `ApiResponse<List<BranchItem?>>` (GET `/Branches`) — returns branch list (`areaCode`, `areaName`)
+- `ApiMiddleware.fulfillment.getFulfillmentTypes()` → `ApiResponse<List<FulfillmentTypeItem?>>` (GET `/api/FulfillmentTypes`) — returns options like `DELIVERY`, `PICKUP`
+- `ApiMiddleware.fulfillment.getBranches()` → `ApiResponse<List<BranchItem?>>` (GET `/api/Branches`) — returns branch list (`areaCode`, `areaName`)
 
 ## Address
 
