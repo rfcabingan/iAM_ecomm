@@ -221,6 +221,50 @@ class WalletOrderPaymentData {
   }
 }
 
+class WalletSendOtpData {
+  final String emailAddress;
+  final String maskedEmail;
+
+  WalletSendOtpData({
+    required this.emailAddress,
+    required this.maskedEmail,
+  });
+
+  static WalletSendOtpData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+
+    String readString(List<String> keys) {
+      for (final key in keys) {
+        final raw = m[key];
+        if (raw is String && raw.trim().isNotEmpty) {
+          return raw.trim();
+        }
+      }
+      return '';
+    }
+
+    final emailAddress = readString([
+      'emailAddress',
+      'email',
+      'recipientEmail',
+      'otpEmail',
+    ]);
+    final maskedEmail = readString([
+      'maskedEmail',
+      'emailMasked',
+      'maskedRecipientEmail',
+      'otpMaskedEmail',
+    ]);
+
+    if (emailAddress.isEmpty && maskedEmail.isEmpty) return null;
+    return WalletSendOtpData(
+      emailAddress: emailAddress,
+      maskedEmail: maskedEmail,
+    );
+  }
+}
+
 class CheckoutData {
   final String orderRefNo;
   final String cartRefNo;
