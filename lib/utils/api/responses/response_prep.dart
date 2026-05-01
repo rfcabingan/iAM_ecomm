@@ -74,6 +74,20 @@ class VerifyResponse {
   }
 }
 
+class ValidateResetCodeResponse {
+  final bool isValid;
+
+  ValidateResetCodeResponse({required this.isValid});
+
+  static ValidateResetCodeResponse? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return ValidateResetCodeResponse(
+      isValid: (m['isValid'] as bool?) ?? false,
+    );
+  }
+}
+
 // Product Review API Response Classes
 
 class ProductReviewItem {
