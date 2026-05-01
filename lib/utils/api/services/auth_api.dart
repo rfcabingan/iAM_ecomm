@@ -22,6 +22,7 @@ class AuthApi {
     required String password,
     required String firstName,
     required String lastName,
+    String? referralId,
   }) {
     return _client.post<dynamic>(
       ApiEndpoints.authSignup,
@@ -31,6 +32,8 @@ class AuthApi {
         'password': password,
         'firstName': firstName,
         'lastName': lastName,
+        if (referralId != null && referralId.trim().isNotEmpty)
+          'referralId': referralId.trim(),
       },
     );
   }

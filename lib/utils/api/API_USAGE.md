@@ -34,7 +34,7 @@ await ApiMiddleware.init();
 ## Auth
 
 - `ApiMiddleware.auth.login(username, password)` → `ApiResponse<LoginData?>`
-- `ApiMiddleware.auth.signup(email: ..., mobileNo: ..., password: ..., firstName: ..., lastName: ...)` → `ApiResponse<dynamic>`
+- `ApiMiddleware.auth.signup(email: ..., mobileNo: ..., password: ..., firstName: ..., lastName: ..., referralId: 'optional')` → `ApiResponse<dynamic>` (POST `/Auth/Signup`; `referralId` is optional and only sent when provided)
 - `ApiMiddleware.auth.resendVerificationCode(email)` → `ApiResponse<VerificationResponse?>`
 - `ApiMiddleware.auth.verifyCode(email: ..., code: ...)` → `ApiResponse<VerifyResponse?>`
 
