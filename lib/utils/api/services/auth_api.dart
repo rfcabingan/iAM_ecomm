@@ -66,6 +66,20 @@ class AuthApi {
     );
   }
 
+  Future<ApiResponse<ValidateResetCodeResponse?>> validateResetCode({
+    required String emailAddress,
+    required String resetCode,
+  }) {
+    return _client.post<ValidateResetCodeResponse?>(
+      ApiEndpoints.authValidateResetCode,
+      body: {
+        'emailAddress': emailAddress,
+        'resetCode': resetCode,
+      },
+      fromJsonData: ValidateResetCodeResponse.fromJson,
+    );
+  }
+
   Future<ApiResponse<dynamic>> resetPassword({
     required String emailAddress,
     required String resetCode,

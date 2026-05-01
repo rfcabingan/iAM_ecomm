@@ -10,6 +10,7 @@ class ApiEndpoints {
   static const String authResendVerificationCode = '/Auth/ResendVerificationCode';
   static const String authVerifyCode = '/Auth/VerifyEmailCode';
   static const String authForgotPassword = '/Auth/ForgotPassword';
+  static const String authValidateResetCode = '/Auth/ValidateResetCode';
   static const String authResetPassword = '/Auth/ResetPassword';
 
   static const String cart = '/Cart';

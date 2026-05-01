@@ -39,6 +39,7 @@ await ApiMiddleware.init();
 - `ApiMiddleware.auth.verifyCode(email: ..., code: ...)` → `ApiResponse<VerifyResponse?>`
 
 - `ApiMiddleware.auth.forgotPassword(emailAddress)` -> `ApiResponse<dynamic>` (POST `/Auth/ForgotPassword`, body `{ "emailAddress": "..." }`)
+- `ApiMiddleware.auth.validateResetCode(emailAddress: ..., resetCode: ...)` -> `ApiResponse<ValidateResetCodeResponse?>` (POST `/Auth/ValidateResetCode`, body `{ "emailAddress": "...", "resetCode": "..." }`; success `data.isValid` is `true` when the reset code is valid)
 - `ApiMiddleware.auth.resetPassword(emailAddress: ..., resetCode: ..., newPassword: ...)` -> `ApiResponse<dynamic>` (POST `/Auth/ResetPassword`, body `{ "emailAddress": "...", "resetCode": "...", "newPassword": "..." }`)
 ## Cart
 
