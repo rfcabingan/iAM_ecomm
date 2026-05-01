@@ -70,12 +70,15 @@ class WalletApi {
     );
   }
 
-  /// POST `/Wallet/SendOtp` — Willl add DTO control laterrrr (response shape TBD).
-  Future<ApiResponse<dynamic>> sendOtp({required String orderRefNo}) {
-    if (!_client.hasAuthToken) return Future.value(_unauthorized<dynamic>());
-    return _client.post<dynamic>(
+  /// POST `/Wallet/SendOtp` — sends OTP and recipient details.
+  Future<ApiResponse<WalletSendOtpData?>> sendOtp({required String orderRefNo}) {
+    if (!_client.hasAuthToken) {
+      return Future.value(_unauthorized<WalletSendOtpData?>());
+    }
+    return _client.post<WalletSendOtpData?>(
       ApiEndpoints.walletSendOtp,
       body: {'orderRefNo': orderRefNo},
+      fromJsonData: WalletSendOtpData.fromJson,
     );
   }
 
