@@ -3,6 +3,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:iam_ecomm/features/shop/screens/cart/cart.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
+import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iconsax/iconsax.dart';
 
 class IAMCartCounterIcon extends StatefulWidget {
@@ -54,27 +55,33 @@ class _IAMCartCounterIconState extends State<IAMCartCounterIcon> {
           ),
         ),
         Positioned(
-          right: 0,
+          left: 0,
+          bottom: 2,
           child: FutureBuilder<int>(
             future: _cartCountFuture,
             initialData: 0,
             builder: (context, snapshot) {
               final totalQty = snapshot.data ?? 0;
               return Container(
-                width: 18,
-                height: 18,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  color: IAMColors.primary,
                   borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.90),
+                    width: 1.5,
+                  ),
                 ),
                 child: Center(
                   child: Text(
                     '$totalQty',
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: IAMColors.white,
+                      fontWeight: FontWeight.w500,
                       fontSize:
                           Theme.of(context).textTheme.labelLarge!.fontSize! *
-                          0.8,
+                          0.75,
                     ),
                   ),
                 ),
