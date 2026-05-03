@@ -23,25 +23,15 @@ class TrackingOrderScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(IAMSizes.md),
         child: Column(
           children: [
-            /// PRODUCT CARD
             _productCard(),
-
             const SizedBox(height: IAMSizes.spaceBtwSections),
-
-            /// ORDER DETAILS
             _orderDetails(),
-
             const SizedBox(height: IAMSizes.spaceBtwSections),
-
-            /// TIMELINE
             Expanded(child: _timeline()),
-
-            /// BUTTONS
             _bottomButtons(),
           ],
         ),
@@ -49,7 +39,6 @@ class TrackingOrderScreen extends StatelessWidget {
     );
   }
 
-  /// ---------------- PRODUCT CARD ----------------
   Widget _productCard() {
     return Container(
       padding: const EdgeInsets.all(IAMSizes.md),
@@ -59,7 +48,6 @@ class TrackingOrderScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          /// IMAGE (first item image)
           Container(
             width: 60,
             height: 60,
@@ -83,24 +71,18 @@ class TrackingOrderScreen extends StatelessWidget {
                 ? const Icon(Iconsax.box)
                 : null,
           ),
-
           const SizedBox(width: IAMSizes.spaceBtwItems),
-
-          /// TITLE
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// PRODUCT NAME (first item)
                 Text(
                   order.items?.isNotEmpty == true
                       ? (order.items!.first?.productName ?? 'Item Name')
                       : 'Item Name',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   'Order #${order.orderRefno}',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -108,8 +90,6 @@ class TrackingOrderScreen extends StatelessWidget {
               ],
             ),
           ),
-
-          /// COPY ICON
           const Icon(Iconsax.copy, size: 20, color: Colors.grey),
         ],
       ),
@@ -118,17 +98,16 @@ class TrackingOrderScreen extends StatelessWidget {
 
   String toTitleCase(String text) {
     if (text.isEmpty) return text;
-
     return text
         .split(' ')
-        .map((word) {
-          if (word.isEmpty) return word;
-          return word[0].toUpperCase() + word.substring(1).toLowerCase();
-        })
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : word[0].toUpperCase() + word.substring(1).toLowerCase(),
+        )
         .join(' ');
   }
 
-  /// ---------------- ORDER DETAILS ----------------
   Widget _orderDetails() {
     return Container(
       padding: const EdgeInsets.all(IAMSizes.md),
@@ -138,7 +117,6 @@ class TrackingOrderScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          /// HEADER ONLY (UPDATED)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -156,17 +134,13 @@ class TrackingOrderScreen extends StatelessWidget {
                       color: IAMColors.primary,
                     ),
                   ),
-
                   const SizedBox(width: 8),
-
                   const Text(
                     'Order Details',
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ],
               ),
-
-              /// STATUS BADGE (RIGHT SIDE ONLY)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -187,9 +161,7 @@ class TrackingOrderScreen extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: IAMSizes.spaceBtwItems),
-
           _row('Customer:', user?.fullName ?? 'IAM User'),
           _row(
             'Destination:',
@@ -212,7 +184,6 @@ class TrackingOrderScreen extends StatelessWidget {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// LEFT LABEL
               SizedBox(
                 width: constraints.maxWidth * 0.45,
                 child: Text(
@@ -243,116 +214,122 @@ class TrackingOrderScreen extends StatelessWidget {
     );
   }
 
-  /// ---------------- TIMELINE ---------------- kpaag complete na yung status
   Widget _timeline() {
-    return Column(
-      children: [
-        _step('Processing', 'Courier Warehouse 1', isDone: true),
-        _step(
-          'In Transit',
-          'Courier Warehouse 2',
-          isDone: true,
-          isCurrent: true,
-        ),
-        _step('Out of Delivery', 'On the way', isDone: false),
-        _step('Delivered', 'Sample Address', isDone: false, isLast: true),
-      ],
+    return FutureBuilder(
+      future: ApiMiddleware.orders.getOrderHistory(order.orderRefno),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final history = snapshot.data?.data ?? [];
+
+        if (history.isEmpty) {
+          return const Center(child: Text('No tracking history available'));
+        }
+
+        // Sort so the latest status is at the end of the list
+        history.sort((a, b) {
+          final dateA = DateTime.tryParse(a?.tranDate ?? '') ?? DateTime(0);
+          final dateB = DateTime.tryParse(b?.tranDate ?? '') ?? DateTime(0);
+          return dateA.compareTo(dateB);
+        });
+
+        return ListView.builder(
+          itemCount: history.length,
+          itemBuilder: (context, index) {
+            final item = history[index];
+            final bool isLast = index == history.length - 1;
+
+            // Color logic: The very last item in history is Primary, everything before is Black
+            return _step(
+              item?.orderStatusName ?? '',
+              item?.remarks ?? '',
+              isCurrent: isLast,
+              isLast: isLast,
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _step(
     String title,
     String subtitle, {
-    required bool isDone,
-    bool isLast = false,
-    bool isCurrent = false, // new parameter
+    required bool isCurrent,
+    required bool isLast,
   }) {
+    Color mainColor = isCurrent ? IAMColors.primary : Colors.black;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// DOT + LINE
         Column(
           children: [
             Container(
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: isDone
-                    ? (isCurrent ? IAMColors.primary : Colors.black)
-                    : Colors.grey[300],
+                color: mainColor,
                 shape: BoxShape.circle,
               ),
-              child: isDone
-                  ? const Icon(
-                      Iconsax.tick_circle,
-                      size: 14,
-                      color: Colors.white,
-                    )
-                  : null,
-            ),
-            if (!isLast)
-              Container(width: 2, height: 50, color: Colors.grey[300]),
-          ],
-        ),
-
-        const SizedBox(width: IAMSizes.spaceBtwItems),
-
-        /// TEXT
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: isDone
-                    ? (isCurrent ? IAMColors.primary : Colors.black)
-                    : Colors.grey,
+              child: const Icon(
+                Iconsax.tick_circle,
+                size: 14,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 50,
+                color:
+                    Colors.black, // Line is always black for completed segments
+              ),
           ],
+        ),
+        const SizedBox(width: IAMSizes.spaceBtwItems),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(fontWeight: FontWeight.w600, color: mainColor),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isCurrent ? IAMColors.primary : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  /// ---------------- BUTTONS ----------------
   Widget _bottomButtons() {
     return Padding(
       padding: const EdgeInsets.only(top: IAMSizes.md),
       child: Row(
         children: [
-          /// CANCEL
           Expanded(
             child: OutlinedButton(
               onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
               child: const Text('Cancel Order'),
             ),
           ),
-
           const SizedBox(width: IAMSizes.spaceBtwItems),
-
-          /// LIVE TRACKING
           Expanded(
             child: ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: IAMColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
               ),
               child: const Text('Live Tracking'),
             ),
