@@ -34,10 +34,13 @@ await ApiMiddleware.init();
 ## Auth
 
 - `ApiMiddleware.auth.login(username, password)` → `ApiResponse<LoginData?>`
-- `ApiMiddleware.auth.signup(email: ..., mobileNo: ..., password: ..., firstName: ..., lastName: ...)` → `ApiResponse<dynamic>`
+- `ApiMiddleware.auth.signup(email: ..., mobileNo: ..., password: ..., firstName: ..., lastName: ..., referralId: 'optional')` → `ApiResponse<LoginData?>` (POST `/Auth/Signup`; `referralId` is optional and only sent when provided. Signups without referral return blank referral strings from the backend; the model normalizes blank `data.user.referralId` and `data.user.referralName` to `null`. Valid referral signups return those values. If an included referral ID is invalid/inactive, backend may return `status: 500`, `success: false`, `message: "Referral ID does not exist or is inactive."`, `data: null`; show `res.message`.)
 - `ApiMiddleware.auth.resendVerificationCode(email)` → `ApiResponse<VerificationResponse?>`
 - `ApiMiddleware.auth.verifyCode(email: ..., code: ...)` → `ApiResponse<VerifyResponse?>`
 
+- `ApiMiddleware.auth.forgotPassword(emailAddress)` -> `ApiResponse<dynamic>` (POST `/Auth/ForgotPassword`, body `{ "emailAddress": "..." }`)
+- `ApiMiddleware.auth.validateResetCode(emailAddress: ..., resetCode: ...)` -> `ApiResponse<ValidateResetCodeResponse?>` (POST `/Auth/ValidateResetCode`, body `{ "emailAddress": "...", "resetCode": "..." }`; success `data.isValid` is `true` when the reset code is valid)
+- `ApiMiddleware.auth.resetPassword(emailAddress: ..., resetCode: ..., newPassword: ...)` -> `ApiResponse<dynamic>` (POST `/Auth/ResetPassword`, body `{ "emailAddress": "...", "resetCode": "...", "newPassword": "..." }`)
 ## Cart
 
 - `ApiMiddleware.cart.add(productCode: 'X', qty: 1)` → `ApiResponse<CartPayload?>`
@@ -66,8 +69,8 @@ await ApiMiddleware.init();
 
 ## Checkout
 
-- `ApiMiddleware.checkout.checkout(fullName: ..., mobileNo: ..., emailAddress: ..., paymentProviderCode: ..., country: ..., province: ..., city: ..., barangay: ..., streetAddress: ..., postalCode: ..., completeAddress: ..., notes: 'optional note')` → `ApiResponse<CheckoutData?>`
-- `ApiMiddleware.checkout.computeFees(paymentProviderCode: 'IAMWALLET', country: 'PHILIPPINES', province: 'METRO-MANILA', city: 'QUEZON-CITY')` → `ApiResponse<ComputeFeesData?>` (POST `/Checkout/ComputeFees`) — preview fees from the active cart; success `data` includes `cartRefno`, amounts, `totalBoxes`. On failure (e.g. no active cart), `success` is false, `data` is null, and `message` explains the error (e.g. `"Database error while computing fees: No active cart found."`).
+- `ApiMiddleware.checkout.checkout(fullName: ..., mobileNo: ..., emailAddress: ..., paymentProviderCode: ..., country: ..., province: ..., city: ..., barangay: ..., streetAddress: ..., postalCode: ..., completeAddress: ..., notes: 'optional note', fulfillmentTypeId: 2, areaCode: '101')` → `ApiResponse<CheckoutData?>` (POST `/Checkout`) — latest API body includes `fulfillmentTypeId` and `areaCode`; use fulfillment type from `getFulfillmentTypes()` and branch `areaCode` from `getBranches()` for pickup flows.
+- `ApiMiddleware.checkout.computeFees(paymentProviderCode: 'IAMWALLET', country: 'PHILIPPINES', province: 'METRO-MANILA', city: 'QUEZON-CITY', fulfillmentTypeId: 2)` → `ApiResponse<ComputeFeesData?>` (POST `/Checkout/ComputeFees`) — latest API body includes `fulfillmentTypeId`; keep this value aligned with checkout request. Success `data` includes `cartRefno`, amounts, `totalBoxes`. On failure (e.g. no active cart), `success` is false, `data` is null, and `message` explains the error.
 
 ## Location
 
@@ -78,8 +81,8 @@ await ApiMiddleware.init();
 
 ## Fulfillment
 
-- `ApiMiddleware.fulfillment.getFulfillmentTypes()` → `ApiResponse<List<FulfillmentTypeItem?>>` (GET `/FulfillmentTypes`) — returns options like `DELIVERY`, `PICKUP`
-- `ApiMiddleware.fulfillment.getBranches()` → `ApiResponse<List<BranchItem?>>` (GET `/Branches`) — returns branch list (`areaCode`, `areaName`)
+- `ApiMiddleware.fulfillment.getFulfillmentTypes()` → `ApiResponse<List<FulfillmentTypeItem?>>` (GET `/api/FulfillmentTypes`) — returns options like `DELIVERY`, `PICKUP`
+- `ApiMiddleware.fulfillment.getBranches()` → `ApiResponse<List<BranchItem?>>` (GET `/api/Branches`) — returns branch list (`areaCode`, `areaName`)
 
 ## Address
 
@@ -114,6 +117,13 @@ await ApiMiddleware.init();
 - `ApiMiddleware.wallet.validateOrder(amount: ..., orderRefNo: ..., remarks: ...)` → `ApiResponse<WalletOrderPaymentData?>` (POST `/Wallet/ValidateOrder`)
 - `ApiMiddleware.wallet.payOrder(amount: ..., orderRefNo: ..., remarks: ...)` → `ApiResponse<WalletOrderPaymentData?>` (POST `/Wallet/PayOrder`)
 - `ApiMiddleware.wallet.getTransaction(tranno)` → `ApiResponse<dynamic>` (GET `/Wallet/Transaction/{tranno}`)
+- `ApiMiddleware.wallet.sendOtp(orderRefNo: ...)` → `ApiResponse<dynamic>` (POST `/Wallet/SendOtp`, body `{ "orderRefNo": "..." }`) — Willl add DTO control laterrrr
+- `ApiMiddleware.wallet.validateOtp(orderRefNo: ..., otpCode: ...)` → `ApiResponse<dynamic>` (POST `/Wallet/ValidateOtp`, body `{ "orderRefNo": "...", "otpCode": "..." }`) — Willl add DTO control laterrrr
+
+## Points (JWT required)
+
+- `ApiMiddleware.points.getPoints()` → `ApiResponse<List<dynamic>?>` (GET `/Points`)
+- `ApiMiddleware.points.getBalance()` → `ApiResponse<PointsBalanceData?>` (GET `/Points/Balance`)
 
 ## Response handling
 
@@ -132,3 +142,4 @@ Typed models for login and products live in `responses/response_prep.dart`.
 To follow to : some response mapping is left dynamic until some of thee API contracts are fixed.
 
 Endpoints are in `endpoints/api_endpoints.dart`. Base URL is set in `ApiClient` / `ApiEndpoints.baseUrl`-
+
