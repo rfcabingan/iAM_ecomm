@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-
-/// API: cancelled orders use `orderStatusId` **6**.
-const int _kCancelledOrderStatusId = 6;
 
 class CancelledTab extends StatelessWidget {
   const CancelledTab({super.key});
@@ -55,7 +53,7 @@ class CancelledTab extends StatelessWidget {
             .where(
               (order) =>
                   order != null &&
-                  order.orderStatusId == _kCancelledOrderStatusId,
+                  order.orderStatusId == OrderStatusIds.cancelled,
             )
             .toList();
 
