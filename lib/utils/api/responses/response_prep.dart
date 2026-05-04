@@ -507,6 +507,7 @@ class ProductItem {
   final String productName;
   final num regularPrice;
   final num memberPrice;
+  final num sellingPrice;
   final String shortDesc;
   final String longDesc;
   final bool isActive;
@@ -522,6 +523,7 @@ class ProductItem {
     required this.productName,
     required this.regularPrice,
     required this.memberPrice,
+    required this.sellingPrice,
     required this.shortDesc,
     required this.longDesc,
     required this.isActive,
@@ -541,6 +543,7 @@ class ProductItem {
       productName: m['productName'] as String? ?? '',
       regularPrice: (m['regularPrice'] as num?) ?? 0,
       memberPrice: (m['memberPrice'] as num?) ?? 0,
+      sellingPrice: (m['sellingPrice'] as num?) ?? 0,
       shortDesc: m['shortDesc'] as String? ?? '',
       longDesc: m['longDesc'] as String? ?? '',
       isActive: m['isActive'] as bool? ?? false,
