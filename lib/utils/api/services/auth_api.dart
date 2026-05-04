@@ -16,14 +16,15 @@ class AuthApi {
     );
   }
 
-  Future<ApiResponse<dynamic>> signup({
+  Future<ApiResponse<LoginData?>> signup({
     required String email,
     required String mobileNo,
     required String password,
     required String firstName,
     required String lastName,
+    String? referralId,
   }) {
-    return _client.post<dynamic>(
+    return _client.post<LoginData?>(
       ApiEndpoints.authSignup,
       body: {
         'email': email,
@@ -31,7 +32,10 @@ class AuthApi {
         'password': password,
         'firstName': firstName,
         'lastName': lastName,
+        if (referralId != null && referralId.trim().isNotEmpty)
+          'referralId': referralId.trim(),
       },
+      fromJsonData: LoginData.fromJson,
     );
   }
 
@@ -63,6 +67,20 @@ class AuthApi {
       body: {
         'emailAddress': emailAddress,
       },
+    );
+  }
+
+  Future<ApiResponse<ValidateResetCodeResponse?>> validateResetCode({
+    required String emailAddress,
+    required String resetCode,
+  }) {
+    return _client.post<ValidateResetCodeResponse?>(
+      ApiEndpoints.authValidateResetCode,
+      body: {
+        'emailAddress': emailAddress,
+        'resetCode': resetCode,
+      },
+      fromJsonData: ValidateResetCodeResponse.fromJson,
     );
   }
 

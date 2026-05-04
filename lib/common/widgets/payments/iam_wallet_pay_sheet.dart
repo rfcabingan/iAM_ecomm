@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
@@ -23,99 +25,6 @@ Future<bool> showIamWalletPaySheet({
         _IamWalletPaySheet(orderRef: orderRef, totalAmount: totalAmount),
   );
   return result ?? false;
-}
-
-class _WalletModalSideAccent extends StatelessWidget {
-  const _WalletModalSideAccent({required this.dark});
-
-  final bool dark;
-
-  @override
-  Widget build(BuildContext context) {
-    final gold = IAMColors.primary;
-    return Container(
-      width: 108,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: dark
-              ? [
-                  gold.withOpacity(0.22),
-                  gold.withOpacity(0.06),
-                  const Color(0xFF101217),
-                ]
-              : [
-                  gold.withOpacity(0.18),
-                  const Color(0xFFFFF8E1).withOpacity(0.55),
-                  IAMColors.lightGrey,
-                ],
-        ),
-        border: Border(
-          right: BorderSide(
-            color: (dark ? IAMColors.white : IAMColors.black).withOpacity(0.08),
-          ),
-        ),
-      ),
-      child: SafeArea(
-        left: true,
-        top: false,
-        bottom: false,
-        right: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 20, 12, 20),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: (dark ? IAMColors.black : IAMColors.white).withOpacity(
-                    dark ? 0.35 : 0.75,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: gold.withOpacity(0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: gold.withOpacity(dark ? 0.35 : 0.45),
-                    width: 1,
-                  ),
-                ),
-                child: Image.asset(
-                  IAMImages.walletIcon,
-                  width: 64,
-                  height: 64,
-                  fit: BoxFit.contain,
-                  semanticLabel: 'IAM Wallet',
-                ),
-              ),
-              const Spacer(),
-              Icon(
-                Icons.verified_user_outlined,
-                size: 20,
-                color: gold.withOpacity(0.85),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Secure',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: (dark ? IAMColors.white : IAMColors.textPrimary)
-                      .withOpacity(0.55),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _IamWalletPaySheet extends StatefulWidget {
@@ -247,6 +156,7 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
           totalAmount: widget.totalAmount,
           accountId: _walletData?.accountId ?? '',
           initialBalance: _walletData?.balance ?? 0,
+          initialMaskedEmail: _resolveMaskedOtpEmail(sendOtpRes.data),
           initialMessage: sendOtpRes.message.isNotEmpty
               ? sendOtpRes.message
               : 'OTP has been sent to your registered contact.',
@@ -265,6 +175,22 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
           'OTP verification was cancelled. Complete verification to continue payment.';
       _statusIsError = true;
     });
+  }
+
+  String? _resolveMaskedOtpEmail(WalletSendOtpData? data) {
+    if (data == null) return null;
+    if (data.maskedEmail.trim().isNotEmpty) return data.maskedEmail.trim();
+    if (data.emailAddress.trim().isEmpty) return null;
+    return _maskEmail(data.emailAddress.trim());
+  }
+
+  String _maskEmail(String email) {
+    final atIndex = email.indexOf('@');
+    if (atIndex <= 0 || atIndex == email.length - 1) return email;
+    final local = email.substring(0, atIndex);
+    final domain = email.substring(atIndex + 1);
+    if (local.isEmpty) return email;
+    return '${local.substring(0, 1)}***@$domain';
   }
 
   @override
@@ -309,78 +235,103 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
                 ),
               ),
               Expanded(
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _WalletModalSideAccent(dark: dark),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        IAMSizes.md,
+                        16,
+                        4,
+                        12,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              IAMSizes.md,
-                              12,
-                              4,
-                              8,
-                            ),
+                          Expanded(
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'IAM Wallet',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleLarge
-                                            ?.copyWith(
-                                              color: onSurface,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: -0.2,
-                                            ),
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        (dark ? IAMColors.black : IAMColors.white)
+                                            .withOpacity(dark ? 0.35 : 0.75),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: IAMColors.primary.withOpacity(
+                                        dark ? 0.35 : 0.45,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        widget.orderRef.isNotEmpty
-                                            ? 'Order ${widget.orderRef}'
-                                            : 'Wallet checkout',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: muted,
-                                              height: 1.2,
-                                            ),
-                                      ),
-                                    ],
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Image.asset(
+                                    IAMImages.walletIcon,
+                                    width: 28,
+                                    height: 28,
+                                    fit: BoxFit.contain,
+                                    semanticLabel: 'IAM Wallet',
                                   ),
                                 ),
-                                IconButton(
-                                  tooltip: 'Close',
-                                  onPressed: _isValidating
-                                      ? null
-                                      : () => Navigator.of(context).pop(false),
-                                  icon: Icon(
-                                    Icons.close_rounded,
-                                    color: onSurface.withOpacity(0.72),
-                                  ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'IAM Wallet',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
+                                            color: onSurface,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.2,
+                                            fontSize: 22,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      widget.orderRef.isNotEmpty
+                                          ? 'OR# ${widget.orderRef}'
+                                          : 'Wallet checkout',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: muted,
+                                            height: 1.2,
+                                            fontSize: 16,
+                                          ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.fromLTRB(
-                                IAMSizes.md,
-                                0,
-                                IAMSizes.defaultSpace,
-                                IAMSizes.defaultSpace,
-                              ),
-                              child: Column(
+                          IconButton(
+                            tooltip: 'Close',
+                            onPressed: _isValidating
+                                ? null
+                                : () => Navigator.of(context).pop(false),
+                            icon: Icon(
+                              Icons.close_rounded,
+                              color: onSurface.withOpacity(0.72),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(
+                          IAMSizes.md,
+                          0,
+                          IAMSizes.defaultSpace,
+                          IAMSizes.defaultSpace,
+                        ),
+                        child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   DecoratedBox(
@@ -411,47 +362,71 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
                                       padding: const EdgeInsets.all(
                                         IAMSizes.md,
                                       ),
-                                      child: Row(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
                                         children: [
-                                          Expanded(
-                                            child: _WalletMetric(
-                                              label: 'Wallet balance',
-                                              value: _loadingBalance
-                                                  ? '…'
-                                                  : balanceText,
-                                              valueColor: _loadingBalance
-                                                  ? muted
-                                                  : IAMColors.primary,
-                                              dark: dark,
-                                            ),
+                                          _WalletMetric(
+                                            label: 'Wallet balance',
+                                            value: _loadingBalance
+                                                ? '…'
+                                                : balanceText,
+                                            valueColor: _loadingBalance
+                                                ? muted
+                                                : IAMColors.primary,
+                                            dark: dark,
                                           ),
-                                          Container(
-                                            width: 1,
-                                            height: 52,
-                                            margin: const EdgeInsets.symmetric(
-                                              horizontal: 10,
+                                          if (!_loadingBalance) ...[
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  hasSufficientBalance
+                                                      ? Icons
+                                                          .check_circle_rounded
+                                                      : Icons.cancel_rounded,
+                                                  size: 18,
+                                                  color: hasSufficientBalance
+                                                      ? Colors.green[400]
+                                                      : Colors.red[400],
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  hasSufficientBalance
+                                                      ? 'Sufficient Funds'
+                                                      : 'Insufficient Funds',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                    color: hasSufficientBalance
+                                                        ? Colors.green[400]
+                                                        : Colors.red[400],
+                                                    fontWeight: FontWeight.w700,
+                                                    height: 1.25,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            color: onSurface.withOpacity(0.1),
-                                          ),
-                                          Expanded(
-                                            child: _WalletMetric(
-                                              label: 'Amount due',
-                                              value: amountText,
-                                              valueColor: onSurface,
-                                              dark: dark,
-                                            ),
+                                          ],
+                                          const SizedBox(height: 14),
+                                          _WalletMetric(
+                                            label: 'Amount due',
+                                            value: amountText,
+                                            valueColor: onSurface,
+                                            dark: dark,
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
                                   if (_walletData != null) ...[
-                                    const SizedBox(height: 12),
+                                    const SizedBox(height: 16),
                                     IAMRoundedContainer(
                                       showBorder: true,
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: IAMSizes.sm,
-                                        vertical: 8,
+                                        horizontal: IAMSizes.md,
+                                        vertical: 10,
                                       ),
                                       backgroundColor: dark
                                           ? IAMColors.black.withOpacity(0.45)
@@ -469,7 +444,11 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
-                                              'Account ${_walletData!.accountId}',
+                                              'Account ID: ${_walletData!.accountId}',
+                                              maxLines: 1,
+                                              softWrap: false,
+                                              overflow:
+                                                  TextOverflow.ellipsis,
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .labelLarge
@@ -477,6 +456,7 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
                                                     color: onSurface
                                                         .withOpacity(0.88),
                                                     fontWeight: FontWeight.w600,
+                                                    fontSize: 15,
                                                   ),
                                             ),
                                           ),
@@ -536,27 +516,34 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
                                       ),
                                     ),
                                   ],
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    'Review your wallet balance, continue to the OTP verification page, then confirm your payment once the code is verified.',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: muted, height: 1.3),
-                                  ),
-                                  if (!hasSufficientBalance) ...[
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Insufficient balance. Reload your IAM Wallet.',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: Colors.red.shade400,
-                                            fontWeight: FontWeight.w600,
+                                  const SizedBox(height: 24),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.security_rounded,
+                                        size: 18,
+                                        color: muted,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'For your security, this payment requires verification via OTP.',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                            color: muted,
+                                            height: 1.3,
+                                            fontSize: 15,
                                           ),
-                                    ),
-                                  ],
-                                  const SizedBox(height: 14),
-                                  IAMRoundedContainer(
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 26),
+                                  /*IAMRoundedContainer(
                                     showBorder: true,
                                     padding: const EdgeInsets.all(IAMSizes.md),
                                     backgroundColor: dark
@@ -609,7 +596,7 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 12),*/
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
@@ -642,20 +629,53 @@ class _IamWalletPaySheetState extends State<_IamWalletPaySheet> {
                                                 color: IAMColors.white,
                                               ),
                                             )
-                                          : Text(
-                                              'Continue to OTP',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 15,
-                                              ),
+                                          : Row(
+                                              mainAxisSize:
+                                                  MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.lock_rounded,
+                                                  size: 20,
+                                                  color: IAMColors.white,
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Text(
+                                                  'Proceed to Verification',
+                                                  style: const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.w800,
+                                                    fontSize: 17,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                     ),
                                   ),
+                                  const SizedBox(height: 26),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.shield_rounded,
+                                        size: 18,
+                                        color: IAMColors.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Protected by IAM Wallet',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                          color: IAMColors.primary,
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.25,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
@@ -697,28 +717,40 @@ class _WalletMetric extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: IAMSizes.sm,
-          vertical: IAMSizes.sm + 2,
+          horizontal: IAMSizes.md,
+          vertical: IAMSizes.md - 1,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label.toUpperCase(),
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).hintColor,
                 letterSpacing: 0.6,
                 fontWeight: FontWeight.w600,
+                fontSize: 11,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: valueColor,
-                height: 1.1,
-                fontFeatures: const [FontFeature.tabularFigures()],
+            const SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.clip,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: valueColor,
+                  height: 1.1,
+                  fontSize: 24,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
           ],
@@ -734,6 +766,7 @@ class _IamWalletOtpVerificationPage extends StatefulWidget {
     required this.totalAmount,
     required this.accountId,
     required this.initialBalance,
+    this.initialMaskedEmail,
     required this.initialMessage,
   });
 
@@ -741,6 +774,7 @@ class _IamWalletOtpVerificationPage extends StatefulWidget {
   final num totalAmount;
   final String accountId;
   final num initialBalance;
+  final String? initialMaskedEmail;
   final String initialMessage;
 
   @override
@@ -750,6 +784,8 @@ class _IamWalletOtpVerificationPage extends StatefulWidget {
 
 class _IamWalletOtpVerificationPageState
     extends State<_IamWalletOtpVerificationPage> {
+  static const int _resendCooldownSeconds = 180;
+
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _otpFocusNodes = List.generate(6, (_) => FocusNode());
 
@@ -760,15 +796,53 @@ class _IamWalletOtpVerificationPageState
   String? _statusText;
   bool _statusIsError = false;
   String? _otpError;
+  String? _maskedOtpEmail;
+  Timer? _resendCooldownTimer;
+  int _resendSecondsLeft = _resendCooldownSeconds;
+
+  bool get _isResendCoolingDown => _resendSecondsLeft > 0;
+  String get _resendCooldownLabel {
+    final minutes = (_resendSecondsLeft ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_resendSecondsLeft % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
 
   @override
   void initState() {
     super.initState();
     _statusText = widget.initialMessage;
+    _maskedOtpEmail =
+        widget.initialMaskedEmail?.trim().isNotEmpty == true
+        ? widget.initialMaskedEmail!.trim()
+        : _extractAndMaskEmail(widget.initialMessage);
+    _startResendCooldown();
+  }
+
+  String? _extractAndMaskEmail(String? text) {
+    if (text == null || text.trim().isEmpty) return null;
+    final emailRegex = RegExp(
+      r'([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})',
+    );
+    final match = emailRegex.firstMatch(text);
+    final email = match?.group(0);
+    if (email == null || email.isEmpty) return null;
+    return _maskEmail(email);
+  }
+
+  String _maskEmail(String email) {
+    final atIndex = email.indexOf('@');
+    if (atIndex <= 0 || atIndex == email.length - 1) return email;
+    final local = email.substring(0, atIndex);
+    final domain = email.substring(atIndex + 1);
+    if (local.length <= 1) {
+      return '${local.substring(0, 1)}***@$domain';
+    }
+    return '${local.substring(0, 1)}***@$domain';
   }
 
   @override
   void dispose() {
+    _resendCooldownTimer?.cancel();
     for (final c in _otpControllers) {
       c.dispose();
     }
@@ -776,6 +850,23 @@ class _IamWalletOtpVerificationPageState
       f.dispose();
     }
     super.dispose();
+  }
+
+  void _startResendCooldown() {
+    _resendCooldownTimer?.cancel();
+    setState(() => _resendSecondsLeft = _resendCooldownSeconds);
+    _resendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_resendSecondsLeft <= 1) {
+        timer.cancel();
+        setState(() => _resendSecondsLeft = 0);
+        return;
+      }
+      setState(() => _resendSecondsLeft -= 1);
+    });
   }
 
   String get _otpValue => _otpControllers.map((c) => c.text).join();
@@ -797,7 +888,7 @@ class _IamWalletOtpVerificationPageState
   }
 
   Future<void> _sendOtp({bool isResend = false}) async {
-    if (_isSendingOtp || _isVerifyingOtp || _isPaying) return;
+    if (_isSendingOtp || _isVerifyingOtp || _isPaying || _otpValidated) return;
 
     setState(() {
       _isSendingOtp = true;
@@ -813,6 +904,15 @@ class _IamWalletOtpVerificationPageState
       if (res.success) {
         _otpValidated = false;
         _clearOtpInput();
+        final data = res.data;
+        final maskedFromData = data?.maskedEmail.trim();
+        final rawFromData = data?.emailAddress.trim();
+        _maskedOtpEmail =
+            (maskedFromData != null && maskedFromData.isNotEmpty)
+            ? maskedFromData
+            : (rawFromData != null && rawFromData.isNotEmpty)
+            ? _maskEmail(rawFromData)
+            : _extractAndMaskEmail(res.message) ?? _maskedOtpEmail;
         _statusText = res.message.isNotEmpty
             ? res.message
             : isResend
@@ -820,6 +920,7 @@ class _IamWalletOtpVerificationPageState
             : 'OTP has been sent to your registered contact.';
         _statusIsError = false;
         _focusOtpIndex(0);
+        _startResendCooldown();
       } else {
         _statusText = res.message.isNotEmpty
             ? res.message
@@ -830,7 +931,7 @@ class _IamWalletOtpVerificationPageState
   }
 
   Future<void> _validateOtpCode() async {
-    if (_isVerifyingOtp || _isSendingOtp || _isPaying) return;
+    if (_isVerifyingOtp || _isSendingOtp || _isPaying || _otpValidated) return;
 
     final otpCode = _otpValue.trim();
     if (otpCode.length != 6) {
@@ -923,6 +1024,14 @@ class _IamWalletOtpVerificationPageState
     final otpBorderColor = _otpError == null
         ? IAMColors.primary.withOpacity(dark ? 0.75 : 0.45)
         : Theme.of(context).colorScheme.error;
+    final resendEnabled =
+        !_isPaying &&
+        !_isSendingOtp &&
+        !_isVerifyingOtp &&
+        !_otpValidated &&
+        !_isResendCoolingDown;
+    final hasSufficientBalance =
+        widget.initialBalance >= widget.totalAmount;
 
     return Scaffold(
       backgroundColor: surface,
@@ -958,64 +1067,161 @@ class _IamWalletOtpVerificationPageState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Confirm IAM Wallet payment',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: onSurface,
-                              fontWeight: FontWeight.w800,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Order ${widget.orderRef}',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: muted),
-                      ),
-                      const SizedBox(height: 14),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: _WalletMetric(
-                              label: 'Wallet balance',
-                              value: balanceText,
-                              valueColor: IAMColors.primary,
-                              dark: dark,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: (dark
+                                      ? IAMColors.black
+                                      : IAMColors.white)
+                                  .withOpacity(dark ? 0.35 : 0.75),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: IAMColors.primary.withOpacity(
+                                  dark ? 0.35 : 0.45,
+                                ),
+                                width: 1,
+                              ),
+                            ),
+                            child: Image.asset(
+                              IAMImages.walletIcon,
+                              width: 28,
+                              height: 28,
+                              fit: BoxFit.contain,
+                              semanticLabel: 'IAM Wallet',
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 12),
                           Expanded(
-                            child: _WalletMetric(
-                              label: 'Amount due',
-                              value: amountText,
-                              valueColor: onSurface,
-                              dark: dark,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'IAM Wallet',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: onSurface,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Order ${widget.orderRef}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: muted,
+                                      ),
+                                ),
+                              ],
                             ),
+                          ),
+                          if (widget.accountId.isNotEmpty) ...[
+                            const SizedBox(width: 12),
+                            Container(
+                              width: 1,
+                              height: 44,
+                              color: onSurface.withOpacity(dark ? 0.18 : 0.12),
+                            ),
+                            Flexible(
+                              child: Text(
+                                'Account ID: ${widget.accountId}',
+                                textAlign: TextAlign.right,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: muted,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _WalletMetric(
+                            label: 'Wallet balance',
+                            value: balanceText,
+                            valueColor: IAMColors.primary,
+                            dark: dark,
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(
+                                hasSufficientBalance
+                                    ? Icons.check_circle_rounded
+                                    : Icons.cancel_rounded,
+                                size: 18,
+                                color: hasSufficientBalance
+                                    ? Colors.green[400]
+                                    : Colors.red[400],
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                hasSufficientBalance
+                                    ? 'Sufficient Funds'
+                                    : 'Insufficient Funds',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: hasSufficientBalance
+                                          ? Colors.green[400]
+                                          : Colors.red[400],
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.25,
+                                    ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          _WalletMetric(
+                            label: 'Amount due',
+                            value: amountText,
+                            valueColor: onSurface,
+                            dark: dark,
                           ),
                         ],
                       ),
-                      if (widget.accountId.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          'Account ${widget.accountId}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: muted,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 18),
-              Text(
-                'Enter the 6-digit code sent to your registered IAM Wallet contact. Once verified, you can confirm payment immediately.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: muted, height: 1.4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.mail_outline_rounded,
+                    size: 20,
+                    color: muted,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _maskedOtpEmail != null
+                          ? 'Enter the 6-digit code sent to $_maskedOtpEmail.'
+                          : 'Enter the 6-digit code sent to your registered email.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: muted,
+                        height: 1.4,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               if (_statusText != null) ...[
                 const SizedBox(height: 14),
@@ -1155,75 +1361,172 @@ class _IamWalletOtpVerificationPageState
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: (_isPaying || _isSendingOtp || _isVerifyingOtp)
-                          ? null
-                          : () => _sendOtp(isResend: true),
-                      child: _isSendingOtp
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Resend OTP'),
+                  if (!_otpValidated) ...[
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: (_isPaying || _isSendingOtp || _isVerifyingOtp)
+                            ? null
+                            : _validateOtpCode,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: IAMColors.primary,
+                          foregroundColor: IAMColors.white,
+                          minimumSize: const Size.fromHeight(50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: _isVerifyingOtp
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: IAMColors.white,
+                                ),
+                              )
+                            : const Text('Verify OTP'),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
+                    const SizedBox(width: 10),
+                  ],
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: (_isPaying || _isSendingOtp || _isVerifyingOtp)
-                          ? null
-                          : _validateOtpCode,
-                      child: _isVerifyingOtp
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(_otpValidated ? 'OTP Verified' : 'Verify OTP'),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: resendEnabled
+                            ? () => _sendOtp(isResend: true)
+                            : null,
+                        style: ButtonStyle(
+                          minimumSize: WidgetStateProperty.all(
+                            const Size(0, 42),
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: WidgetStateProperty.all(
+                            const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                          foregroundColor: WidgetStateProperty.resolveWith<Color>((
+                            states,
+                          ) {
+                            if (resendEnabled) return IAMColors.primary;
+                            return Theme.of(context).disabledColor;
+                          }),
+                          overlayColor: WidgetStateProperty.all(
+                            IAMColors.primary.withOpacity(0.08),
+                          ),
+                        ),
+                        child: _isSendingOtp
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(
+                                _isResendCoolingDown
+                                    ? 'Resend in $_resendCooldownLabel'
+                                    : 'Resend OTP',
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed:
-                      (!_otpValidated ||
-                          _isPaying ||
-                          _isSendingOtp ||
-                          _isVerifyingOtp)
-                      ? null
-                      : _confirmPayment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: IAMColors.primary,
-                    foregroundColor: IAMColors.white,
-                    minimumSize: const Size.fromHeight(54),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              IAMRoundedContainer(
+                showBorder: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: IAMSizes.md,
+                  vertical: IAMSizes.sm + 2,
+                ),
+                backgroundColor: dark
+                    ? IAMColors.primary.withOpacity(0.16)
+                    : IAMColors.primary.withOpacity(0.12),
+                borderColor: onSurface.withOpacity(dark ? 0.14 : 0.08),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.shield_outlined,
+                      color: IAMColors.primary.withOpacity(0.95),
+                      size: 22,
                     ),
-                  ),
-                  child: _isPaying
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.2,
-                            color: IAMColors.white,
-                          ),
-                        )
-                      : Text(
-                          'Confirm payment',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 15,
-                          ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'For your security, do not share your OTP with anyone.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: onSurface.withOpacity(0.82),
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
                         ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+              if (_otpValidated) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: (_isPaying || _isSendingOtp || _isVerifyingOtp)
+                        ? null
+                        : _confirmPayment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: IAMColors.primary,
+                      foregroundColor: IAMColors.white,
+                      minimumSize: const Size.fromHeight(54),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: _isPaying
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              color: IAMColors.white,
+                            ),
+                          )
+                        : Text(
+                            'Confirm payment',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 26),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.shield_rounded,
+                                        size: 18,
+                                        color: IAMColors.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Protected by IAM Wallet',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                          color: IAMColors.primary,
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.25,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+
           ),
         ),
       ),
