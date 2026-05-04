@@ -23,6 +23,7 @@ class ApiEndpoints {
   static String productsByCategory(int categoryId) => '/Products/Category/$categoryId';
 
   static const String member = '/Member';
+  static const String profile = '/Profile';
 
   static const String paymentMethods = '/Payment/PaymentMethods';
   static const String paymentProviders = '/Payment/PaymentProviders';
