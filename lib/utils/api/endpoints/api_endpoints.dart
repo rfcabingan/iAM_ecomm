@@ -2,9 +2,10 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'https://ecom-api-staging.iam-ww.com/v1';
-  static const String rootUrl = 'https://ecom-api-staging.iam-ww.com';
-  
+  static const String baseUrl = 'https://ecom-api.iam-ww.com/v1';
+  static const String rootUrl = 'https://ecom-api.iam-ww.com';
+  // beta : 'https://ecom-api-staging.iam-ww
+  // internal beta: 'https://ecom-api.iam-ww.com';
   static const String authLogin = '/Auth/Login';
   static const String authSignup = '/Auth/Signup';
   static const String authResendVerificationCode = '/Auth/ResendVerificationCode';
@@ -23,6 +24,7 @@ class ApiEndpoints {
   static String productsByCategory(int categoryId) => '/Products/Category/$categoryId';
 
   static const String member = '/Member';
+  static const String profile = '/Profile';
 
   static const String paymentMethods = '/Payment/PaymentMethods';
   static const String paymentProviders = '/Payment/PaymentProviders';

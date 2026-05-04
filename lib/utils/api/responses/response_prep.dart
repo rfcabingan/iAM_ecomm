@@ -14,6 +14,15 @@ String? asNonEmptyString(dynamic v) {
   return trimmed == null || trimmed.isEmpty ? null : trimmed;
 }
 
+String readStringValue(Map<String, dynamic> m, List<String> keys) {
+  for (final key in keys) {
+    final raw = m[key];
+    final text = raw?.toString().trim();
+    if (text != null && text.isNotEmpty) return text;
+  }
+  return '';
+}
+
 class LoginData {
   final TokenInfo? token;
   final UserInfo? user;
@@ -442,6 +451,7 @@ class OrderStatusHistoryItem {
 class UserInfo {
   final String idno;
   final String codedIdno;
+  final String username;
   final String firstName;
   final String lastName;
   final String fullName;
@@ -456,6 +466,7 @@ class UserInfo {
   UserInfo({
     required this.idno,
     required this.codedIdno,
+    required this.username,
     required this.firstName,
     required this.lastName,
     required this.fullName,
@@ -474,6 +485,7 @@ class UserInfo {
     return UserInfo(
       idno: m['idno'] as String? ?? '',
       codedIdno: m['codedIdno'] as String? ?? '',
+      username: readStringValue(m, ['username', 'userName', 'user_name']),
       firstName: m['firstName'] as String? ?? '',
       lastName: m['lastName'] as String? ?? '',
       fullName: m['fullName'] as String? ?? '',
@@ -495,6 +507,7 @@ class ProductItem {
   final String productName;
   final num regularPrice;
   final num memberPrice;
+  final num sellingPrice;
   final String shortDesc;
   final String longDesc;
   final bool isActive;
@@ -510,6 +523,7 @@ class ProductItem {
     required this.productName,
     required this.regularPrice,
     required this.memberPrice,
+    required this.sellingPrice,
     required this.shortDesc,
     required this.longDesc,
     required this.isActive,
@@ -529,6 +543,7 @@ class ProductItem {
       productName: m['productName'] as String? ?? '',
       regularPrice: (m['regularPrice'] as num?) ?? 0,
       memberPrice: (m['memberPrice'] as num?) ?? 0,
+      sellingPrice: (m['sellingPrice'] as num?) ?? 0,
       shortDesc: m['shortDesc'] as String? ?? '',
       longDesc: m['longDesc'] as String? ?? '',
       isActive: m['isActive'] as bool? ?? false,
@@ -624,6 +639,7 @@ class CartItem {
 
 class MemberPayload {
   final String idno;
+  final String username;
   final String firstName;
   final String lastName;
   final String middleName;
@@ -637,6 +653,7 @@ class MemberPayload {
 
   MemberPayload({
     required this.idno,
+    required this.username,
     required this.firstName,
     required this.lastName,
     required this.middleName,
@@ -654,6 +671,7 @@ class MemberPayload {
     if (m == null) return null;
     return MemberPayload(
       idno: m['idno'] as String? ?? '',
+      username: readStringValue(m, ['username', 'userName', 'user_name']),
       firstName: m['firstName'] as String? ?? '',
       lastName: m['lastName'] as String? ?? '',
       middleName: m['middleName'] as String? ?? '',

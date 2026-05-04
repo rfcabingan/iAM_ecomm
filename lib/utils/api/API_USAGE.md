@@ -57,6 +57,13 @@ await ApiMiddleware.init();
 ## Member
 
 - `ApiMiddleware.member.getMember()` → `ApiResponse<MemberPayload?>`
+  - Profile is ready to display `data.username` when `/Member` starts returning it. The parser also accepts `userName` and `user_name`; until then the profile username row shows `N/A`.
+
+## Profile
+
+- `ApiMiddleware.profile.getProfile()` → `ApiResponse<MemberPayload?>` (GET `/Profile`)
+  - The Profile screen uses this as the primary profile source and falls back to `/Member` for `username` if needed.
+  - Username keys accepted: `username`, `userName`, `user_name`.
 
 ## Payment
 
