@@ -4,7 +4,8 @@ class ApiEndpoints {
 
   static const String baseUrl = 'https://ecom-api.iam-ww.com/v1';
   static const String rootUrl = 'https://ecom-api.iam-ww.com';
-  // 'https://ecom-api-staging.iam-ww
+  // beta : 'https://ecom-api-staging.iam-ww
+  // internal beta: 'https://ecom-api.iam-ww.com';
   static const String authLogin = '/Auth/Login';
   static const String authSignup = '/Auth/Signup';
   static const String authResendVerificationCode = '/Auth/ResendVerificationCode';
