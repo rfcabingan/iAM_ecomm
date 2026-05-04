@@ -429,7 +429,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final memberRes = await ApiMiddleware.member.getMember();
       if (!memberRes.success || memberRes.data == null) {
         final msg = memberRes.message.trim();
-        final isMemberNotFound = memberRes.status == 404 ||
+        final isMemberNotFound =
+            memberRes.status == 404 ||
             msg.toLowerCase().contains('Member not found');
 
         // Fallback: use idNo from selected address if available
@@ -547,7 +548,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     final orderRef = res.data?.orderRefNo ?? '';
-    final totalAmount = res.data?.totalAmount ??
+    final totalAmount =
+        res.data?.totalAmount ??
         (_hasComputedFees ? _computedGrandTotal : model.subtotal);
 
     // After a successful checkout, create a payment record using the selected
@@ -561,10 +563,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _redirectToStoreWithUnpaidToast();
         return;
       }
-      _showPaymentSuccess(
-        orderRef: orderRef,
-        totalAmount: totalAmount,
-      );
+      _showPaymentSuccess(orderRef: orderRef, totalAmount: totalAmount);
       return;
     }
 
@@ -890,7 +889,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           final model = snapshot.data;
           final hasItems = model != null && model.items.isNotEmpty;
           final subtotal = model?.subtotal ?? 0;
-          final payableTotal = _hasComputedFees ? _computedGrandTotal : subtotal;
+          final payableTotal = _hasComputedFees
+              ? _computedGrandTotal
+              : subtotal;
           return Obx(() {
             final paymentProviderSelected =
                 _checkoutController.selectedPaymentProviderCode.isNotEmpty;
@@ -913,7 +914,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ElevatedButton(
-                    onPressed: (!hasItems ||
+                    onPressed:
+                        (!hasItems ||
                             !paymentProviderSelected ||
                             !hasFulfillment ||
                             _isComputingFees)
