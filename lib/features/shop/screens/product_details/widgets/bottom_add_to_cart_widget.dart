@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/icons/circular_icon.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/features/shop/controllers/cart_count_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/cart/cart.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/checkout.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
@@ -46,6 +47,9 @@ class _IAMBottomAddToCartState extends State<IAMBottomAddToCart> {
         cart.add({'productCode': code, 'qty': _qty});
       }
       await storage.saveData('guest_cart', cart);
+      if (Get.isRegistered<CartCountController>()) {
+        CartCountController.instance.refresh();
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -62,6 +66,9 @@ class _IAMBottomAddToCartState extends State<IAMBottomAddToCart> {
     }
 
     final res = await ApiMiddleware.cart.add(productCode: code, qty: _qty);
+    if (res.success && Get.isRegistered<CartCountController>()) {
+      CartCountController.instance.refresh();
+    }
     if (!mounted) return;
 
     if (res.success) {
