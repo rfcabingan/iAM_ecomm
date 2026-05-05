@@ -8,6 +8,7 @@ import 'package:iam_ecomm/common/widgets/products/product_cards/product_price_te
 import 'package:iam_ecomm/common/widgets/texts/brand_title_text_verifiedicon.dart';
 import 'package:iam_ecomm/common/widgets/texts/product_title_text.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/features/shop/controllers/cart_count_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/product_detail.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
@@ -23,6 +24,14 @@ class IAMProductCardHorizontal extends StatelessWidget {
   const IAMProductCardHorizontal({super.key, this.product});
 
   final ProductItem? product;
+
+  static num _effectivePrice({
+    required bool isLoggedIn,
+    required num regularPrice,
+    required num sellingPrice,
+  }) {
+    return isLoggedIn ? sellingPrice : regularPrice;
+  }
 
   Future<void> _addToCart(BuildContext context) async {
     final code = product?.productCode;
@@ -44,6 +53,9 @@ class IAMProductCardHorizontal extends StatelessWidget {
         cart.add({'productCode': code, 'qty': 1});
       }
       await storage.saveData('guest_cart', cart);
+      if (Get.isRegistered<CartCountController>()) {
+        CartCountController.instance.refresh();
+      }
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -60,6 +72,9 @@ class IAMProductCardHorizontal extends StatelessWidget {
     }
 
     final res = await ApiMiddleware.cart.add(productCode: code, qty: 1);
+    if (res.success && Get.isRegistered<CartCountController>()) {
+      CartCountController.instance.refresh();
+    }
     if (!context.mounted) return;
 
     final msg = res.success
@@ -103,13 +118,17 @@ class IAMProductCardHorizontal extends StatelessWidget {
       final brand = product?.shortDesc.isNotEmpty == true
           ? product!.shortDesc
           : 'Amazing Barley';
-      final memberPrice = product?.memberPrice ?? 1750;
+      final isLoggedIn = auth.isLoggedIn.value;
       final regularPrice = product?.regularPrice ?? 2000;
-      final showMember = auth.isLoggedIn.value && auth.isMember;
-      final displayPrice = showMember ? memberPrice : regularPrice;
+      final sellingPrice = product?.sellingPrice ?? regularPrice;
+      final displayPrice = _effectivePrice(
+        isLoggedIn: isLoggedIn,
+        regularPrice: regularPrice,
+        sellingPrice: sellingPrice,
+      );
       final discountPercent =
-          showMember && regularPrice > 0 && memberPrice < regularPrice
-          ? ((regularPrice - memberPrice) / regularPrice * 100).round()
+          isLoggedIn && regularPrice > 0 && sellingPrice < regularPrice
+          ? ((regularPrice - sellingPrice) / regularPrice * 100).round()
           : null;
 
       return GestureDetector(

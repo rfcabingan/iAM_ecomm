@@ -20,8 +20,15 @@ class OrderDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = IAMHelperFunctions.isDarkMode(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Order Details')),
+      appBar: AppBar(
+        title: const Text('Order Details'),
+        foregroundColor: dark ? IAMColors.white : IAMColors.black,
+        iconTheme: IconThemeData(
+          color: dark ? IAMColors.white : IAMColors.black,
+        ),
+      ),
       body: FutureBuilder<ApiResponse<OrderDetailItem?>>(
         future: ApiMiddleware.orders.getOrderDetail(refNo),
         builder: (context, snapshot) {
@@ -38,11 +45,19 @@ class OrderDetailScreen extends StatelessWidget {
             return const Center(child: Text('Order not found'));
           }
           final shipping = order.shippingInfo;
+          final pickup = order.pickupLocation;
           final dark = IAMHelperFunctions.isDarkMode(context);
           final items = order.items ?? [];
           final paymentCard = _PaymentCardModel.from(order);
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+            padding: EdgeInsets.fromLTRB(
+              IAMSizes.defaultSpace,
+              IAMSizes.defaultSpace,
+              IAMSizes.defaultSpace,
+              IAMSizes.defaultSpace +
+                  MediaQuery.of(context).padding.bottom +
+                  24,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -105,7 +120,9 @@ class OrderDetailScreen extends StatelessWidget {
                                                     .textTheme
                                                     .bodySmall!
                                                     .copyWith(
-                                                      color: Colors.grey[600],
+                                                      color: dark
+                                                          ? IAMColors.darkGrey
+                                                          : Colors.grey[600],
                                                     ),
                                               ),
                                             ],
@@ -125,7 +142,9 @@ class OrderDetailScreen extends StatelessWidget {
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.grey[200],
+                                    color: dark
+                                        ? IAMColors.darkerGrey
+                                        : Colors.grey[200],
                                     borderRadius: BorderRadius.circular(
                                       IAMSizes.sm,
                                     ),
@@ -195,19 +214,110 @@ class OrderDetailScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: dark ? IAMColors.dark : Colors.grey[100],
                           borderRadius: BorderRadius.circular(IAMSizes.md),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Shipping Information',
+                              pickup != null
+                                  ? 'Pickup Information'
+                                  : 'Shipping Information',
                               style: Theme.of(context).textTheme.titleMedium!
                                   .copyWith(fontWeight: FontWeight.w500),
                             ),
                             const SizedBox(height: 8),
-                            if (shipping != null) ...[
+                            if (pickup != null) ...[
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    Icons.store_mall_directory,
+                                    color: IAMColors.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: pickup.pickupLocationName,
+                                                style: TextStyle(
+                                                  color: dark
+                                                      ? IAMColors.white
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                              if (pickup.contactNo.isNotEmpty)
+                                                TextSpan(
+                                                  text:
+                                                      ' • ${pickup.contactNo}',
+                                                  style: const TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Divider(
+                                          height: 1,
+                                          thickness: 1.5,
+                                          color:
+                                              (dark
+                                                      ? IAMColors.white
+                                                      : IAMColors.black)
+                                                  .withOpacity(0.10),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          pickup.completeAddress,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: dark
+                                                ? IAMColors.grey
+                                                : Colors.black87,
+                                          ),
+                                        ),
+                                        if (pickup.emailAddress.isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            pickup.emailAddress,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: dark
+                                                  ? IAMColors.grey
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                        if (pickup
+                                            .operatingHours
+                                            .isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Hours: ${pickup.operatingHours}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: dark
+                                                  ? IAMColors.grey
+                                                  : Colors.black87,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ] else if (shipping != null) ...[
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -226,8 +336,10 @@ class OrderDetailScreen extends StatelessWidget {
                                             children: [
                                               TextSpan(
                                                 text: '${shipping.fullName} • ',
-                                                style: const TextStyle(
-                                                  color: Colors.black,
+                                                style: TextStyle(
+                                                  color: dark
+                                                      ? IAMColors.white
+                                                      : Colors.black,
                                                 ),
                                               ),
                                               TextSpan(
@@ -240,21 +352,35 @@ class OrderDetailScreen extends StatelessWidget {
                                             ],
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+                                        const SizedBox(height: 8),
+                                        Divider(
+                                          height: 1,
+                                          thickness: 1.5,
+                                          color:
+                                              (dark
+                                                      ? IAMColors.white
+                                                      : IAMColors.black)
+                                                  .withOpacity(0.10),
+                                        ),
+                                        const SizedBox(height: 8),
                                         Text(
                                           shipping.completeAddress,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 11,
-                                            color: Colors.black87,
+                                            color: dark
+                                                ? IAMColors.grey
+                                                : Colors.black87,
                                           ),
                                         ),
                                         if (shipping.notes.isNotEmpty) ...[
                                           const SizedBox(height: 2),
                                           Text(
                                             'Notes: ${shipping.notes}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 11,
-                                              color: Colors.black87,
+                                              color: dark
+                                                  ? IAMColors.grey
+                                                  : Colors.black87,
                                               fontStyle: FontStyle.italic,
                                             ),
                                           ),
@@ -271,9 +397,9 @@ class OrderDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
-                const SizedBox(height: 16),
-                const SizedBox(height: 8),
+
+                const SizedBox(height: 12),
+
                 // Text('Date: ${order.orderDate}'),
                 // Text('Status: ${order.orderStatusName}'),
                 _PaymentStatusCard(

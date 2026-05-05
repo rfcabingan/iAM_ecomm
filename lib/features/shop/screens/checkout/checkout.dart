@@ -369,7 +369,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       final product = productMap[code];
       final name = product?.productName ?? code;
-      final price = product?.memberPrice ?? 0;
+      final price = product?.regularPrice ?? 0;
       final lineTotal = price * qty;
       subtotal += lineTotal;
 
@@ -491,6 +491,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         SnackBar(
           content: const Text(
             'Please select a valid fulfillment option.',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red[300],
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+      );
+      return;
+    }
+    if (isPickup && (selectedAreaCode == null || selectedAreaCode.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Please select a pickup branch.',
             style: TextStyle(color: Colors.white),
           ),
           backgroundColor: Colors.red[300],
@@ -802,9 +816,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   TextField(
                     controller: _notesController,
                     maxLines: 3,
-                    decoration: const InputDecoration(
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: dark ? IAMColors.white : IAMColors.black,
+                    ),
+                    decoration: InputDecoration(
                       labelText: 'Order notes',
                       alignLabelWithHint: true,
+                      labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: dark ? IAMColors.white : IAMColors.black,
+                      ),
                     ),
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwSections),
@@ -896,6 +916,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final paymentProviderSelected =
                 _checkoutController.selectedPaymentProviderCode.isNotEmpty;
             final hasFulfillment = _selectedFulfillmentTypeCode.trim().isNotEmpty;
+            final hasPickupBranch =
+                !_isPickupSelected ||
+                ((_selectedBranchAreaCode?.trim().isNotEmpty ?? false));
             String? warningMessage;
             if (!hasItems) {
               warningMessage = 'Your cart is empty.';
@@ -905,6 +928,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               warningMessage = 'Please select a payment provider.';
             } else if (!hasFulfillment) {
               warningMessage = 'Please select fulfillment.';
+            } else if (!hasPickupBranch) {
+              warningMessage = 'Please select a pickup branch.';
             }
             return SafeArea(
               top: false,
@@ -918,6 +943,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         (!hasItems ||
                             !paymentProviderSelected ||
                             !hasFulfillment ||
+                            !hasPickupBranch ||
                             _isComputingFees)
                         ? null
                         : () {
@@ -972,13 +998,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         );
                         return;
                       }
+                      if (!hasPickupBranch) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Please select a pickup branch.',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 35, 35, 35),
+                              ),
+                            ),
+                            backgroundColor: Colors.red[300],
+                            behavior: SnackBarBehavior.floating,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       _placeOrder(model);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: IAMColors.primary,
                       foregroundColor: IAMColors.white,
-                      disabledBackgroundColor: IAMColors.grey,
-                      disabledForegroundColor: Colors.white70,
+                      disabledBackgroundColor: const Color.fromARGB(255, 166, 166, 166),
+                      disabledForegroundColor: IAMColors.white,
                       padding: const EdgeInsets.symmetric(
                         vertical: IAMSizes.md,
                       ),
@@ -993,6 +1038,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ((!hasItems ||
                                       !paymentProviderSelected ||
                                       !hasFulfillment ||
+                                      !hasPickupBranch ||
                                       _isComputingFees) &&
                                   warningMessage !=
                                       null)

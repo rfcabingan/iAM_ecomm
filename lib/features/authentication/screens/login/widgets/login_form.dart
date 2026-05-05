@@ -9,6 +9,7 @@ import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
+import 'package:iam_ecomm/features/shop/controllers/cart_count_controller.dart';
 import 'package:iconsax/iconsax.dart';
 
 class IAMLoginForm extends StatefulWidget {
@@ -70,6 +71,9 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
     // Only clear once we know at least one cart item was added successfully.
     if (anySuccess) {
       await storage.removeData('guest_cart');
+      if (Get.isRegistered<CartCountController>()) {
+        CartCountController.instance.refresh();
+      }
     }
   }
 

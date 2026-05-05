@@ -20,19 +20,31 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<ApiResponse<MemberPayload?>> _memberFuture;
+  late Future<_ProfilePayloadBundle> _profileFuture;
 
   @override
   void initState() {
     super.initState();
-    _memberFuture = ApiMiddleware.member.getMember();
+    _profileFuture = _loadProfile();
   }
 
   Future<void> _refreshProfile() async {
     setState(() {
-      _memberFuture = ApiMiddleware.member.getMember();
+      _profileFuture = _loadProfile();
     });
-    await _memberFuture;
+    await _profileFuture;
+  }
+
+  Future<_ProfilePayloadBundle> _loadProfile() async {
+    final responses = await Future.wait<ApiResponse<MemberPayload?>>([
+      ApiMiddleware.profile.getProfile(),
+      ApiMiddleware.member.getMember(),
+    ]);
+
+    return _ProfilePayloadBundle(
+      profile: responses[0],
+      member: responses[1],
+    );
   }
 
   void _copyId(String idno) {
@@ -89,37 +101,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(width: IAMSizes.sm),
         ],
       ),
-      body: FutureBuilder<ApiResponse<MemberPayload?>>(
-        future: _memberFuture,
+      body: FutureBuilder<_ProfilePayloadBundle>(
+        future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!snapshot.hasData || !snapshot.data!.success) {
+          if (!snapshot.hasData || !snapshot.data!.hasUsableData) {
             final msg = snapshot.data?.message ?? 'Unable to load profile.';
             return _ProfileLoadState(message: msg, onRetry: _refreshProfile);
           }
 
-          final member = snapshot.data!.data;
+          final data = snapshot.data!;
+          final profile = data.profile.data;
+          final member = data.member.data;
+          final primary = data.primary;
           final authUser = AuthController.instance.user.value;
           final fullName = _firstNonEmpty([
-            '${member?.firstName ?? ''} ${member?.lastName ?? ''}',
+            '${primary?.firstName ?? ''} ${primary?.lastName ?? ''}',
             authUser?.fullName,
             'IAM User',
           ]);
           final username = _firstNonEmpty([
+            profile?.username,
             member?.username,
             authUser?.username,
           ]);
           final email = _firstNonEmpty([
-            member?.emailAddress,
+            primary?.emailAddress,
             authUser?.emailAddress,
           ]);
-          final phone = _firstNonEmpty([member?.mobileNo, authUser?.mobileNo]);
-          final idno = _firstNonEmpty([member?.idno, authUser?.idno]);
-          final address = _firstNonEmpty([member?.homeAddress]);
-          final country = _firstNonEmpty([member?.country]);
+          final phone = _firstNonEmpty([primary?.mobileNo, authUser?.mobileNo]);
+          final idno = _firstNonEmpty([primary?.idno, authUser?.idno]);
+          final address = _firstNonEmpty([primary?.homeAddress]);
+          final country = _firstNonEmpty([primary?.country]);
 
           return RefreshIndicator(
             onRefresh: _refreshProfile,
@@ -205,6 +221,26 @@ String _firstNonEmpty(List<String?> values) {
     if (text != null && text.isNotEmpty) return text;
   }
   return '';
+}
+
+class _ProfilePayloadBundle {
+  const _ProfilePayloadBundle({
+    required this.profile,
+    required this.member,
+  });
+
+  final ApiResponse<MemberPayload?> profile;
+  final ApiResponse<MemberPayload?> member;
+
+  MemberPayload? get primary => profile.data ?? member.data;
+
+  bool get hasUsableData => primary != null && (profile.success || member.success);
+
+  String get message {
+    if (profile.message.trim().isNotEmpty) return profile.message;
+    if (member.message.trim().isNotEmpty) return member.message;
+    return 'Unable to load profile.';
+  }
 }
 
 class _ProfileHeroCard extends StatelessWidget {
