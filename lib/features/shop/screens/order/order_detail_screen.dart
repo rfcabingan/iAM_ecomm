@@ -253,7 +253,16 @@ class OrderDetailScreen extends StatelessWidget {
                                             ],
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+                                        const SizedBox(height: 8),
+                                        Divider(
+                                          height: 1,
+                                          thickness: 1.5,
+                                          color: (dark
+                                                  ? IAMColors.white
+                                                  : IAMColors.black)
+                                              .withOpacity(0.10),
+                                        ),
+                                        const SizedBox(height: 8),
                                         Text(
                                           shipping.completeAddress,
                                           style: TextStyle(

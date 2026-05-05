@@ -8,6 +8,7 @@ import 'package:iam_ecomm/common/widgets/products/product_cards/product_price_te
 import 'package:iam_ecomm/common/widgets/texts/brand_title_text_verifiedicon.dart';
 import 'package:iam_ecomm/common/widgets/texts/product_title_text.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/features/shop/controllers/cart_count_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/product_detail.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
@@ -52,6 +53,9 @@ class IAMProductCardHorizontal extends StatelessWidget {
         cart.add({'productCode': code, 'qty': 1});
       }
       await storage.saveData('guest_cart', cart);
+      if (Get.isRegistered<CartCountController>()) {
+        CartCountController.instance.refresh();
+      }
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -68,6 +72,9 @@ class IAMProductCardHorizontal extends StatelessWidget {
     }
 
     final res = await ApiMiddleware.cart.add(productCode: code, qty: 1);
+    if (res.success && Get.isRegistered<CartCountController>()) {
+      CartCountController.instance.refresh();
+    }
     if (!context.mounted) return;
 
     final msg = res.success
