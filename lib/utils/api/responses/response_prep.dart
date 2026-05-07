@@ -51,6 +51,78 @@ class HelpTopicItem {
   }
 }
 
+class ReferralData {
+  final String referralId;
+  final int totalReferrals;
+  final List<ReferralItem> referrals;
+
+  ReferralData({
+    required this.referralId,
+    required this.totalReferrals,
+    required this.referrals,
+  });
+
+  static ReferralData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    final referralsList = (m['referrals'] is List ? (m['referrals'] as List) : const [])
+        .map((e) => ReferralItem.fromJson(e))
+        .whereType<ReferralItem>()
+        .toList();
+    return ReferralData(
+      referralId: m['referralId'] as String? ?? '',
+      totalReferrals: (m['totalReferrals'] as int?) ?? 0,
+      referrals: referralsList,
+    );
+  }
+}
+
+class ReferralItem {
+  final String idno;
+  final String email;
+  final String mobileNo;
+  final String firstName;
+  final String lastName;
+  final String fullName;
+  final String referralId;
+  final String referralName;
+  final bool isActive;
+  final bool isVerified;
+  final String createdAt;
+
+  ReferralItem({
+    required this.idno,
+    required this.email,
+    required this.mobileNo,
+    required this.firstName,
+    required this.lastName,
+    required this.fullName,
+    required this.referralId,
+    required this.referralName,
+    required this.isActive,
+    required this.isVerified,
+    required this.createdAt,
+  });
+
+  static ReferralItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return ReferralItem(
+      idno: m['idno'] as String? ?? '',
+      email: m['email'] as String? ?? '',
+      mobileNo: m['mobileNo'] as String? ?? '',
+      firstName: m['firstName'] as String? ?? '',
+      lastName: m['lastName'] as String? ?? '',
+      fullName: m['fullName'] as String? ?? '',
+      referralId: m['referralId'] as String? ?? '',
+      referralName: m['referralName'] as String? ?? '',
+      isActive: (m['isActive'] as bool?) ?? false,
+      isVerified: (m['isVerified'] as bool?) ?? false,
+      createdAt: m['createdAt'] as String? ?? '',
+    );
+  }
+}
+
 class LoginData {
   final TokenInfo? token;
   final UserInfo? user;
