@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/personalization/screens/address/add_new_address.dart';
 import 'package:iam_ecomm/features/personalization/screens/address/widgets/single_address.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
@@ -36,7 +37,7 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
     _loadAddresses();
   }
 
-  Future<void> _loadAddresses() async {
+  Future<void> _loadAddresses({int? preferredAddressId}) async {
     setState(() {
       _loading = true;
       _error = null;
@@ -57,10 +58,20 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
 
     final list = res.data?.whereType<AddressItem>().toList() ?? [];
     AddressItem? selected;
-    for (final a in list) {
-      if (a.isDefault) {
-        selected = a;
-        break;
+    if (preferredAddressId != null) {
+      for (final a in list) {
+        if (a.autoId == preferredAddressId) {
+          selected = a;
+          break;
+        }
+      }
+    }
+    if (selected == null) {
+      for (final a in list) {
+        if (a.isDefault) {
+          selected = a;
+          break;
+        }
       }
     }
     selected ??= list.isNotEmpty ? list.first : null;
@@ -102,6 +113,75 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
     }
 
     await _loadAddresses();
+  }
+
+  Future<void> _openAddAddress() async {
+    final existingIds = _addresses.map((address) => address.autoId).toSet();
+    final isFirstAddress = _addresses.isEmpty;
+    final fullName = Get.isRegistered<AuthController>()
+        ? (AuthController.instance.user.value?.fullName ?? '').trim()
+        : '';
+    final result = await Get.to(
+      () => AddNewAddressScreen(
+        prefilledRecipientName: isFirstAddress ? fullName : null,
+        lockRecipientName: isFirstAddress && fullName.isNotEmpty,
+        lockDefaultForNewAddress: isFirstAddress,
+      ),
+    );
+    if (!mounted) return;
+
+    if (result != true) {
+      await _loadAddresses();
+      return;
+    }
+
+    final res = await ApiMiddleware.address.getAddresses();
+    if (!mounted) return;
+
+    final latest = res.data?.whereType<AddressItem>().toList() ?? [];
+    AddressItem? newlyAdded;
+    for (final address in latest) {
+      if (!existingIds.contains(address.autoId)) {
+        newlyAdded = address;
+        break;
+      }
+    }
+
+    await _loadAddresses(preferredAddressId: newlyAdded?.autoId);
+  }
+
+  Widget _buildActionChip({
+    required String label,
+    required VoidCallback? onTap,
+    IconData? icon,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: IAMColors.primary.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 14, color: IAMColors.primary),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: const TextStyle(
+                color: IAMColors.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _openSelectSheet() {
@@ -152,17 +232,29 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
                         child: ElevatedButton(
                           onPressed: () async {
                             Navigator.of(context).pop();
-                            await Get.to(() => const AddNewAddressScreen());
-                            await _loadAddresses();
+                            await _openAddAddress();
                           },
                           child: const Text('Add New Address'),
                         ),
                       ),
                     ],
                   )
-                else
+                else ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        Navigator.of(context).pop();
+                        await _openAddAddress();
+                      },
+                      icon: const Icon(Iconsax.add),
+                      label: const Text('Add New Address'),
+                    ),
+                  ),
+                  const SizedBox(height: IAMSizes.spaceBtwItems),
                   Flexible(
                     child: ListView.builder(
+                      shrinkWrap: true,
                       itemCount: _addresses.length,
                       itemBuilder: (context, index) {
                         final address = _addresses[index];
@@ -179,6 +271,7 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
                       },
                     ),
                   ),
+                ],
               ],
             ),
           ),
@@ -198,31 +291,34 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
         /// HEADER (CHIP BUTTON STYLE)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Shipping Address',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 19),
             ),
-
-            GestureDetector(
-              onTap: _openSelectSheet,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: IAMColors.primary.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _addresses.isEmpty ? 'Add' : 'Change',
-                  style: const TextStyle(
-                    color: IAMColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+            const SizedBox(width: IAMSizes.spaceBtwItems),
+            Flexible(
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: IAMSizes.sm,
+                runSpacing: IAMSizes.xs,
+                children: [
+                  if (_addresses.isNotEmpty)
+                    _buildActionChip(
+                      label: 'Add',
+                      icon: Iconsax.add,
+                      onTap: _openAddAddress,
+                    ),
+                  _buildActionChip(
+                    label: _addresses.isEmpty ? 'Add' : 'Change',
+                    onTap: _loading && _addresses.isEmpty
+                        ? _openSelectSheet
+                        : (_addresses.isEmpty
+                              ? _openAddAddress
+                              : _openSelectSheet),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -235,9 +331,23 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
         else if (_error != null && !hasAddress)
           Text(_error!, style: Theme.of(context).textTheme.bodyMedium)
         else if (!hasAddress)
-          Text(
-            'No address selected.',
-            style: Theme.of(context).textTheme.bodyMedium,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'No address selected.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: IAMSizes.spaceBtwItems),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _openAddAddress,
+                  icon: const Icon(Iconsax.add),
+                  label: const Text('Add New Address'),
+                ),
+              ),
+            ],
           )
         else ...[
           /// NAME INSIDE CARD WITH CHECK ICON
@@ -248,7 +358,7 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(dark ? 0.2 : 0.04),
+                  color: Colors.black.withValues(alpha: dark ? 0.2 : 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -272,8 +382,8 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: (dark ? IAMColors.grey : Colors.grey).withOpacity(
-                          dark ? 0.2 : 0.15,
+                        color: (dark ? IAMColors.grey : Colors.grey).withValues(
+                          alpha: dark ? 0.2 : 0.15,
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -294,8 +404,8 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: (dark ? IAMColors.grey : Colors.grey).withOpacity(
-                          dark ? 0.2 : 0.15,
+                        color: (dark ? IAMColors.grey : Colors.grey).withValues(
+                          alpha: dark ? 0.2 : 0.15,
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -322,8 +432,8 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: (dark ? IAMColors.grey : Colors.grey).withOpacity(
-                          dark ? 0.2 : 0.15,
+                        color: (dark ? IAMColors.grey : Colors.grey).withValues(
+                          alpha: dark ? 0.2 : 0.15,
                         ),
                         shape: BoxShape.circle,
                       ),
