@@ -225,7 +225,7 @@ class TrackingOrderScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: IAMSizes.spaceBtwItems),
-          _row(context, 'Customer:', user?.fullName ?? 'IAM User'),
+          _row(context, 'Customer:', effectiveShipping?.fullName ?? 'IAM User'),
           _row(
             context,
             effectivePickup != null ? 'Pickup Location:' : 'Destination:',
