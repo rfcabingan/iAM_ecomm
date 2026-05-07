@@ -14,6 +14,7 @@ import 'services/points_api.dart';
 import 'services/product_review_api.dart';
 import 'services/profile_api.dart';
 import 'services/products_api.dart';
+import 'services/referral_api.dart';
 import 'services/wallet_api.dart';
 import 'services/wishlist_api.dart';
 
@@ -43,6 +44,7 @@ class ApiMiddleware {
   static final ProductReviewApi productReview = ProductReviewApi(_client);
   static final ProfileApi profile = ProfileApi(_client);
   static final ProductsApi products = ProductsApi(_client);
+  static final ReferralApi referral = ReferralApi(_client);
   static final WalletApi wallet = WalletApi(_client);
   static final WishlistApi wishlist = WishlistApi(_client);
 
