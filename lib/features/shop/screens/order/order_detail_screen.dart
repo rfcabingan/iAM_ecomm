@@ -46,8 +46,9 @@ class OrderDetailScreen extends StatelessWidget {
           final shipping = order.shippingInfo;
           final pickup = order.pickupLocation;
           final fulfillmentId = order.fulfillmentTypeId;
-          final fulfillmentName =
-              order.fulfillmentTypeName.trim().toLowerCase();
+          final fulfillmentName = order.fulfillmentTypeName
+              .trim()
+              .toLowerCase();
           final isHomeDelivery =
               fulfillmentId == 1 && fulfillmentName == 'home delivery';
           final isStorePickup =
@@ -173,7 +174,9 @@ class OrderDetailScreen extends StatelessWidget {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            order.orderStatusName.trim().isNotEmpty
+                                            order.orderStatusName
+                                                    .trim()
+                                                    .isNotEmpty
                                                 ? order.orderStatusName.trim()
                                                 : 'Order status unavailable',
                                             style: Theme.of(context)
@@ -315,7 +318,8 @@ class OrderDetailScreen extends StatelessWidget {
                                             ),
                                           ),
                                         ],
-                                        if (effectivePickup.operatingHours
+                                        if (effectivePickup
+                                            .operatingHours
                                             .isNotEmpty) ...[
                                           const SizedBox(height: 2),
                                           Text(
@@ -539,6 +543,19 @@ class OrderDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Processing Fee:'),
+                    Text(
+                      NumberFormat.currency(
+                        locale: 'en_PH',
+                        symbol: '₱',
+                        decimalDigits: 2,
+                      ).format(order.shippingAmount),
+                    ),
+                  ],
+                ),
 
                 if (order.voucherDiscountAmount > 0)
                   Row(
@@ -563,21 +580,29 @@ class OrderDetailScreen extends StatelessWidget {
                   ),
 
                 const SizedBox(height: 8),
+                Divider(),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Total:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
+
                     Text(
                       NumberFormat.currency(
                         locale: 'en_PH',
                         symbol: '₱',
                         decimalDigits: 2,
                       ).format(order.totalAmount),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
                   ],
                 ),
