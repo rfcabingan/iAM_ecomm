@@ -76,6 +76,9 @@ class ApiEndpoints {
 
   static const String helpCenterTopics = '/HelpCenter/Topics';
 
+  // Referral APIs
+  static String referralById(String referralId) => '/Referral/$referralId';
+
   // Fulfillment APIs (/api routes outside /v1)
   static const String fulfillmentTypes = '$rootUrl/api/FulfillmentTypes';
   static const String branches = '$rootUrl/api/Branches';
