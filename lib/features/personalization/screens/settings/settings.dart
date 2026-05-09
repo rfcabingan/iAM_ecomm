@@ -53,7 +53,20 @@ class _SettingScreenState extends State<SettingScreen> {
   String get _referralId =>
       AuthController.instance.user.value?.idno.trim() ?? '';
 
+  bool get _canUseReferralFeatures =>
+      AuthController.instance.user.value?.isMember == true;
+
   Future<ApiResponse<ReferralData?>> _loadReferrals() {
+    if (!_canUseReferralFeatures) {
+      return Future.value(
+        const ApiResponse<ReferralData?>(
+          status: 0,
+          success: false,
+          message: 'Referral features are only available for members.',
+        ),
+      );
+    }
+
     final referralId = _referralId;
     if (referralId.isEmpty) {
       return Future.value(
@@ -69,6 +82,11 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   void _openReferrals() {
+    if (!_canUseReferralFeatures) {
+      _showMessage('Referral features are only available for members.');
+      return;
+    }
+
     final referralId = _referralId;
     if (referralId.isEmpty) {
       _showMessage('No referral ID available.');
@@ -79,6 +97,11 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   void _showReferralIdSheet() {
+    if (!_canUseReferralFeatures) {
+      _showMessage('Referral features are only available for members.');
+      return;
+    }
+
     final referralId = _referralId;
 
     showModalBottomSheet<void>(
@@ -152,6 +175,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         pointsFuture: _pointsFuture,
                         referralsFuture: _referralsFuture,
                         onReferralTap: _openReferrals,
+                        showReferralMetric: _canUseReferralFeatures,
                       ),
                     ),
                     const SizedBox(height: IAMSizes.spaceBtwSections),
@@ -171,32 +195,37 @@ class _SettingScreenState extends State<SettingScreen> {
                     ),
                     SizedBox(height: IAMSizes.spaceBtwItems),
 
-                    IAMSettingMenu(
-                      icon: Iconsax.ticket_star,
-                      title: 'My Referral ID',
-                      subTitle: 'Show and share your referral code',
-                      onTap: _showReferralIdSheet,
-                    ),
-                    FutureBuilder<ApiResponse<ReferralData?>>(
-                      future: _referralsFuture,
-                      builder: (context, snapshot) {
-                        final data = snapshot.data?.data;
-                        final count = data?.totalReferrals;
-                        final success =
-                            snapshot.data?.success == true && data != null;
-                        final subTitle = !success
-                            ? 'View users who used your referral code'
-                            : '${NumberFormat.decimalPattern().format(count)} ${count == 1 ? 'person' : 'people'} joined with your code';
+                    if (_canUseReferralFeatures) ...[
+                      IAMSettingMenu(
+                        icon: Iconsax.ticket_star,
+                        title: 'My Referral ID',
+                        subTitle: 'Show and share your referral code',
+                        onTap: _showReferralIdSheet,
+                      ),
+                      FutureBuilder<ApiResponse<ReferralData?>>(
+                        future: _referralsFuture,
+                        builder: (context, snapshot) {
+                          final data = snapshot.data?.data;
+                          final count = data?.totalReferrals;
+                          final success =
+                              snapshot.data?.success == true && data != null;
+                          final subTitle = !success
+                              ? 'View users who used your referral code'
+                              : '${NumberFormat.decimalPattern().format(count)} ${count == 1 ? 'person' : 'people'} joined with your code';
 
-                        return IAMSettingMenu(
-                          icon: Iconsax.profile_2user,
-                          title: 'My Referrals',
-                          subTitle: subTitle,
-                          trailing: const Icon(Iconsax.arrow_right_3, size: 18),
-                          onTap: _openReferrals,
-                        );
-                      },
-                    ),
+                          return IAMSettingMenu(
+                            icon: Iconsax.profile_2user,
+                            title: 'My Referrals',
+                            subTitle: subTitle,
+                            trailing: const Icon(
+                              Iconsax.arrow_right_3,
+                              size: 18,
+                            ),
+                            onTap: _openReferrals,
+                          );
+                        },
+                      ),
+                    ],
                     IAMSettingMenu(
                       icon: Iconsax.home,
                       title: 'My Addresses',
@@ -331,11 +360,13 @@ class _PointsBalanceView extends StatelessWidget {
     required this.pointsFuture,
     required this.referralsFuture,
     required this.onReferralTap,
+    required this.showReferralMetric,
   });
 
   final Future<ApiResponse<PointsBalanceData?>> pointsFuture;
   final Future<ApiResponse<ReferralData?>> referralsFuture;
   final VoidCallback onReferralTap;
+  final bool showReferralMetric;
 
   @override
   Widget build(BuildContext context) {
@@ -359,32 +390,34 @@ class _PointsBalanceView extends StatelessWidget {
                   icon: Iconsax.medal_star,
                 ),
               ),
-              const SizedBox(width: IAMSizes.sm),
-              Expanded(
-                child: FutureBuilder<ApiResponse<ReferralData?>>(
-                  future: referralsFuture,
-                  builder: (context, referralSnapshot) {
-                    final referralData = referralSnapshot.data?.data;
-                    final referralCount = referralData?.totalReferrals;
-                    final referralSuccess =
-                        referralSnapshot.data?.success == true &&
-                        referralData != null;
-                    final referralLoading =
-                        referralSnapshot.connectionState ==
-                        ConnectionState.waiting;
+              if (showReferralMetric) ...[
+                const SizedBox(width: IAMSizes.sm),
+                Expanded(
+                  child: FutureBuilder<ApiResponse<ReferralData?>>(
+                    future: referralsFuture,
+                    builder: (context, referralSnapshot) {
+                      final referralData = referralSnapshot.data?.data;
+                      final referralCount = referralData?.totalReferrals;
+                      final referralSuccess =
+                          referralSnapshot.data?.success == true &&
+                          referralData != null;
+                      final referralLoading =
+                          referralSnapshot.connectionState ==
+                          ConnectionState.waiting;
 
-                    return _PointMetricCard(
-                      label: 'Referrals',
-                      value: referralLoading || !referralSuccess
-                          ? null
-                          : referralCount,
-                      suffix: referralCount == 1 ? 'person' : 'people',
-                      icon: Iconsax.profile_2user,
-                      onTap: onReferralTap,
-                    );
-                  },
+                      return _PointMetricCard(
+                        label: 'Referrals',
+                        value: referralLoading || !referralSuccess
+                            ? null
+                            : referralCount,
+                        suffix: referralCount == 1 ? 'person' : 'people',
+                        icon: Iconsax.profile_2user,
+                        onTap: onReferralTap,
+                      );
+                    },
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         );

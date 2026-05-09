@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
@@ -30,6 +32,20 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
   }
 
   Future<ApiResponse<ReferralData?>> _loadReferrals() {
+    final canUseReferralFeatures =
+        Get.isRegistered<AuthController>() &&
+        AuthController.instance.user.value?.isMember == true;
+
+    if (!canUseReferralFeatures) {
+      return Future.value(
+        const ApiResponse<ReferralData?>(
+          status: 0,
+          success: false,
+          message: 'Referral features are only available for members.',
+        ),
+      );
+    }
+
     final referralId = widget.referralId.trim();
     if (referralId.isEmpty) {
       return Future.value(
