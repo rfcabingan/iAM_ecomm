@@ -8,6 +8,7 @@ import 'package:iam_ecomm/common/widgets/list_tiles/settings_menu_tile.dart';
 import 'package:iam_ecomm/common/widgets/list_tiles/user_profile_tile.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/personalization/screens/help_center/help_center.dart';
+import 'package:iam_ecomm/features/personalization/screens/referrals/referrals.dart';
 import 'package:iam_ecomm/utils/theme/theme_controller.dart';
 import 'package:iam_ecomm/features/personalization/screens/address/address.dart';
 import 'package:iam_ecomm/features/personalization/screens/profile/profile.dart';
@@ -32,22 +33,76 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   late Future<ApiResponse<PointsBalanceData?>> _pointsFuture;
+  late Future<ApiResponse<ReferralData?>> _referralsFuture;
 
   @override
   void initState() {
     super.initState();
     _pointsFuture = ApiMiddleware.points.getBalance();
+    _referralsFuture = _loadReferrals();
   }
 
   Future<void> _refreshPoints() async {
     setState(() {
       _pointsFuture = ApiMiddleware.points.getBalance();
+      _referralsFuture = _loadReferrals();
     });
-    await _pointsFuture;
+    await Future.wait([_pointsFuture, _referralsFuture]);
+  }
+
+  String get _referralId =>
+      AuthController.instance.user.value?.idno.trim() ?? '';
+
+  bool get _canUseReferralFeatures =>
+      AuthController.instance.user.value?.isMember == true;
+
+  Future<ApiResponse<ReferralData?>> _loadReferrals() {
+    if (!_canUseReferralFeatures) {
+      return Future.value(
+        const ApiResponse<ReferralData?>(
+          status: 0,
+          success: false,
+          message: 'Referral features are only available for members.',
+        ),
+      );
+    }
+
+    final referralId = _referralId;
+    if (referralId.isEmpty) {
+      return Future.value(
+        const ApiResponse<ReferralData?>(
+          status: 0,
+          success: false,
+          message: 'No referral ID available.',
+        ),
+      );
+    }
+
+    return ApiMiddleware.referral.getReferralById(referralId);
+  }
+
+  void _openReferrals() {
+    if (!_canUseReferralFeatures) {
+      _showMessage('Referral features are only available for members.');
+      return;
+    }
+
+    final referralId = _referralId;
+    if (referralId.isEmpty) {
+      _showMessage('No referral ID available.');
+      return;
+    }
+
+    Get.to(() => ReferralsScreen(referralId: referralId));
   }
 
   void _showReferralIdSheet() {
-    final referralId = AuthController.instance.user.value?.idno.trim() ?? '';
+    if (!_canUseReferralFeatures) {
+      _showMessage('Referral features are only available for members.');
+      return;
+    }
+
+    final referralId = _referralId;
 
     showModalBottomSheet<void>(
       context: context,
@@ -83,10 +138,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -106,9 +158,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     IAMAppBar(
                       title: Text(
                         'Account',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium!
+                        style: Theme.of(context).textTheme.headlineMedium!
                             .apply(color: IAMColors.white),
                       ),
                     ),
@@ -121,7 +171,12 @@ class _SettingScreenState extends State<SettingScreen> {
                       padding: const EdgeInsets.symmetric(
                         horizontal: IAMSizes.defaultSpace,
                       ),
-                      child: _PointsBalanceView(pointsFuture: _pointsFuture),
+                      child: _PointsBalanceView(
+                        pointsFuture: _pointsFuture,
+                        referralsFuture: _referralsFuture,
+                        onReferralTap: _openReferrals,
+                        showReferralMetric: _canUseReferralFeatures,
+                      ),
                     ),
                     const SizedBox(height: IAMSizes.spaceBtwSections),
                   ],
@@ -140,12 +195,37 @@ class _SettingScreenState extends State<SettingScreen> {
                     ),
                     SizedBox(height: IAMSizes.spaceBtwItems),
 
-                    IAMSettingMenu(
-                      icon: Iconsax.ticket_star,
-                      title: 'My Referral ID',
-                      subTitle: 'Show and share your referral code',
-                      onTap: _showReferralIdSheet,
-                    ),
+                    if (_canUseReferralFeatures) ...[
+                      IAMSettingMenu(
+                        icon: Iconsax.ticket_star,
+                        title: 'My Referral ID',
+                        subTitle: 'Show and share your referral code',
+                        onTap: _showReferralIdSheet,
+                      ),
+                      FutureBuilder<ApiResponse<ReferralData?>>(
+                        future: _referralsFuture,
+                        builder: (context, snapshot) {
+                          final data = snapshot.data?.data;
+                          final count = data?.totalReferrals;
+                          final success =
+                              snapshot.data?.success == true && data != null;
+                          final subTitle = !success
+                              ? 'View users who used your referral code'
+                              : '${NumberFormat.decimalPattern().format(count)} ${count == 1 ? 'person' : 'people'} joined with your code';
+
+                          return IAMSettingMenu(
+                            icon: Iconsax.profile_2user,
+                            title: 'My Referrals',
+                            subTitle: subTitle,
+                            trailing: const Icon(
+                              Iconsax.arrow_right_3,
+                              size: 18,
+                            ),
+                            onTap: _openReferrals,
+                          );
+                        },
+                      ),
+                    ],
                     IAMSettingMenu(
                       icon: Iconsax.home,
                       title: 'My Addresses',
@@ -165,43 +245,43 @@ class _SettingScreenState extends State<SettingScreen> {
                       onTap: () => Get.to(() => const OrderScreen()),
                     ),
 
-                  /*IAMSettingMenu(
+                    /*IAMSettingMenu(
                     icon: Iconsax.bank,
                     title: 'Bank Account',
                     subTitle: 'Manage Connected Banks',
                   ),*/
 
-                  // IAMSettingMenu(
-                  //   icon: Iconsax.discount_shape,
-                  //   title: 'Vouchers',
-                  //   subTitle: 'Manage Discount Coupons',
-                  // ),
+                    // IAMSettingMenu(
+                    //   icon: Iconsax.discount_shape,
+                    //   title: 'Vouchers',
+                    //   subTitle: 'Manage Discount Coupons',
+                    // ),
 
-                  /*IAMSettingMenu(
+                    /*IAMSettingMenu(
                     icon: Iconsax.gift,
                     title: 'Invite Friends',
                     subTitle: 'Share Referral Code',
                   ),*/
 
-                  //INVITE FRIENDS VIEWS USER ID WHRE USERS CAN COPY AND WILL THEN SEND A DOWNLOADABLE APP URL WITH THEIR REFERRAL CODE AUTOMATICALLY INSERTED
+                    //INVITE FRIENDS VIEWS USER ID WHRE USERS CAN COPY AND WILL THEN SEND A DOWNLOADABLE APP URL WITH THEIR REFERRAL CODE AUTOMATICALLY INSERTED
                     IAMSettingMenu(
                       icon: Iconsax.message_question,
                       title: 'Help Center',
                       subTitle: 'FAQs',
                       onTap: () => Get.to(() => const HelpCenterScreen()),
                     ),
-                  // IAMSettingMenu(
-                  //   icon: Iconsax.notification,
-                  //   title: 'Notifications',
-                  //   subTitle: 'Customize your Notifications',
-                  // ),
-                  // IAMSettingMenu(
-                  //   icon: Iconsax.security_card,
-                  //   title: 'Account Privacy',
-                  //   subTitle: 'Manage security and privacy settings',
-                  // ),
+                    // IAMSettingMenu(
+                    //   icon: Iconsax.notification,
+                    //   title: 'Notifications',
+                    //   subTitle: 'Customize your Notifications',
+                    // ),
+                    // IAMSettingMenu(
+                    //   icon: Iconsax.security_card,
+                    //   title: 'Account Privacy',
+                    //   subTitle: 'Manage security and privacy settings',
+                    // ),
 
-                  /// -- App Settings
+                    /// -- App Settings
                     SizedBox(height: IAMSizes.spaceBtwSections),
                     IAMSectionHeading(
                       title: 'App Settings',
@@ -209,13 +289,13 @@ class _SettingScreenState extends State<SettingScreen> {
                     ),
 
                     SizedBox(height: IAMSizes.spaceBtwItems),
-                  // IAMSettingMenu(
-                  //   icon: Iconsax.document_upload,
-                  //   title: 'Load Data',
-                  //   subTitle: 'Upload Data to your Cloud Firebase',
-                  // ),
+                    // IAMSettingMenu(
+                    //   icon: Iconsax.document_upload,
+                    //   title: 'Load Data',
+                    //   subTitle: 'Upload Data to your Cloud Firebase',
+                    // ),
 
-                  /*IAMSettingMenu(
+                    /*IAMSettingMenu(
                     icon: Iconsax.location,
                     title: 'Geolocation',
                     subTitle:
@@ -223,15 +303,15 @@ class _SettingScreenState extends State<SettingScreen> {
                     trailing: Switch(value: true, onChanged: (value) {}),
                   ), */
 
-                  // IAMSettingMenu
-                  // IAMSettingMenu(
-                  //   icon: Iconsax.security_user,
-                  //   title: 'Safe Mode',
-                  //   subTitle: 'Search result is safe for all ages',
-                  //   trailing: Switch(value: false, onChanged: (value) {}),
-                  // ),
-                  //
-                  //                  // Dark / Light Mode
+                    // IAMSettingMenu
+                    // IAMSettingMenu(
+                    //   icon: Iconsax.security_user,
+                    //   title: 'Safe Mode',
+                    //   subTitle: 'Search result is safe for all ages',
+                    //   trailing: Switch(value: false, onChanged: (value) {}),
+                    // ),
+                    //
+                    //                  // Dark / Light Mode
                     IAMSettingMenu(
                       icon: Iconsax.moon,
                       title: 'Dark Mode',
@@ -244,17 +324,17 @@ class _SettingScreenState extends State<SettingScreen> {
                         );
                       }),
                     ),
-                  //
-                  //
-                  //// IAMSettingMenu
-                  /*IAMSettingMenu(
+                    //
+                    //
+                    //// IAMSettingMenu
+                    /*IAMSettingMenu(
                     icon: Iconsax.image,
                     title: 'HD Image Quality',
                     subTitle: 'Use high-quality images',
                     trailing: Switch(value: false, onChanged: (value) {}),
                   ),*/
 
-                  //Logout Button
+                    //Logout Button
                     const SizedBox(height: IAMSizes.spaceBtwSections),
                     SizedBox(
                       width: double.infinity,
@@ -276,9 +356,17 @@ class _SettingScreenState extends State<SettingScreen> {
 }
 
 class _PointsBalanceView extends StatelessWidget {
-  const _PointsBalanceView({required this.pointsFuture});
+  const _PointsBalanceView({
+    required this.pointsFuture,
+    required this.referralsFuture,
+    required this.onReferralTap,
+    required this.showReferralMetric,
+  });
 
   final Future<ApiResponse<PointsBalanceData?>> pointsFuture;
+  final Future<ApiResponse<ReferralData?>> referralsFuture;
+  final VoidCallback onReferralTap;
+  final bool showReferralMetric;
 
   @override
   Widget build(BuildContext context) {
@@ -289,29 +377,6 @@ class _PointsBalanceView extends StatelessWidget {
         final success =
             snapshot.data?.success == true && snapshot.data?.data != null;
         final data = snapshot.data?.data;
-        final message = snapshot.data?.message ?? 'Unable to load points';
-
-        if (!isLoading && !success) {
-          return _PointsCardShell(
-            child: Row(
-              children: [
-                const _PointsIcon(icon: Iconsax.star),
-                const SizedBox(width: IAMSizes.sm),
-                Expanded(
-                  child: Text(
-                    message,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withOpacity(0.88),
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
 
         return _PointsCardShell(
           data: success ? data : null,
@@ -325,15 +390,34 @@ class _PointsBalanceView extends StatelessWidget {
                   icon: Iconsax.medal_star,
                 ),
               ),
-              const SizedBox(width: IAMSizes.sm),
-              Expanded(
-                child: _PointMetricCard(
-                  label: 'Referrals',
-                  value: isLoading ? null : 0,
-                  suffix: 'people',
-                  icon: Iconsax.profile_2user,
+              if (showReferralMetric) ...[
+                const SizedBox(width: IAMSizes.sm),
+                Expanded(
+                  child: FutureBuilder<ApiResponse<ReferralData?>>(
+                    future: referralsFuture,
+                    builder: (context, referralSnapshot) {
+                      final referralData = referralSnapshot.data?.data;
+                      final referralCount = referralData?.totalReferrals;
+                      final referralSuccess =
+                          referralSnapshot.data?.success == true &&
+                          referralData != null;
+                      final referralLoading =
+                          referralSnapshot.connectionState ==
+                          ConnectionState.waiting;
+
+                      return _PointMetricCard(
+                        label: 'Referrals',
+                        value: referralLoading || !referralSuccess
+                            ? null
+                            : referralCount,
+                        suffix: referralCount == 1 ? 'person' : 'people',
+                        icon: Iconsax.profile_2user,
+                        onTap: onReferralTap,
+                      );
+                    },
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         );
@@ -375,7 +459,7 @@ class _ReferralIdSheet extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: IAMColors.black.withOpacity(0.14),
+              color: IAMColors.black.withValues(alpha: 0.14),
               blurRadius: 28,
               offset: const Offset(0, 16),
             ),
@@ -389,7 +473,7 @@ class _ReferralIdSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.72)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.72)),
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -406,7 +490,7 @@ class _ReferralIdSheet extends StatelessWidget {
                     width: 54,
                     height: 54,
                     decoration: BoxDecoration(
-                      color: IAMColors.primary.withOpacity(0.14),
+                      color: IAMColors.primary.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: const Icon(
@@ -419,9 +503,9 @@ class _ReferralIdSheet extends StatelessWidget {
                   Text(
                     'My Referral Code',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: IAMColors.black,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: IAMColors.black,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: IAMSizes.sm),
                   Container(
@@ -431,7 +515,7 @@ class _ReferralIdSheet extends StatelessWidget {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.78),
+                      color: Colors.white.withValues(alpha: 0.78),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFE9D28A)),
                     ),
@@ -440,11 +524,11 @@ class _ReferralIdSheet extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: IAMColors.black,
-                                fontWeight: FontWeight.w800,
-                              ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            color: IAMColors.black,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ],
@@ -511,15 +595,17 @@ class _PointsCardShell extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: canOpenDetails ? () => _showPointsBreakdown(context, data!) : null,
+        onTap: canOpenDetails
+            ? () => _showPointsBreakdown(context, data!)
+            : null,
         borderRadius: BorderRadius.circular(18),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(IAMSizes.md),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(darkMode ? 0.10 : 0.18),
+            color: Colors.white.withValues(alpha: darkMode ? 0.10 : 0.18),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withOpacity(0.24)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
           ),
           child: child,
         ),
@@ -559,7 +645,7 @@ void _showPointsBreakdown(BuildContext context, PointsBalanceData data) {
             ),
             boxShadow: [
               BoxShadow(
-                color: IAMColors.black.withOpacity(0.14),
+                color: IAMColors.black.withValues(alpha: 0.14),
                 blurRadius: 28,
                 offset: const Offset(0, 16),
               ),
@@ -575,7 +661,7 @@ void _showPointsBreakdown(BuildContext context, PointsBalanceData data) {
                     width: 46,
                     height: 46,
                     decoration: BoxDecoration(
-                      color: IAMColors.primary.withOpacity(0.14),
+                      color: IAMColors.primary.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
@@ -591,9 +677,7 @@ void _showPointsBreakdown(BuildContext context, PointsBalanceData data) {
                       children: [
                         Text(
                           'Points Breakdown',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: IAMSizes.xs),
@@ -601,12 +685,12 @@ void _showPointsBreakdown(BuildContext context, PointsBalanceData data) {
                           'Account ${data.accountId}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: darkMode
-                                        ? Colors.white70
-                                        : IAMColors.darkerGrey,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: darkMode
+                                    ? Colors.white70
+                                    : IAMColors.darkerGrey,
+                              ),
                         ),
                       ],
                     ),
@@ -662,12 +746,12 @@ class _PointsBreakdownRow extends StatelessWidget {
       padding: const EdgeInsets.all(IAMSizes.md),
       decoration: BoxDecoration(
         color: highlight
-            ? IAMColors.primary.withOpacity(darkMode ? 0.20 : 0.12)
+            ? IAMColors.primary.withValues(alpha: darkMode ? 0.20 : 0.12)
             : (darkMode ? IAMColors.black : const Color(0xFFFAF8F2)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: highlight
-              ? IAMColors.primary.withOpacity(0.36)
+              ? IAMColors.primary.withValues(alpha: 0.36)
               : (darkMode ? IAMColors.darkerGrey : const Color(0xFFF0E8D7)),
         ),
       ),
@@ -677,7 +761,7 @@ class _PointsBreakdownRow extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: IAMColors.primary.withOpacity(0.14),
+              color: IAMColors.primary.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: IAMColors.primary, size: 20),
@@ -686,17 +770,17 @@ class _PointsBreakdownRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Text(
             '$formatted pts',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: highlight ? IAMColors.primary : null,
-                ),
+              fontWeight: FontWeight.w800,
+              color: highlight ? IAMColors.primary : null,
+            ),
           ),
         ],
       ),
@@ -710,12 +794,14 @@ class _PointMetricCard extends StatelessWidget {
     required this.value,
     required this.suffix,
     required this.icon,
+    this.onTap,
   });
 
   final String label;
   final num? value;
   final String suffix;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -723,59 +809,68 @@ class _PointMetricCard extends StatelessWidget {
         ? '--'
         : NumberFormat.decimalPattern().format(value);
 
-    return Container(
-      constraints: const BoxConstraints(minHeight: 78),
-      padding: const EdgeInsets.all(IAMSizes.sm),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.16)),
-      ),
-      child: Row(
-        children: [
-          _PointsIcon(icon: icon),
-          const SizedBox(width: IAMSizes.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.82),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 78),
+          padding: const EdgeInsets.all(IAMSizes.sm),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+          ),
+          child: Row(
+            children: [
+              _PointsIcon(icon: icon),
+              const SizedBox(width: IAMSizes.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.82),
                         fontWeight: FontWeight.w500,
                       ),
-                ),
-                const SizedBox(height: IAMSizes.xs),
-                RichText(
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: formatted,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                            ),
+                    ),
+                    const SizedBox(height: IAMSizes.xs),
+                    RichText(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: formatted,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                          TextSpan(
+                            text: ' $suffix',
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.84),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
                       ),
-                      TextSpan(
-                        text: ' $suffix',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.84),
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -792,7 +887,7 @@ class _PointsIcon extends StatelessWidget {
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
+        color: Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(icon, color: Colors.white, size: 20),
