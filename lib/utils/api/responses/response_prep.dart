@@ -1,6 +1,6 @@
-
-Map<String, dynamic>? asMap(dynamic v) =>
-    v == null ? null : (v is Map<String, dynamic> ? v : Map<String, dynamic>.from(v as Map));
+Map<String, dynamic>? asMap(dynamic v) => v == null
+    ? null
+    : (v is Map<String, dynamic> ? v : Map<String, dynamic>.from(v as Map));
 
 List<Map<String, dynamic>>? asListMap(dynamic v) {
   if (v == null) return null;
@@ -21,6 +21,12 @@ String readStringValue(Map<String, dynamic> m, List<String> keys) {
     if (text != null && text.isNotEmpty) return text;
   }
   return '';
+}
+
+int readIntValue(dynamic v) {
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  return int.tryParse(v?.toString() ?? '') ?? 0;
 }
 
 class HelpTopicItem {
@@ -65,13 +71,14 @@ class ReferralData {
   static ReferralData? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
-    final referralsList = (m['referrals'] is List ? (m['referrals'] as List) : const [])
-        .map((e) => ReferralItem.fromJson(e))
-        .whereType<ReferralItem>()
-        .toList();
+    final referralsList =
+        (m['referrals'] is List ? (m['referrals'] as List) : const [])
+            .map((e) => ReferralItem.fromJson(e))
+            .whereType<ReferralItem>()
+            .toList();
     return ReferralData(
       referralId: m['referralId'] as String? ?? '',
-      totalReferrals: (m['totalReferrals'] as int?) ?? 0,
+      totalReferrals: readIntValue(m['totalReferrals']),
       referrals: referralsList,
     );
   }
@@ -144,7 +151,11 @@ class TokenInfo {
   final String tokenType;
   final int expiresIn;
 
-  TokenInfo({required this.accessToken, this.tokenType = 'Bearer', required this.expiresIn});
+  TokenInfo({
+    required this.accessToken,
+    this.tokenType = 'Bearer',
+    required this.expiresIn,
+  });
 
   static TokenInfo? fromJson(dynamic json) {
     final m = asMap(json);
@@ -197,9 +208,7 @@ class ValidateResetCodeResponse {
   static ValidateResetCodeResponse? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
-    return ValidateResetCodeResponse(
-      isValid: (m['isValid'] as bool?) ?? false,
-    );
+    return ValidateResetCodeResponse(isValid: (m['isValid'] as bool?) ?? false);
   }
 }
 
@@ -288,10 +297,7 @@ class WishlistCheckItem {
   final String productCode;
   final bool isWishlisted;
 
-  WishlistCheckItem({
-    required this.productCode,
-    required this.isWishlisted,
-  });
+  WishlistCheckItem({required this.productCode, required this.isWishlisted});
 
   static WishlistCheckItem? fromJson(dynamic json) {
     final m = asMap(json);
@@ -307,10 +313,7 @@ class WalletBalanceData {
   final String accountId;
   final num balance;
 
-  WalletBalanceData({
-    required this.accountId,
-    required this.balance,
-  });
+  WalletBalanceData({required this.accountId, required this.balance});
 
   static WalletBalanceData? fromJson(dynamic json) {
     final m = asMap(json);
@@ -349,6 +352,7 @@ class WalletOrderPaymentData {
     );
   }
 }
+
 class PointsBalanceData {
   final String accountId;
   final num totalPoints;
@@ -379,10 +383,7 @@ class WalletSendOtpData {
   final String emailAddress;
   final String maskedEmail;
 
-  WalletSendOtpData({
-    required this.emailAddress,
-    required this.maskedEmail,
-  });
+  WalletSendOtpData({required this.emailAddress, required this.maskedEmail});
 
   static WalletSendOtpData? fromJson(dynamic json) {
     final m = asMap(json);
@@ -458,8 +459,10 @@ class CheckoutData {
         .whereType<OrderProductItem>()
         .toList();
     return CheckoutData(
-      orderRefNo: (m['orderRefNo'] as String?) ?? (m['orderRefno'] as String? ?? ''),
-      cartRefNo: (m['cartRefNo'] as String?) ?? (m['cartRefno'] as String? ?? ''),
+      orderRefNo:
+          (m['orderRefNo'] as String?) ?? (m['orderRefno'] as String? ?? ''),
+      cartRefNo:
+          (m['cartRefNo'] as String?) ?? (m['cartRefno'] as String? ?? ''),
       subtotalAmount: (m['subtotalAmount'] as num?) ?? 0,
       shippingAmount: (m['shippingAmount'] as num?) ?? 0,
       processingFeeAmount: (m['processingFeeAmount'] as num?) ?? 0,
@@ -499,7 +502,8 @@ class ComputeFeesData {
     final m = asMap(json);
     if (m == null) return null;
     return ComputeFeesData(
-      cartRefno: (m['cartRefno'] as String?) ?? (m['cartRefNo'] as String? ?? ''),
+      cartRefno:
+          (m['cartRefno'] as String?) ?? (m['cartRefNo'] as String? ?? ''),
       subtotalAmount: (m['subtotalAmount'] as num?) ?? 0,
       shippingAmount: (m['shippingAmount'] as num?) ?? 0,
       processingFeeAmount: (m['processingFeeAmount'] as num?) ?? 0,
@@ -655,7 +659,6 @@ class ProductItem {
   }
 }
 
-
 class CartPayload {
   final String refNo;
   final String idno;
@@ -775,7 +778,9 @@ class MemberPayload {
       firstName: m['firstName'] as String? ?? '',
       lastName: m['lastName'] as String? ?? '',
       middleName: m['middleName'] as String? ?? '',
-      membershipDate: (m['membeshipDate'] as String?) ?? (m['membershipDate'] as String? ?? ''),
+      membershipDate:
+          (m['membeshipDate'] as String?) ??
+          (m['membershipDate'] as String? ?? ''),
       packageCode: m['packageCode'] as String? ?? '',
       packageName: m['packageName'] as String? ?? '',
       mobileNo: m['mobileNo'] as String? ?? '',
@@ -1107,9 +1112,11 @@ class PickupLocation {
   });
 
   String get completeAddress {
-    final parts = [address, city, province]
-        .where((part) => part.trim().isNotEmpty)
-        .toList();
+    final parts = [
+      address,
+      city,
+      province,
+    ].where((part) => part.trim().isNotEmpty).toList();
     return parts.join(', ');
   }
 
@@ -1209,7 +1216,6 @@ class OrderProductItem {
   }
 }
 
-
 class CartItemPayload {
   final String productCode;
   final int qty;
@@ -1236,9 +1242,7 @@ class CountryItem {
   static CountryItem? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
-    return CountryItem(
-      country: m['country'] as String? ?? '',
-    );
+    return CountryItem(country: m['country'] as String? ?? '');
   }
 }
 
@@ -1250,9 +1254,7 @@ class ProvinceItem {
   static ProvinceItem? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
-    return ProvinceItem(
-      province: m['province'] as String? ?? '',
-    );
+    return ProvinceItem(province: m['province'] as String? ?? '');
   }
 }
 
@@ -1264,9 +1266,7 @@ class CityItem {
   static CityItem? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
-    return CityItem(
-      city: m['city'] as String? ?? '',
-    );
+    return CityItem(city: m['city'] as String? ?? '');
   }
 }
 
@@ -1278,9 +1278,7 @@ class BarangayItem {
   static BarangayItem? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
-    return BarangayItem(
-      barangay: m['barangay'] as String? ?? '',
-    );
+    return BarangayItem(barangay: m['barangay'] as String? ?? '');
   }
 }
 
@@ -1310,10 +1308,7 @@ class BranchItem {
   final String areaCode;
   final String areaName;
 
-  BranchItem({
-    required this.areaCode,
-    required this.areaName,
-  });
+  BranchItem({required this.areaCode, required this.areaName});
 
   static BranchItem? fromJson(dynamic json) {
     final m = asMap(json);
