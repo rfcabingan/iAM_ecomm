@@ -22,6 +22,14 @@ class HomeScreen extends StatelessWidget {
     if (!Get.isRegistered<HomeController>()) {
       Get.put(HomeController());
     }
+    final controller = Get.find<HomeController>();
+
+    void openSearchResults(String query) {
+      final trimmedQuery = query.trim();
+      if (trimmedQuery.isEmpty) return;
+      Get.to(() => AllProducts(initialSearchQuery: trimmedQuery));
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -34,7 +42,17 @@ class HomeScreen extends StatelessWidget {
                   SizedBox(height: IAMSizes.spaceBtwSections),
 
                   //Searchbar
-                  IAMSearchBar(text: 'Search in Store'),
+                  Obx(
+                    () => IAMSearchBar(
+                      text: 'Search in Store',
+                      suggestions: controller.products
+                          .map((product) => product.productName)
+                          .where((name) => name.trim().isNotEmpty)
+                          .toList(),
+                      onSubmitted: openSearchResults,
+                      onSuggestionSelected: openSearchResults,
+                    ),
+                  ),
                   SizedBox(height: IAMSizes.spaceBtwSections),
 
                   //Categories
@@ -80,7 +98,6 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwItems),
                   Obx(() {
-                    final controller = Get.find<HomeController>();
                     if (controller.productsLoading.value) {
                       return const IAMProductGridSkeleton(itemCount: 4);
                     }
