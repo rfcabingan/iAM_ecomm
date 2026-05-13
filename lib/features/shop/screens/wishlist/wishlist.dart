@@ -192,8 +192,9 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
       isActive: true,
       isFeatured: false,
       isPopular: false,
-      imageUrl: item.imageUrl,
-      altText: item.altText,
+      imageUrl: item.imageUrl ?? '',
+      altText: item.altText ?? '',
+      shareLink: '',
     );
   }
 
