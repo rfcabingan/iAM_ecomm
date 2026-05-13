@@ -37,7 +37,69 @@ class App extends StatelessWidget {
         theme: IAMTheme.lightTheme,
         darkTheme: IAMTheme.darkTheme,
         home: const _RootDecider(),
+        builder: (context, child) =>
+            _SessionActivityListener(child: child ?? const SizedBox.shrink()),
         debugShowCheckedModeBanner: false,
+      ),
+    );
+  }
+}
+
+class _SessionActivityListener extends StatefulWidget {
+  const _SessionActivityListener({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_SessionActivityListener> createState() =>
+      _SessionActivityListenerState();
+}
+
+class _SessionActivityListenerState extends State<_SessionActivityListener>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!Get.isRegistered<AuthController>()) return;
+
+    if (state == AppLifecycleState.resumed) {
+      AuthController.instance.checkIdleTimeout();
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      AuthController.instance.persistCurrentActivity();
+    }
+  }
+
+  void _recordActivity() {
+    if (!Get.isRegistered<AuthController>()) return;
+    AuthController.instance.recordUserActivity();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _recordActivity(),
+      onPointerMove: (_) => _recordActivity(),
+      onPointerSignal: (_) => _recordActivity(),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (_) {
+          _recordActivity();
+          return false;
+        },
+        child: widget.child,
       ),
     );
   }
@@ -62,7 +124,8 @@ class _RootDeciderState extends State<_RootDecider> {
 
   Future<void> _loadFlag() async {
     final storage = IAMLocalStorage();
-    final flag = storage.readData<bool>('has_seen_onboarding') ?? false;
+    final flag =
+        storage.readData<bool>(IAMLocalStorage.hasSeenOnboardingKey) ?? false;
     if (!mounted) return;
     setState(() {
       _hasSeenOnboarding = flag;

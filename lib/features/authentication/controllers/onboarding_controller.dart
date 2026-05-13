@@ -37,7 +37,7 @@ class OnboardingController extends GetxController {
   Future<void> _completeOnboarding() async {
     // Mark onboarding as seen so it won't show again on next app launch.
     final storage = IAMLocalStorage();
-    await storage.saveData('has_seen_onboarding', true);
+    await storage.saveData(IAMLocalStorage.hasSeenOnboardingKey, true);
 
     // Skip onboarding and proceed to main app (Home with bottom navigation).
     Get.offAll(() => const NavigationMenu());
