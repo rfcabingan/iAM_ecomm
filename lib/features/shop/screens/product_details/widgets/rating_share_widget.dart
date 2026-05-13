@@ -1,23 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:share_plus/share_plus.dart';
 
+// Base URL for the public product share site (commented out - now using shareLink from API)
+// const String kProductShareBaseUrl = 'https://iam-ecomm-share.vercel.app';
+
 class IAMRatingAndShare extends StatelessWidget {
-  const IAMRatingAndShare({super.key, required this.productCode});
+  const IAMRatingAndShare({super.key, required this.productCode, required this.shareLink});
 
   final String productCode;
+  final String shareLink;
 
-  //domain maybe kapag up nalang tsaka update to
-  String _buildDynamicLink() {
-    return 'https://yourapp.page.link/product?code=$productCode';
-  }
-
-  void _shareProduct() {
-    final link = _buildDynamicLink();
-
-    Share.share('Check out this product:\n$link');
+  void _shareProduct(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.share, color: Color(0xFFDBA724)),
+              title: const Text('Share'),
+              onTap: () {
+                Navigator.pop(context);
+                Share.share(
+                  'Check out this product on IAM Worldwide! 🛍️\n\n$shareLink',
+                  subject: 'IAM Worldwide Product',
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy, color: Color(0xFFDBA724)),
+              title: const Text('Copy Link'),
+              onTap: () async {
+                await Clipboard.setData(ClipboardData(text: shareLink));
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Link copied to clipboard')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -66,7 +97,7 @@ class IAMRatingAndShare extends StatelessWidget {
               ],
             ),
             IconButton(
-              onPressed: _shareProduct,
+              onPressed: () => _shareProduct(context),
               icon: const Icon(Icons.share, size: IAMSizes.iconMd),
             ),
           ],

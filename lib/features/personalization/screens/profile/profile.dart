@@ -88,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
-        actions: [
+        /*actions: [
           const SizedBox(width: IAMSizes.sm),
           IconButton(
             onPressed: () {},
@@ -99,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(width: IAMSizes.sm),
-        ],
+        ],*/
       ),
       body: FutureBuilder<_ProfilePayloadBundle>(
         future: _profileFuture,

@@ -237,7 +237,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                 ),
                 child: Row(
                   children: [
-                    OutlinedButton.icon(
+                    /*OutlinedButton.icon(
                       onPressed: () async {
                         await Clipboard.setData(
                           ClipboardData(text: widget.checkoutUrl),
@@ -292,7 +292,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                           vertical: 12,
                         ),
                       ),
-                    ),
+                    ),*/
                     const Spacer(),
                     IconButton(
                       tooltip: 'Refresh',

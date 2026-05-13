@@ -4,10 +4,11 @@ import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/icons/circular_icon.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/features/authentication/screens/login/login.dart';
+import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
 import 'package:iam_ecomm/features/shop/controllers/wishlist_controller.dart';
 import 'package:iam_ecomm/features/shop/controllers/cart_count_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/cart/cart.dart';
-import 'package:iam_ecomm/features/shop/screens/checkout/checkout.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/widgets/bottom_add_to_cart_widget.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/widgets/product_detail_image_slider.dart';
 import 'package:iam_ecomm/features/shop/screens/product_details/widgets/product_meta_data.dart';
@@ -15,7 +16,6 @@ import 'package:iam_ecomm/features/shop/screens/product_details/widgets/rating_s
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
-import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:readmore/readmore.dart';
 import 'package:iconsax/iconsax.dart';
@@ -56,24 +56,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         AuthController.instance.isLoggedIn.value;
 
     if (!isLoggedIn) {
-      final storage = IAMLocalStorage();
-      final existing = storage.readData<List>('guest_cart') ?? [];
-      final cart = existing
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList();
-      final index = cart.indexWhere((e) => e['productCode'] == code);
-      if (index >= 0) {
-        final current = cart[index]['qty'] as int? ?? 0;
-        cart[index]['qty'] = current + qty;
-      } else {
-        cart.add({'productCode': code, 'qty': qty});
-      }
-      await storage.saveData('guest_cart', cart);
-      if (Get.isRegistered<CartCountController>()) {
-        CartCountController.instance.refresh();
-      }
       if (!context.mounted) return;
-      Get.to(() => const CheckoutScreen());
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Have an account?'),
+          content: const Text(
+            'Have an account? Login now.\nNew to IAM? Sign-up here.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+                Get.to(() => const LoginScreen());
+              },
+              child: const Text('Login now'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+                Get.to(() => const SignupScreen());
+              },
+              child: const Text('Signup here'),
+            ),
+          ],
+        ),
+      );
       return;
     }
 
@@ -212,7 +220,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Column(
                 children: [
                   if (widget.product?.productCode != null)
-                    IAMRatingAndShare(productCode: widget.product!.productCode),
+                    IAMRatingAndShare(
+                      productCode: widget.product!.productCode,
+                      shareLink: widget.product!.shareLink,
+                    ),
                   IAMProductMetaData(product: widget.product),
                   const SizedBox(height: IAMSizes.spaceBtwItems / 1.5),
 
@@ -295,8 +306,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: dark ? IAMColors.white : IAMColors.black,
                         ),
-                        iconEnabledColor:
-                            dark ? IAMColors.lightGrey : IAMColors.darkGrey,
+                        iconEnabledColor: dark
+                            ? IAMColors.lightGrey
+                            : IAMColors.darkGrey,
                         items: const [
                           DropdownMenuItem(value: 0, child: Text('All')),
                           DropdownMenuItem(value: 5, child: Text('5 ⭐')),
@@ -333,7 +345,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         return Text(
                           'No reviews found',
                           style: TextStyle(
-                            color: dark ? IAMColors.lightGrey : IAMColors.darkGrey,
+                            color: dark
+                                ? IAMColors.lightGrey
+                                : IAMColors.darkGrey,
                           ),
                         );
                       }
@@ -350,7 +364,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         return Text(
                           'No reviews yet',
                           style: TextStyle(
-                            color: dark ? IAMColors.lightGrey : IAMColors.darkGrey,
+                            color: dark
+                                ? IAMColors.lightGrey
+                                : IAMColors.darkGrey,
                           ),
                         );
                       }
@@ -384,8 +400,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color:
-                                        dark ? IAMColors.white : IAMColors.black,
+                                    color: dark
+                                        ? IAMColors.white
+                                        : IAMColors.black,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
