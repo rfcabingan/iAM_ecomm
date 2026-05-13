@@ -5,19 +5,16 @@ import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:share_plus/share_plus.dart';
 
-const String kProductShareBaseUrl = 'https://iam-ecomm-share.vercel.app';
+// Base URL for the public product share site (commented out - now using shareLink from API)
+// const String kProductShareBaseUrl = 'https://iam-ecomm-share.vercel.app';
 
 class IAMRatingAndShare extends StatelessWidget {
-  const IAMRatingAndShare({super.key, required this.productCode});
+  const IAMRatingAndShare({super.key, required this.productCode, required this.shareLink});
 
   final String productCode;
-
-  String _buildShareLink() {
-    return '$kProductShareBaseUrl/products/$productCode';
-  }
+  final String shareLink;
 
   void _shareProduct(BuildContext context) {
-    final link = _buildShareLink();
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -30,7 +27,7 @@ class IAMRatingAndShare extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 Share.share(
-                  'Check out this product on IAM Worldwide! 🛍️\n\n$link',
+                  'Check out this product on IAM Worldwide! 🛍️\n\n$shareLink',
                   subject: 'IAM Worldwide Product',
                 );
               },
@@ -39,7 +36,7 @@ class IAMRatingAndShare extends StatelessWidget {
               leading: const Icon(Icons.copy, color: Color(0xFFDBA724)),
               title: const Text('Copy Link'),
               onTap: () async {
-                await Clipboard.setData(ClipboardData(text: link));
+                await Clipboard.setData(ClipboardData(text: shareLink));
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

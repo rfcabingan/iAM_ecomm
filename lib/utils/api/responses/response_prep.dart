@@ -619,6 +619,7 @@ class ProductItem {
   final bool isPopular;
   final String imageUrl;
   final String altText;
+  final String shareLink;
 
   ProductItem({
     required this.categoryId,
@@ -635,6 +636,7 @@ class ProductItem {
     required this.isPopular,
     required this.imageUrl,
     required this.altText,
+    required this.shareLink,
   });
 
   static ProductItem? fromJson(dynamic json) {
@@ -655,6 +657,7 @@ class ProductItem {
       isPopular: m['isPopular'] as bool? ?? false,
       imageUrl: m['imageUrl'] as String? ?? '',
       altText: m['altText'] as String? ?? '',
+      shareLink: m['shareLink'] as String? ?? '',
     );
   }
 }
