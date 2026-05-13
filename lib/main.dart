@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'app.dart';
 
@@ -12,6 +13,7 @@ Future<void> main() async {
   ///Todo: Inidtialize Authentication
 
   WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
   await ApiMiddleware.init();
   runApp(const App());
 }

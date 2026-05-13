@@ -3,6 +3,8 @@ import 'package:get_storage/get_storage.dart';
 /// Generic class for managing local data storage.
 /// Implemented as a Singleton.
 class IAMLocalStorage {
+  static const String hasSeenOnboardingKey = 'has_seen_onboarding';
+
   // Singleton instance
   static final IAMLocalStorage _instance = IAMLocalStorage._internal();
 

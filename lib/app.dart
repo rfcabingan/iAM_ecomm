@@ -62,7 +62,8 @@ class _RootDeciderState extends State<_RootDecider> {
 
   Future<void> _loadFlag() async {
     final storage = IAMLocalStorage();
-    final flag = storage.readData<bool>('has_seen_onboarding') ?? false;
+    final flag =
+        storage.readData<bool>(IAMLocalStorage.hasSeenOnboardingKey) ?? false;
     if (!mounted) return;
     setState(() {
       _hasSeenOnboarding = flag;
