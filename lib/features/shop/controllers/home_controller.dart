@@ -10,6 +10,7 @@ class HomeController extends GetxController {
   final products = <ProductItem>[].obs;
   final productsLoading = false.obs;
   final productsError = ''.obs;
+  final productsVersion = 0.obs;
   List<ProductItem> get popularProducts =>
       products.where((p) => p.isPopular).toList();
   Worker? _authStateWorker;
@@ -41,6 +42,7 @@ class HomeController extends GetxController {
     }
     final list = res.data ?? [];
     products.assignAll(list.whereType<ProductItem>());
+    productsVersion.value++;
   }
 
   void updatePageIndicator(index) {
