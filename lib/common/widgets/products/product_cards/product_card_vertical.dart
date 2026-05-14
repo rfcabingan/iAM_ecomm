@@ -27,11 +27,10 @@ class IAMProductCardVertical extends StatelessWidget {
   final ProductItem? product;
 
   static num _effectivePrice({
-    required bool isLoggedIn,
     required num regularPrice,
     required num sellingPrice,
   }) {
-    return isLoggedIn ? sellingPrice : regularPrice;
+    return sellingPrice > 0 ? sellingPrice : regularPrice;
   }
 
   @override
@@ -59,7 +58,6 @@ class IAMProductCardVertical extends StatelessWidget {
       final regularPrice = product?.regularPrice ?? 1000;
       final sellingPrice = product?.sellingPrice ?? regularPrice;
       final displayPrice = _effectivePrice(
-        isLoggedIn: isLoggedIn,
         regularPrice: regularPrice,
         sellingPrice: sellingPrice,
       );
@@ -105,7 +103,7 @@ class IAMProductCardVertical extends StatelessWidget {
                             24,
                             24,
                             24,
-                          ).withOpacity(0.8),
+                          ).withValues(alpha: 0.8),
                           padding: const EdgeInsets.symmetric(
                             horizontal: IAMSizes.sm,
                             vertical: IAMSizes.xs,
@@ -131,39 +129,39 @@ class IAMProductCardVertical extends StatelessWidget {
                         icon: wishlisted ? Iconsax.heart : Iconsax.heart5,
                         color: wishlisted
                             ? Colors.red
-                            : (dark
-                                ? IAMColors.lightGrey
-                                : IAMColors.darkGrey),
+                            : (dark ? IAMColors.lightGrey : IAMColors.darkGrey),
                         onPressed: productCode == null || toggling
                             ? null
                             : () {
                                 wishlistController
                                     .toggleWishlist(productCode)
                                     .then((result) {
-                                  if (!context.mounted) return;
-                                  if (result.message.isEmpty) return;
+                                      if (!context.mounted) return;
+                                      if (result.message.isEmpty) return;
 
-                                  final backgroundColor = result.wishlisted
-                                      ? Colors.green[300]
-                                      : Colors.red[300];
+                                      final backgroundColor = result.wishlisted
+                                          ? Colors.green[300]
+                                          : Colors.red[300];
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        result.message,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            result.message,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          backgroundColor: backgroundColor,
+                                          behavior: SnackBarBehavior.floating,
+                                          margin: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
                                         ),
-                                      ),
-                                      backgroundColor: backgroundColor,
-                                      behavior: SnackBarBehavior.floating,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                    ),
-                                  );
-                                });
+                                      );
+                                    });
                               },
                       ),
                     ),

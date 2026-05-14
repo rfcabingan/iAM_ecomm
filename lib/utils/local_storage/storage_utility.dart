@@ -5,7 +5,7 @@ import 'package:get_storage/get_storage.dart';
 class IAMLocalStorage {
   static const String hasSeenOnboardingKey = 'has_seen_onboarding';
   static const String authLastActivityAtKey = 'auth_last_activity_at';
-  static const Duration authIdleTimeout = Duration(minutes: 30);
+  static const Duration authIdleTimeout = Duration(minutes: 28);
 
   // Singleton instance
   static final IAMLocalStorage _instance = IAMLocalStorage._internal();
