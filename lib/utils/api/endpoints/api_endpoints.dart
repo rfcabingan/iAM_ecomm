@@ -25,6 +25,8 @@ class ApiEndpoints {
 
   static const String member = '/Member';
   static const String profile = '/Profile';
+  static const String profileDeleteAccount = '/Profile/DeleteAccount';
+  static const String profileDeleteAccountReasons = '/Profile/DeleteAccountReasons';
 
   static const String paymentMethods = '/Payment/PaymentMethods';
   static const String paymentProviders = '/Payment/PaymentProviders';

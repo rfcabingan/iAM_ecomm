@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iam_ecomm/common/widgets/images/iam_circular_image.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/features/personalization/screens/profile/widgets/delete_account_sheet.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
@@ -202,6 +203,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         icon: Iconsax.global,
                         title: 'Country',
                         value: country.isEmpty ? 'N/A' : country,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: IAMSizes.md),
+                  _ProfileSection(
+                    title: 'Account',
+                    icon: Iconsax.setting_2,
+                    children: [
+                      _DeleteAccountRow(
+                        onTap: () => showModalBottomSheet<void>(
+                          context: context,
+                          showDragHandle: true,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => const DeleteAccountSheet(),
+                        ),
                       ),
                     ],
                   ),
@@ -539,6 +556,66 @@ class _IconBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(icon, color: IAMColors.primary, size: 19),
+    );
+  }
+}
+
+class _DeleteAccountRow extends StatelessWidget {
+  const _DeleteAccountRow({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final darkMode = IAMHelperFunctions.isDarkMode(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: IAMColors.error.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Iconsax.trash, color: IAMColors.error, size: 19),
+            ),
+            const SizedBox(width: IAMSizes.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Delete Account',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: IAMColors.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Permanently remove your account',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: darkMode ? Colors.white60 : IAMColors.darkGrey,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: IAMSizes.sm),
+            Icon(
+              Iconsax.arrow_right_3,
+              size: 18,
+              color: IAMColors.error,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
