@@ -207,21 +207,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: IAMSizes.md),
-                  _ProfileSection(
-                    title: 'Account',
-                    icon: Iconsax.setting_2,
-                    children: [
-                      _DeleteAccountRow(
-                        onTap: () => showModalBottomSheet<void>(
-                          context: context,
-                          showDragHandle: true,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => const DeleteAccountSheet(),
+                  if (!AuthController.instance.isMember)
+                    _ProfileSection(
+                      title: 'Account',
+                      icon: Iconsax.setting_2,
+                      children: [
+                        _DeleteAccountRow(
+                          onTap: () => showModalBottomSheet<void>(
+                            context: context,
+                            showDragHandle: true,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const DeleteAccountSheet(),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                 ],
               ),
             ),
