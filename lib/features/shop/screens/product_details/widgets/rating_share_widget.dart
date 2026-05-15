@@ -5,7 +5,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:share_plus/share_plus.dart';
 
-// Base URL for the public product share site (commented out - now using shareLink from API)
 // const String kProductShareBaseUrl = 'https://iam-ecomm-share.vercel.app';
 
 class IAMRatingAndShare extends StatelessWidget {
