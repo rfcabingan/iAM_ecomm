@@ -14,4 +14,29 @@ class ProfileApi {
       fromJsonData: MemberPayload.fromJson,
     );
   }
+
+  Future<ApiResponse<void>> deleteAccount({
+    required int reasonId,
+    required String reason,
+  }) {
+    return _client.delete<void>(
+      ApiEndpoints.profileDeleteAccount,
+      body: {
+        'reasonId': reasonId,
+        'reason': reason,
+      },
+      fromJsonData: (_) => null,
+    );
+  }
+
+  Future<ApiResponse<List<DeleteAccountReasonItem?>>> getDeleteAccountReasons() {
+    return _client.get<List<DeleteAccountReasonItem?>>(
+      ApiEndpoints.profileDeleteAccountReasons,
+      fromJsonData: (dynamic v) {
+        if (v == null) return null;
+        final list = v is List ? v : [];
+        return list.map((e) => DeleteAccountReasonItem.fromJson(e)).toList();
+      },
+    );
+  }
 }

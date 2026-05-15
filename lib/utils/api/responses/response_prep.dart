@@ -1322,3 +1322,19 @@ class BranchItem {
     );
   }
 }
+
+class DeleteAccountReasonItem {
+  final int reasonId;
+  final String reasonName;
+
+  DeleteAccountReasonItem({required this.reasonId, required this.reasonName});
+
+  static DeleteAccountReasonItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return DeleteAccountReasonItem(
+      reasonId: (m['reasonId'] as int?) ?? 0,
+      reasonName: m['reasonName'] as String? ?? '',
+    );
+  }
+}
