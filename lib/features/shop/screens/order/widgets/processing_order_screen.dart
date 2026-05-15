@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/payments/checkout_webview_sheet.dart';
 import 'package:iam_ecomm/common/widgets/payments/iam_wallet_pay_sheet.dart';
+import 'package:iam_ecomm/common/widgets/success_screen/success_screen.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
@@ -377,19 +378,16 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
       );
       if (!context.mounted) return false;
       if (paid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'Wallet payment successful.',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.green[300],
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
+        _redirectToHomeWithPaymentToast(
+          isSuccess: true,
+          message: 'Wallet payment successful.',
         );
       } else {
-        _redirectToStoreWithUnpaidToast();
+        _redirectToHomeWithPaymentToast(
+          isSuccess: false,
+          message:
+              'Payment was not completed. You can try again from My Orders.',
+        );
       }
       return paid;
     }
@@ -398,18 +396,13 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
     if (!context.mounted) return false;
     final idno = memberRes.data?.idno ?? '';
     if (!memberRes.success || idno.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            memberRes.message.isNotEmpty
-                ? memberRes.message
-                : 'Unable to load your profile for payment.',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red[300],
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
+      _showPayMayaResultScreen(
+        isSuccess: false,
+        orderRef: orderRef,
+        amount: amount,
+        message: memberRes.message.isNotEmpty
+            ? memberRes.message
+            : 'Unable to load your profile for payment.',
       );
       return false;
     }
@@ -428,34 +421,24 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
     if (!context.mounted) return false;
 
     if (!paymentRes.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            paymentRes.message.isNotEmpty
-                ? paymentRes.message
-                : 'Unable to start PayMaya checkout.',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red[300],
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
+      _showPayMayaResultScreen(
+        isSuccess: false,
+        orderRef: orderRef,
+        amount: amount,
+        message: paymentRes.message.isNotEmpty
+            ? paymentRes.message
+            : 'Unable to start PayMaya checkout.',
       );
       return false;
     }
 
     final checkoutUrl = paymentRes.data?.checkoutUrl ?? '';
     if (checkoutUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'No checkout URL returned.',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red[300],
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
+      _showPayMayaResultScreen(
+        isSuccess: false,
+        orderRef: orderRef,
+        amount: amount,
+        message: 'No checkout URL returned.',
       );
       return false;
     }
@@ -466,18 +449,172 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
       orderRef: orderRef,
       totalAmount: amount,
     );
-    if (!paid && context.mounted) {
-      _redirectToStoreWithUnpaidToast();
-    }
-    return paid;
+    final result = await _resolvePayMayaPaymentResult(
+      orderRef: orderRef,
+      webViewPaid: paid,
+    );
+    _showPayMayaResultScreen(
+      isSuccess: result.isSuccess,
+      orderRef: orderRef,
+      amount: amount,
+      message: result.message,
+    );
+    return result.isSuccess;
   }
 
-  void _redirectToStoreWithUnpaidToast() {
+  Future<_PayMayaPaymentResult> _resolvePayMayaPaymentResult({
+    required String orderRef,
+    required bool webViewPaid,
+  }) async {
+    if (webViewPaid) {
+      return const _PayMayaPaymentResult(
+        isSuccess: true,
+        message: 'Your Maya payment was completed successfully.',
+      );
+    }
+
+    final statusRes = await ApiMiddleware.payment.getPaymentStatus(orderRef);
+    final statusMessage = _paymentStatusMessage(statusRes.data);
+    final message = statusMessage.isNotEmpty ? statusMessage : statusRes.message;
+
+    if (statusRes.success && _paymentStatusLooksPaid(statusRes.data)) {
+      return _PayMayaPaymentResult(
+        isSuccess: true,
+        message: message.isNotEmpty
+            ? message
+            : 'Your Maya payment was completed successfully.',
+      );
+    }
+
+    return _PayMayaPaymentResult(
+      isSuccess: false,
+      message: message.isNotEmpty
+          ? message
+          : 'Payment was not completed. You can try again from My Orders.',
+    );
+  }
+
+  bool _paymentStatusLooksPaid(dynamic value) {
+    if (value is Map) {
+      final text = _paymentStatusText(value);
+      if (_statusTextLooksUnpaid(text)) return false;
+      if (_statusTextLooksPaid(text)) return true;
+
+      final statusId = value['paymentStatusId'] ?? value['statusId'];
+      if (statusId is num && statusId != 0) return true;
+      if (statusId is String) {
+        final parsedStatusId = int.tryParse(statusId);
+        if (parsedStatusId != null && parsedStatusId != 0) return true;
+      }
+
+      return value.entries
+          .where((entry) => entry.key.toString().toLowerCase() != 'message')
+          .map((entry) => entry.value)
+          .any(_paymentStatusLooksPaid);
+    }
+
+    if (value is List) {
+      return value.any(_paymentStatusLooksPaid);
+    }
+
+    if (value is String) {
+      return !_statusTextLooksUnpaid(value) && _statusTextLooksPaid(value);
+    }
+    return false;
+  }
+
+  String _paymentStatusMessage(dynamic value) {
+    if (value is Map) {
+      for (final key in const [
+        'paymentStatusMessage',
+        'statusMessage',
+        'message',
+        'paymentStatusName',
+        'status',
+      ]) {
+        final raw = value[key];
+        if (raw is String && raw.trim().isNotEmpty) return raw.trim();
+      }
+    }
+    return '';
+  }
+
+  String _paymentStatusText(Map<dynamic, dynamic> value) {
+    return [
+      value['paymentStatusName'],
+      value['paymentStatusMessage'],
+      value['statusMessage'],
+      value['status'],
+    ].whereType<String>().join(' ');
+  }
+
+  bool _statusTextLooksPaid(String value) {
+    final status = value.toLowerCase();
+    return status.contains('paid') ||
+        status.contains('success') ||
+        status.contains('completed') ||
+        status.contains('approved');
+  }
+
+  bool _statusTextLooksUnpaid(String value) {
+    final status = value.toLowerCase();
+    return status.contains('not paid') ||
+        status.contains('not completed') ||
+        status.contains('unpaid') ||
+        status.contains('incomplete') ||
+        status.contains('pending') ||
+        status.contains('fail') ||
+        status.contains('error') ||
+        status.contains('cancel') ||
+        status.contains('declin') ||
+        status.contains('expired');
+  }
+
+  void _showPayMayaResultScreen({
+    required bool isSuccess,
+    required String orderRef,
+    required num amount,
+    required String message,
+  }) {
+    final amountText = NumberFormat.currency(
+      locale: 'en_PH',
+      symbol: 'PHP ',
+    ).format(amount);
+    final orderLine = orderRef.isNotEmpty
+        ? 'Order $orderRef - $amountText'
+        : amountText;
+    Get.offAll(
+      () => SuccessScreen(
+        image: isSuccess
+            ? IAMImages.successfulPaymentIcon
+            : IAMImages.failPaymentIcon,
+        title: isSuccess ? 'Payment Successful!' : 'Payment Not Completed',
+        subTitle: '$message\n\n$orderLine',
+        onPressed: _redirectToHome,
+      ),
+    );
+  }
+
+  void _redirectToHome() {
     final navController = Get.isRegistered<NavigationController>()
         ? Get.find<NavigationController>()
         : Get.put(NavigationController());
-    navController.selectedIndex.value = 1;
+    navController.selectedIndex.value = 0;
+    navController.storeInitialTabIndex.value = 0;
     Get.offAll(() => const NavigationMenu());
+  }
+
+  void _redirectToHomeWithPaymentToast({
+    required bool isSuccess,
+    required String message,
+  }) {
+    final navController = Get.isRegistered<NavigationController>()
+        ? Get.find<NavigationController>()
+        : Get.put(NavigationController());
+    navController.selectedIndex.value = 0;
+    navController.storeInitialTabIndex.value = 0;
+    Get.offAll(() => const NavigationMenu());
+
     void showOnReady([int attempts = 0]) {
       final currentContext = Get.context;
       if (currentContext == null) {
@@ -502,11 +639,8 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(
         SnackBar(
-          content: const Text(
-            'Order is currently unpaid, head to "My Orders" to continue payment.',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red.shade300,
+          content: Text(message, style: const TextStyle(color: Colors.white)),
+          backgroundColor: isSuccess ? Colors.green[300] : Colors.red.shade300,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(12),
           duration: const Duration(seconds: 3),
@@ -516,6 +650,16 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) => showOnReady());
   }
+}
+
+class _PayMayaPaymentResult {
+  const _PayMayaPaymentResult({
+    required this.isSuccess,
+    required this.message,
+  });
+
+  final bool isSuccess;
+  final String message;
 }
 
 enum _PayProviderType { wallet, paymaya }

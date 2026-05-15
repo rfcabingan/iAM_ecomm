@@ -15,6 +15,7 @@ class HomeController extends GetxController {
       products.where((p) => p.isPopular).toList();
   Worker? _authStateWorker;
   int _productsRequestId = 0;
+  bool? _lastRequestedLoggedIn;
 
   @override
   void onInit() {
@@ -22,13 +23,21 @@ class HomeController extends GetxController {
     if (Get.isRegistered<AuthController>()) {
       _authStateWorker = ever<bool>(
         AuthController.instance.isLoggedIn,
-        (_) => fetchProducts(),
+        (_) => fetchProducts(force: true),
       );
     }
-    fetchProducts();
+    fetchProducts(force: true);
   }
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchProducts({bool force = false}) async {
+    final isLoggedIn =
+        Get.isRegistered<AuthController>() &&
+        AuthController.instance.isLoggedIn.value;
+    if (!force && _lastRequestedLoggedIn == isLoggedIn && products.isNotEmpty) {
+      return;
+    }
+
+    _lastRequestedLoggedIn = isLoggedIn;
     final requestId = ++_productsRequestId;
     productsLoading.value = true;
     productsError.value = '';
@@ -38,6 +47,7 @@ class HomeController extends GetxController {
     if (!res.success) {
       productsError.value = res.message;
       products.clear();
+      productsVersion.value++;
       return;
     }
     final list = res.data ?? [];

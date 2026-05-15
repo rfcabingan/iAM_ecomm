@@ -38,23 +38,40 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   void initState() {
     super.initState();
-    _pointsFuture = ApiMiddleware.points.getBalance();
+    _pointsFuture = _loadPoints();
     _referralsFuture = _loadReferrals();
   }
 
   Future<void> _refreshPoints() async {
     setState(() {
-      _pointsFuture = ApiMiddleware.points.getBalance();
+      _pointsFuture = _loadPoints();
       _referralsFuture = _loadReferrals();
     });
-    await Future.wait([_pointsFuture, _referralsFuture]);
+    if (_canUseMemberFeatures) {
+      await Future.wait([_pointsFuture, _referralsFuture]);
+    }
   }
 
   String get _referralId =>
       AuthController.instance.user.value?.idno.trim() ?? '';
 
-  bool get _canUseReferralFeatures =>
-      AuthController.instance.user.value?.isMember == true;
+  bool get _canUseMemberFeatures => AuthController.instance.isMember;
+
+  bool get _canUseReferralFeatures => _canUseMemberFeatures;
+
+  Future<ApiResponse<PointsBalanceData?>> _loadPoints() {
+    if (!_canUseMemberFeatures) {
+      return Future.value(
+        const ApiResponse<PointsBalanceData?>(
+          status: 0,
+          success: false,
+          message: 'Points are only available for members.',
+        ),
+      );
+    }
+
+    return ApiMiddleware.points.getBalance();
+  }
 
   Future<ApiResponse<ReferralData?>> _loadReferrals() {
     if (!_canUseReferralFeatures) {
@@ -167,17 +184,18 @@ class _SettingScreenState extends State<SettingScreen> {
                     IAMUserProfile(
                       onPressed: () => Get.to(() => const ProfileScreen()),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: IAMSizes.defaultSpace,
+                    if (_canUseMemberFeatures)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: IAMSizes.defaultSpace,
+                        ),
+                        child: _PointsBalanceView(
+                          pointsFuture: _pointsFuture,
+                          referralsFuture: _referralsFuture,
+                          onReferralTap: _openReferrals,
+                          showReferralMetric: _canUseReferralFeatures,
+                        ),
                       ),
-                      child: _PointsBalanceView(
-                        pointsFuture: _pointsFuture,
-                        referralsFuture: _referralsFuture,
-                        onReferralTap: _openReferrals,
-                        showReferralMetric: _canUseReferralFeatures,
-                      ),
-                    ),
                     const SizedBox(height: IAMSizes.spaceBtwSections),
                   ],
                 ),
