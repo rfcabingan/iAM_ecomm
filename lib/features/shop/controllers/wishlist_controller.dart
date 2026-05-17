@@ -28,43 +28,101 @@ class WishlistController extends GetxController {
   /// Prevent concurrent toggles per product code.
   final RxMap<String, bool> togglingByCode = <String, bool>{}.obs;
 
+  bool _itemsLoaded = false;
+  int _revision = 0;
+  Future<void>? _loadRequest;
+
+  @override
+  void onInit() {
+    super.onInit();
+    ever(AuthController.instance.isLoggedIn, (_) => refreshForAuthChange());
+  }
+
   bool isWishlisted(String productCode) =>
       wishlistedByCode[productCode] ?? false;
 
   bool isToggling(String productCode) =>
       togglingByCode[productCode] ?? false;
 
-  Future<void> loadWishlistItems() async {
+  Future<void> loadWishlistItems({bool force = false}) async {
+    if (!force && _itemsLoaded) return;
+    if (_loadRequest != null) return _loadRequest!;
+
+    final request = _loadWishlistItems(force: force, revision: _revision);
+    _loadRequest = request;
+    await request;
+    if (_loadRequest == request) {
+      _loadRequest = null;
+    }
+  }
+
+  Future<void> _loadWishlistItems({
+    required bool force,
+    required int revision,
+  }) async {
     // Optional: clear UI when user is logged out.
     if (!AuthController.instance.isLoggedIn.value) {
       items.clear();
       wishlistedByCode.clear();
       togglingByCode.clear();
       errorMessage.value = '';
+      _itemsLoaded = false;
       return;
     }
 
     loading.value = true;
     errorMessage.value = '';
 
-    final res = await ApiMiddleware.wishlist.getWishlist();
+    try {
+      final res = await ApiMiddleware.wishlist.getWishlist();
+      if (revision != _revision) return;
+      loading.value = false;
+
+      if (!res.success) {
+        errorMessage.value = res.message;
+        if (force || items.isEmpty) {
+          items.clear();
+          wishlistedByCode.clear();
+          _itemsLoaded = false;
+        }
+        return;
+      }
+
+      final list = res.data ?? const <WishlistItem?>[];
+      items.assignAll(list.whereType<WishlistItem>());
+
+      final map = <String, bool>{};
+      for (final item in items) {
+        map[item.productCode] = true;
+      }
+      wishlistedByCode.value = map;
+      _itemsLoaded = true;
+    } catch (_) {
+      if (revision != _revision) return;
+      loading.value = false;
+      errorMessage.value = 'Something went wrong.';
+      if (force || items.isEmpty) {
+        items.clear();
+        wishlistedByCode.clear();
+        _itemsLoaded = false;
+      }
+    }
+  }
+
+  Future<void> refreshForAuthChange() async {
+    final shouldReload = _itemsLoaded || items.isNotEmpty;
+    _revision++;
+    _itemsLoaded = false;
+    _loadRequest = null;
+    items.clear();
+    wishlistedByCode.clear();
+    togglingByCode.clear();
     loading.value = false;
+    errorMessage.value = '';
 
-    if (!res.success) {
-      errorMessage.value = res.message;
-      items.clear();
-      wishlistedByCode.clear();
-      return;
+    if (AuthController.instance.isLoggedIn.value && shouldReload) {
+      await loadWishlistItems(force: true);
     }
-
-    final list = res.data ?? const <WishlistItem?>[];
-    items.assignAll(list.whereType<WishlistItem>());
-
-    final map = <String, bool>{};
-    for (final item in items) {
-      map[item.productCode] = true;
-    }
-    wishlistedByCode.value = map;
   }
 
   Future<bool?> _fetchIsWishlisted(String productCode) async {
@@ -121,7 +179,7 @@ class WishlistController extends GetxController {
         final res = await ApiMiddleware.wishlist.addWishlist(productCode);
         if (res.success) {
           // Reload to get full server item data.
-          await loadWishlistItems();
+          await loadWishlistItems(force: true);
           return const WishlistToggleResult(
             wishlisted: true,
             message: 'Added to wishlist.',
@@ -149,4 +207,3 @@ class WishlistController extends GetxController {
   bool isWishlistedFromCacheOrFalse(String productCode) =>
       wishlistedByCode[productCode] ?? false;
 }
-

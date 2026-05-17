@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get/route_manager.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/onboarding.dart';
+import 'package:iam_ecomm/features/shop/controllers/product_cache_controller.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/utils/theme/theme.dart';
@@ -26,6 +27,9 @@ class App extends StatelessWidget {
     }
     if (!Get.isRegistered<AuthController>()) {
       Get.put(AuthController(), permanent: true);
+    }
+    if (!Get.isRegistered<ProductCacheController>()) {
+      Get.put(ProductCacheController(), permanent: true);
     }
 
     final themeController = ThemeController.instance;

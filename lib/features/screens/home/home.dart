@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     _controller = Get.find<HomeController>();
     if (homeControllerWasRegistered) {
-      unawaited(_controller.fetchProducts(force: true));
+      unawaited(_controller.fetchProducts());
     }
   }
 

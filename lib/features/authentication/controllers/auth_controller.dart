@@ -47,8 +47,8 @@ class AuthController extends GetxController {
   }
 
   void login(UserInfo? userInfo) {
-    isLoggedIn.value = true;
     user.value = userInfo;
+    isLoggedIn.value = true;
     recordUserActivity();
   }
 
@@ -103,8 +103,8 @@ class AuthController extends GetxController {
 
       await ApiMiddleware.clearToken();
       await IAMLocalStorage().removeData(IAMLocalStorage.authLastActivityAtKey);
-      isLoggedIn.value = false;
       user.value = null;
+      isLoggedIn.value = false;
 
       final navController = Get.isRegistered<NavigationController>()
           ? Get.find<NavigationController>()

@@ -109,7 +109,7 @@ class NavigationController extends GetxController {
       Get.put(HomeController());
     }
     if (homeControllerWasRegistered) {
-      unawaited(Get.find<HomeController>().fetchProducts(force: true));
+      unawaited(Get.find<HomeController>().fetchProducts());
     }
   }
 
