@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/password_configuration/forget_password.dart';
@@ -20,11 +23,21 @@ class IAMLoginForm extends StatefulWidget {
 }
 
 class _IAMLoginFormState extends State<IAMLoginForm> {
+  static const _rememberedUsernameKey = 'remembered_login_username';
+  static const _rememberedPasswordKey = 'remembered_login_password';
+
+  final _rememberedCredentialStorage = const FlutterSecureStorage(
+    webOptions: WebOptions(
+      dbName: 'iam_ecomm_secure',
+      publicKey: 'iam_ecomm_public',
+    ),
+  );
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _loading = false;
+  bool _rememberMe = true;
   String? _emailError;
   String? _passwordError;
   bool _showVerifyEmailAction = false;
@@ -32,6 +45,47 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
   bool _isEmailVerificationError(String message) {
     final m = message.toLowerCase();
     return m.contains('verify') && m.contains('email');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberedCredentials();
+  }
+
+  Future<void> _loadRememberedCredentials() async {
+    final username = await _rememberedCredentialStorage.read(
+      key: _rememberedUsernameKey,
+    );
+    final password = await _rememberedCredentialStorage.read(
+      key: _rememberedPasswordKey,
+    );
+
+    if (!mounted) return;
+
+    if ((username ?? '').isEmpty && (password ?? '').isEmpty) return;
+
+    setState(() {
+      _emailController.text = username ?? '';
+      _passwordController.text = password ?? '';
+      _rememberMe = true;
+    });
+  }
+
+  Future<void> _saveRememberedCredentials() async {
+    await _rememberedCredentialStorage.write(
+      key: _rememberedUsernameKey,
+      value: _emailController.text.trim(),
+    );
+    await _rememberedCredentialStorage.write(
+      key: _rememberedPasswordKey,
+      value: _passwordController.text,
+    );
+  }
+
+  Future<void> _clearRememberedCredentials() async {
+    await _rememberedCredentialStorage.delete(key: _rememberedUsernameKey);
+    await _rememberedCredentialStorage.delete(key: _rememberedPasswordKey);
   }
 
   Future<void> _mergeGuestCartIntoServer() async {
@@ -119,6 +173,13 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
     } else {
       await ApiMiddleware.clearToken();
     }
+
+    if (_rememberMe) {
+      await _saveRememberedCredentials();
+    } else {
+      await _clearRememberedCredentials();
+    }
+
     final loggedInUser = res.data!.user;
 
     // If the user previously added items as a guest, merge those items
@@ -257,7 +318,15 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Checkbox(value: true, onChanged: (value) {}),
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged: (value) {
+                        setState(() => _rememberMe = value ?? false);
+                        if (value != true) {
+                          unawaited(_clearRememberedCredentials());
+                        }
+                      },
+                    ),
                     const Text(IAMTexts.rememberMe),
                   ],
                 ),

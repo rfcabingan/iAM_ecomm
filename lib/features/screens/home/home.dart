@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
@@ -14,16 +16,31 @@ import 'package:iam_ecomm/features/shop/screens/all_products/all_products.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    if (!Get.isRegistered<HomeController>()) {
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final HomeController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final homeControllerWasRegistered = Get.isRegistered<HomeController>();
+    if (!homeControllerWasRegistered) {
       Get.put(HomeController());
     }
-    final controller = Get.find<HomeController>();
+    _controller = Get.find<HomeController>();
+    if (homeControllerWasRegistered) {
+      unawaited(_controller.fetchProducts());
+    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     void openSearchResults(String query) {
       final trimmedQuery = query.trim();
       if (trimmedQuery.isEmpty) return;
@@ -45,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                   Obx(
                     () => IAMSearchBar(
                       text: 'Search in Store',
-                      suggestions: controller.products
+                      suggestions: _controller.products
                           .map((product) => product.productName)
                           .where((name) => name.trim().isNotEmpty)
                           .toList(),
@@ -98,19 +115,21 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwItems),
                   Obx(() {
-                    if (controller.productsLoading.value) {
+                    final productsVersion = _controller.productsVersion.value;
+
+                    if (_controller.productsLoading.value) {
                       return const IAMProductGridSkeleton(itemCount: 4);
                     }
-                    if (controller.productsError.value.isNotEmpty) {
+                    if (_controller.productsError.value.isNotEmpty) {
                       return Padding(
                         padding: const EdgeInsets.all(IAMSizes.defaultSpace),
                         child: Text(
-                          controller.productsError.value,
+                          _controller.productsError.value,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       );
                     }
-                    final list = controller.popularProducts;
+                    final list = _controller.popularProducts;
                     if (list.isEmpty) {
                       return Padding(
                         padding: const EdgeInsets.all(IAMSizes.defaultSpace),
@@ -121,9 +140,17 @@ class HomeScreen extends StatelessWidget {
                       );
                     }
                     return IAMGridLayout(
+                      key: ValueKey('popular-products-$productsVersion'),
                       itemCount: list.length,
-                      itemBuilder: (_, index) =>
-                          IAMProductCardVertical(product: list[index]),
+                      itemBuilder: (_, index) {
+                        final product = list[index];
+                        return IAMProductCardVertical(
+                          key: ValueKey(
+                            '${product.productCode}-${product.regularPrice}-${product.sellingPrice}-$productsVersion',
+                          ),
+                          product: product,
+                        );
+                      },
                     );
                   }),
                 ],

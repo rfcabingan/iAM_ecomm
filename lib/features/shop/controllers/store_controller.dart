@@ -1,74 +1,38 @@
 import 'package:get/get.dart';
-import 'package:iam_ecomm/utils/api/api.dart';
+import 'package:iam_ecomm/features/shop/controllers/product_cache_controller.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 
 class StoreController extends GetxController {
   static StoreController get instance => Get.find();
 
+  final ProductCacheController _cache =
+      Get.isRegistered<ProductCacheController>()
+          ? ProductCacheController.instance
+          : Get.put(ProductCacheController(), permanent: true);
+
   /// Cached products per category. Key = categoryId.
-  final productsByCategory = <int, List<ProductItem>>{}.obs;
+  RxMap<int, List<ProductItem>> get productsByCategory =>
+      _cache.productsByCategory;
 
   /// Loading flag per category.
-  final loadingByCategory = <int, bool>{}.obs;
+  RxMap<int, bool> get loadingByCategory => _cache.loadingByCategory;
 
   /// Error message per category.
-  final errorByCategory = <int, String>{}.obs;
+  RxMap<int, String> get errorByCategory => _cache.errorByCategory;
 
-  final featuredProducts = <ProductItem>[].obs;
-  final featuredLoading = false.obs;
-  final featuredError = ''.obs;
+  RxList<ProductItem> get featuredProducts => _cache.featuredProducts;
+  RxBool get featuredLoading => _cache.featuredLoading;
+  RxString get featuredError => _cache.featuredError;
 
-  Future<void> fetchProductsByCategory(int categoryId) async {
-    print('Fetching products for category $categoryId');
-    loadingByCategory[categoryId] = true;
-    errorByCategory[categoryId] = '';
-
-    try {
-      final res = await ApiMiddleware.products.getProductsByCategory(
-        categoryId,
-      );
-      print('API response status: ${res.status}, success: ${res.success}');
-      print('API response data length: ${res.data?.length ?? 0}');
-
-      loadingByCategory[categoryId] = false;
-      errorByCategory[categoryId] = res.success ? '' : res.message;
-      if (res.success) {
-        final list = res.data ?? [];
-        productsByCategory[categoryId] = list.whereType<ProductItem>().toList();
-        print(
-          'Products loaded: ${productsByCategory[categoryId]?.length ?? 0}',
-        );
-      } else {
-        productsByCategory[categoryId] = [];
-        print('API error: ${res.message}');
-      }
-    } catch (e) {
-      print('Exception in fetchProductsByCategory: $e');
-      loadingByCategory[categoryId] = false;
-      errorByCategory[categoryId] = 'Network error: $e';
-      productsByCategory[categoryId] = [];
-    }
-  }
+  Future<void> fetchProductsByCategory(int categoryId, {bool force = false}) =>
+      _cache.fetchProductsByCategory(categoryId, force: force);
 
   /// Fetch featured products from /Products with isFeatured = true.
-  Future<void> fetchFeaturedProducts() async {
-    featuredLoading.value = true;
-    featuredError.value = '';
-    final res = await ApiMiddleware.products.getProducts();
-    featuredLoading.value = false;
-    if (!res.success) {
-      featuredError.value = res.message;
-      featuredProducts.clear();
-      return;
-    }
-    final list = res.data ?? [];
-    featuredProducts.assignAll(
-      list.whereType<ProductItem>().where((p) => p.isFeatured),
-    );
-  }
+  Future<void> fetchFeaturedProducts({bool force = false}) =>
+      _cache.fetchFeaturedProducts(force: force);
 
-  bool isLoading(int categoryId) => loadingByCategory[categoryId] ?? false;
-  String errorFor(int categoryId) => errorByCategory[categoryId] ?? '';
+  bool isLoading(int categoryId) => _cache.isLoading(categoryId);
+  String errorFor(int categoryId) => _cache.errorFor(categoryId);
   List<ProductItem> productsFor(int categoryId) =>
-      productsByCategory[categoryId] ?? [];
+      _cache.productsFor(categoryId);
 }

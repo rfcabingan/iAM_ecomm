@@ -28,4 +28,36 @@ class ProductCategories {
     'Food Supplements',
     'Healthy Coffee',
   ];
+
+  /// Products that should also appear in additional category tabs.
+  ///
+  /// The API still owns the product's original category. This mapping only
+  /// controls store tab display.
+  static const Map<int, List<CategoryProductAlias>> extraProductsByCategory = {
+    foodSupplements: [
+      CategoryProductAlias(
+        sourceCategoryId: amazingBarley,
+        productCode: 'BARGUM',
+      ),
+    ],
+    healthyCoffee: [
+      CategoryProductAlias(
+        sourceCategoryId: amazingBarley,
+        productCode: 'BLACOF',
+      ),
+    ],
+  };
+
+  static List<CategoryProductAlias> extraProductsFor(int categoryId) =>
+      extraProductsByCategory[categoryId] ?? const [];
+}
+
+class CategoryProductAlias {
+  const CategoryProductAlias({
+    required this.sourceCategoryId,
+    required this.productCode,
+  });
+
+  final int sourceCategoryId;
+  final String productCode;
 }

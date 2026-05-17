@@ -17,11 +17,10 @@ class IAMProductMetaData extends StatelessWidget {
   final ProductItem? product;
 
   static num _effectivePrice({
-    required bool isLoggedIn,
     required num regularPrice,
     required num sellingPrice,
   }) {
-    return isLoggedIn ? sellingPrice : regularPrice;
+    return sellingPrice > 0 ? sellingPrice : regularPrice;
   }
 
   static String _formatPrice(num value) {
@@ -45,7 +44,6 @@ class IAMProductMetaData extends StatelessWidget {
           ? ((regularPrice - sellingPrice) / regularPrice * 100).round()
           : null;
       final displayPrice = _effectivePrice(
-        isLoggedIn: isLoggedIn,
         regularPrice: regularPrice,
         sellingPrice: sellingPrice,
       );
@@ -58,7 +56,7 @@ class IAMProductMetaData extends StatelessWidget {
               if (discountPercent != null)
                 IAMRoundedContainer(
                   radius: IAMSizes.sm,
-                  backgroundColor: IAMColors.primary.withOpacity(0.8),
+                  backgroundColor: IAMColors.primary.withValues(alpha: 0.8),
                   padding: EdgeInsets.symmetric(
                     horizontal: IAMSizes.sm,
                     vertical: IAMSizes.xs,
