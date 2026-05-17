@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
@@ -6,7 +8,6 @@ import 'package:iam_ecomm/common/widgets/custom_shapes/containers/search_bar.dar
 import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
-import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_appbar.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_categories.dart';
 import 'package:iam_ecomm/features/shop/controllers/home_controller.dart';
@@ -24,28 +25,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final HomeController _controller;
-  Worker? _authWorker;
 
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<HomeController>()) {
+    final homeControllerWasRegistered = Get.isRegistered<HomeController>();
+    if (!homeControllerWasRegistered) {
       Get.put(HomeController());
     }
     _controller = Get.find<HomeController>();
-
-    if (Get.isRegistered<AuthController>()) {
-      _authWorker = ever<bool>(
-        AuthController.instance.isLoggedIn,
-        (_) => _controller.fetchProducts(),
-      );
+    if (homeControllerWasRegistered) {
+      unawaited(_controller.fetchProducts());
     }
-  }
-
-  @override
-  void dispose() {
-    _authWorker?.dispose();
-    super.dispose();
   }
 
   @override

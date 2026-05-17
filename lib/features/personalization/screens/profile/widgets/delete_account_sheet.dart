@@ -34,7 +34,7 @@ class _DeleteAccountSheetState extends State<DeleteAccountSheet> {
 
   void _select(DeleteAccountReasonItem reason) => setState(() => _selectedReason = reason);
 
-  void _continue() {
+  Future<void> _continue() async {
     final reason = _selectedReason;
     if (reason == null) return;
     final text = reason.reasonId == 6 ? _otherController.text.trim() : reason.reasonName;
@@ -42,8 +42,12 @@ class _DeleteAccountSheetState extends State<DeleteAccountSheet> {
       _toast('Please specify your reason');
       return;
     }
-    Navigator.pop(context);
-    _confirm(context, reasonId: reason.reasonId, reason: text.isEmpty ? reason.reasonName : text);
+
+    await _confirm(
+      context,
+      reasonId: reason.reasonId,
+      reason: text.isEmpty ? reason.reasonName : text,
+    );
   }
 
   void _toast(String m) => ScaffoldMessenger.of(context).showSnackBar(
@@ -276,4 +280,4 @@ void _showLoadingOverlay(BuildContext context) {
   showDialog<void>(context: context, barrierDismissible: false, builder: (context) => const PopScope(canPop: false, child: Center(child: CircularProgressIndicator())));
 }
 
-void _confirm(BuildContext context, {required int reasonId, required String reason}) => showDeleteAccountConfirmation(context, reasonId: reasonId, reason: reason);
+Future<void> _confirm(BuildContext context, {required int reasonId, required String reason}) => showDeleteAccountConfirmation(context, reasonId: reasonId, reason: reason);
