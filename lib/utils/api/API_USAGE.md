@@ -105,6 +105,7 @@ await ApiMiddleware.init();
 - `ApiMiddleware.orders.getOrders()` → `ApiResponse<List<OrderItem?>>`
 - `ApiMiddleware.orders.getOrderDetail(refNo)` → `ApiResponse<OrderDetailItem?>`
 - `ApiMiddleware.orders.getOrderHistory(refNo)` → `ApiResponse<List<OrderStatusHistoryItem?>>` (GET `/Orders/{orderRefNo}/History`) — status timeline (e.g. `Delivered`, `In Transit`, with `trackingNo`, `remarks`, `userName`, `tranDate`)
+ - `ApiMiddleware.orders.getReferralOrders(status: 'PENDING')` → `ApiResponse<List<ReferralOrderItem?>>` (GET `/Orders/ReferralOrders?status={status}`) — returns referral-linked orders with `buyerIdNo` and `referralId` in each item.
 
 ## Product Review
 
@@ -131,6 +132,11 @@ await ApiMiddleware.init();
 
 - `ApiMiddleware.points.getPoints()` → `ApiResponse<List<dynamic>?>` (GET `/Points`)
 - `ApiMiddleware.points.getBalance()` → `ApiResponse<PointsBalanceData?>` (GET `/Points/Balance`)
+
+## Commissions (JWT required)
+
+- `ApiMiddleware.commissions.getEcomSalesTotal()` → `ApiResponse<EcomSalesCommissionTotalData?>` (GET `/Commissions/EcomSales/Total`) — returns summary totals for the current member: `data.idno`, `data.totalNetCommission`, `data.totalQuantity`.
+- `ApiMiddleware.commissions.getEcomSalesDetails(days: 30)` → `ApiResponse<List<EcomSalesCommissionDetailItem?>>` (GET `/Commissions/EcomSales/Details?days={days}`) — returns per-order commission details for the last `{days}` days; each item includes `autoId`, `refNoAutoId`, `refNo`, `dateFrom`, `dateTo`, `idno`, `buyerIdNo`, `packageCode`, `tranDate`, `tranTypeId`, `tranDesc`, `itemCode`, `quantity`, `sellingPrice`, `memberPrice`, `salesCommission`, `netCommission`.
 
 ## Referral
 

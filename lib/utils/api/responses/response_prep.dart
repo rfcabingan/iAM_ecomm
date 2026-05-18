@@ -422,6 +422,92 @@ class WalletSendOtpData {
   }
 }
 
+class EcomSalesCommissionTotalData {
+  final String idno;
+  final num totalNetCommission;
+  final int totalQuantity;
+
+  EcomSalesCommissionTotalData({
+    required this.idno,
+    required this.totalNetCommission,
+    required this.totalQuantity,
+  });
+
+  static EcomSalesCommissionTotalData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return EcomSalesCommissionTotalData(
+      idno: m['idNo'] as String? ?? m['idno'] as String? ?? '',
+      totalNetCommission: (m['totalNetCommission'] as num?) ?? 0,
+      totalQuantity: (m['totalQuantity'] as int?) ?? 0,
+    );
+  }
+}
+
+class EcomSalesCommissionDetailItem {
+  final int autoId;
+  final int refNoAutoId;
+  final String refNo;
+  final String dateFrom;
+  final String dateTo;
+  final String idno;
+  final String buyerIdNo;
+  final String packageCode;
+  final String tranDate;
+  final int tranTypeId;
+  final String tranDesc;
+  final String itemCode;
+  final int quantity;
+  final num sellingPrice;
+  final num memberPrice;
+  final num salesCommission;
+  final num netCommission;
+
+  EcomSalesCommissionDetailItem({
+    required this.autoId,
+    required this.refNoAutoId,
+    required this.refNo,
+    required this.dateFrom,
+    required this.dateTo,
+    required this.idno,
+    required this.buyerIdNo,
+    required this.packageCode,
+    required this.tranDate,
+    required this.tranTypeId,
+    required this.tranDesc,
+    required this.itemCode,
+    required this.quantity,
+    required this.sellingPrice,
+    required this.memberPrice,
+    required this.salesCommission,
+    required this.netCommission,
+  });
+
+  static EcomSalesCommissionDetailItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return EcomSalesCommissionDetailItem(
+      autoId: (m['autoId'] as int?) ?? 0,
+      refNoAutoId: (m['refNoAutoId'] as int?) ?? 0,
+      refNo: m['refNo'] as String? ?? '',
+      dateFrom: m['dateFrom'] as String? ?? '',
+      dateTo: m['dateTo'] as String? ?? '',
+      idno: m['idNo'] as String? ?? m['idno'] as String? ?? '',
+      buyerIdNo: m['buyerIdNo'] as String? ?? '',
+      packageCode: m['packageCode'] as String? ?? '',
+      tranDate: m['tranDate'] as String? ?? '',
+      tranTypeId: (m['tranTypeId'] as int?) ?? 0,
+      tranDesc: m['tranDesc'] as String? ?? '',
+      itemCode: m['itemCode'] as String? ?? '',
+      quantity: (m['quantity'] as int?) ?? 0,
+      sellingPrice: (m['sellingPrice'] as num?) ?? 0,
+      memberPrice: (m['memberPrice'] as num?) ?? 0,
+      salesCommission: (m['salesCommission'] as num?) ?? 0,
+      netCommission: (m['netCommission'] as num?) ?? 0,
+    );
+  }
+}
+
 class CheckoutData {
   final String orderRefNo;
   final String cartRefNo;
@@ -1003,6 +1089,55 @@ class OrderItem {
       itemCount: (m['itemCount'] as int?) ?? 0,
       paymentProvider: m['paymentProvider'] as String? ?? '',
       imageUrl: m['imageUrl'] as String? ?? '',
+    );
+  }
+}
+
+class ReferralOrderItem {
+  final String orderRefno;
+  final String orderDate;
+  final num totalAmount;
+  final int orderStatusId;
+  final String orderStatusName;
+  final int paymentStatusId;
+  final String paymentStatusName;
+  final int itemCount;
+  final String paymentProvider;
+  final String imageUrl;
+  final String buyerIdNo;
+  final String referralId;
+
+  ReferralOrderItem({
+    required this.orderRefno,
+    required this.orderDate,
+    required this.totalAmount,
+    required this.orderStatusId,
+    required this.orderStatusName,
+    required this.paymentStatusId,
+    required this.paymentStatusName,
+    required this.itemCount,
+    required this.paymentProvider,
+    required this.imageUrl,
+    required this.buyerIdNo,
+    required this.referralId,
+  });
+
+  static ReferralOrderItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return ReferralOrderItem(
+      orderRefno: m['orderRefno'] as String? ?? '',
+      orderDate: m['orderDate'] as String? ?? '',
+      totalAmount: (m['totalAmount'] as num?) ?? 0,
+      orderStatusId: (m['orderStatusId'] as int?) ?? 0,
+      orderStatusName: m['orderStatusName'] as String? ?? '',
+      paymentStatusId: (m['paymentStatusId'] as int?) ?? 0,
+      paymentStatusName: m['paymentStatusName'] as String? ?? '',
+      itemCount: (m['itemCount'] as int?) ?? 0,
+      paymentProvider: m['paymentProvider'] as String? ?? '',
+      imageUrl: m['imageUrl'] as String? ?? '',
+      buyerIdNo: m['buyerIdNo'] as String? ?? '',
+      referralId: m['referralId'] as String? ?? '',
     );
   }
 }

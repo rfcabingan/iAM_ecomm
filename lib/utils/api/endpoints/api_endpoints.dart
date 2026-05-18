@@ -54,6 +54,7 @@ class ApiEndpoints {
   static const String orders = '/Orders';
   static String orderByRefNo(String refNo) => '/Orders/$refNo';
   static String orderHistoryByRefNo(String refNo) => '/Orders/$refNo/History';
+  static const String referralOrders = '/Orders/ReferralOrders';
 
   // Product Review APIs
   static const String productReviewCreate = '/ProductReview/Create';
@@ -75,6 +76,10 @@ class ApiEndpoints {
   // Points APIs
   static const String points = '/Points';
   static const String pointsBalance = '/Points/Balance';
+
+  // Commissions APIs
+  static const String commissionsEcomSalesTotal = '/Commissions/EcomSales/Total';
+  static const String commissionsEcomSalesDetails = '/Commissions/EcomSales/Details';
 
   static const String helpCenterTopics = '/HelpCenter/Topics';
 
