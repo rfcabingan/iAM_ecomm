@@ -225,12 +225,14 @@ class _SettingScreenState extends State<SettingScreen> {
                         future: _referralsFuture,
                         builder: (context, snapshot) {
                           final data = snapshot.data?.data;
-                          final count = data?.totalReferrals;
+                          final count = data == null
+                              ? null
+                              : _activeReferralCount(data);
                           final success =
                               snapshot.data?.success == true && data != null;
                           final subTitle = !success
                               ? 'View users who used your referral code'
-                              : '${NumberFormat.decimalPattern().format(count)} ${count == 1 ? 'person' : 'people'} joined with your code';
+                              : '${NumberFormat.decimalPattern().format(count ?? 0)} ${count == 1 ? 'person' : 'people'} joined with your code';
 
                           return IAMSettingMenu(
                             icon: Iconsax.profile_2user,
@@ -429,7 +431,9 @@ class _EcomSalesSummaryView extends StatelessWidget {
                     future: referralsFuture,
                     builder: (context, referralSnapshot) {
                       final referralData = referralSnapshot.data?.data;
-                      final referralCount = referralData?.totalReferrals;
+                      final referralCount = referralData == null
+                          ? null
+                          : _activeReferralCount(referralData);
                       final referralSuccess =
                           referralSnapshot.data?.success == true &&
                           referralData != null;
@@ -1013,6 +1017,19 @@ String _formatEcomSalesDate(String value) {
   final parsed = DateTime.tryParse(value);
   if (parsed == null) return value.isEmpty ? 'No date' : value;
   return DateFormat('MMM d, yyyy').format(parsed);
+}
+
+int _activeReferralCount(ReferralData data) {
+  return data.referrals.where(_isVisibleReferral).length;
+}
+
+bool _isVisibleReferral(ReferralItem referral) {
+  final firstName = referral.firstName.trim().toLowerCase();
+  final fullName = referral.fullName.trim().toLowerCase();
+
+  return referral.isActive &&
+      firstName != 'deleted' &&
+      fullName != 'deleted user';
 }
 
 class _AccountMetricCard extends StatelessWidget {
