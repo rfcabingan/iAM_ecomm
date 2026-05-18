@@ -54,6 +54,7 @@ class ApiEndpoints {
   static const String orders = '/Orders';
   static String orderByRefNo(String refNo) => '/Orders/$refNo';
   static String orderHistoryByRefNo(String refNo) => '/Orders/$refNo/History';
+  static const String referralOrders = '/Orders/ReferralOrders';
 
   // Product Review APIs
   static const String productReviewCreate = '/ProductReview/Create';
