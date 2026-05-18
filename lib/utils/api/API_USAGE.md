@@ -132,6 +132,11 @@ await ApiMiddleware.init();
 - `ApiMiddleware.points.getPoints()` → `ApiResponse<List<dynamic>?>` (GET `/Points`)
 - `ApiMiddleware.points.getBalance()` → `ApiResponse<PointsBalanceData?>` (GET `/Points/Balance`)
 
+## Commissions (JWT required)
+
+- `ApiMiddleware.commissions.getEcomSalesTotal()` → `ApiResponse<EcomSalesCommissionTotalData?>` (GET `/Commissions/EcomSales/Total`) — returns summary totals for the current member: `data.idno`, `data.totalNetCommission`, `data.totalQuantity`.
+- `ApiMiddleware.commissions.getEcomSalesDetails(days: 30)` → `ApiResponse<List<EcomSalesCommissionDetailItem?>>` (GET `/Commissions/EcomSales/Details?days={days}`) — returns per-order commission details for the last `{days}` days; each item includes `autoId`, `refNoAutoId`, `refNo`, `dateFrom`, `dateTo`, `idno`, `buyerIdNo`, `packageCode`, `tranDate`, `tranTypeId`, `tranDesc`, `itemCode`, `quantity`, `sellingPrice`, `memberPrice`, `salesCommission`, `netCommission`.
+
 ## Referral
 
 - `ApiMiddleware.referral.getReferralById(referralId)` -> `ApiResponse<ReferralData?>` (GET `/Referral/{referralId}`) - returns `data.totalReferrals` and the users who joined using that referral code in `data.referrals`.

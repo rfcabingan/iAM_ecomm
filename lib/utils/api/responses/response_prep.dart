@@ -422,6 +422,92 @@ class WalletSendOtpData {
   }
 }
 
+class EcomSalesCommissionTotalData {
+  final String idno;
+  final num totalNetCommission;
+  final int totalQuantity;
+
+  EcomSalesCommissionTotalData({
+    required this.idno,
+    required this.totalNetCommission,
+    required this.totalQuantity,
+  });
+
+  static EcomSalesCommissionTotalData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return EcomSalesCommissionTotalData(
+      idno: m['idNo'] as String? ?? m['idno'] as String? ?? '',
+      totalNetCommission: (m['totalNetCommission'] as num?) ?? 0,
+      totalQuantity: (m['totalQuantity'] as int?) ?? 0,
+    );
+  }
+}
+
+class EcomSalesCommissionDetailItem {
+  final int autoId;
+  final int refNoAutoId;
+  final String refNo;
+  final String dateFrom;
+  final String dateTo;
+  final String idno;
+  final String buyerIdNo;
+  final String packageCode;
+  final String tranDate;
+  final int tranTypeId;
+  final String tranDesc;
+  final String itemCode;
+  final int quantity;
+  final num sellingPrice;
+  final num memberPrice;
+  final num salesCommission;
+  final num netCommission;
+
+  EcomSalesCommissionDetailItem({
+    required this.autoId,
+    required this.refNoAutoId,
+    required this.refNo,
+    required this.dateFrom,
+    required this.dateTo,
+    required this.idno,
+    required this.buyerIdNo,
+    required this.packageCode,
+    required this.tranDate,
+    required this.tranTypeId,
+    required this.tranDesc,
+    required this.itemCode,
+    required this.quantity,
+    required this.sellingPrice,
+    required this.memberPrice,
+    required this.salesCommission,
+    required this.netCommission,
+  });
+
+  static EcomSalesCommissionDetailItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return EcomSalesCommissionDetailItem(
+      autoId: (m['autoId'] as int?) ?? 0,
+      refNoAutoId: (m['refNoAutoId'] as int?) ?? 0,
+      refNo: m['refNo'] as String? ?? '',
+      dateFrom: m['dateFrom'] as String? ?? '',
+      dateTo: m['dateTo'] as String? ?? '',
+      idno: m['idNo'] as String? ?? m['idno'] as String? ?? '',
+      buyerIdNo: m['buyerIdNo'] as String? ?? '',
+      packageCode: m['packageCode'] as String? ?? '',
+      tranDate: m['tranDate'] as String? ?? '',
+      tranTypeId: (m['tranTypeId'] as int?) ?? 0,
+      tranDesc: m['tranDesc'] as String? ?? '',
+      itemCode: m['itemCode'] as String? ?? '',
+      quantity: (m['quantity'] as int?) ?? 0,
+      sellingPrice: (m['sellingPrice'] as num?) ?? 0,
+      memberPrice: (m['memberPrice'] as num?) ?? 0,
+      salesCommission: (m['salesCommission'] as num?) ?? 0,
+      netCommission: (m['netCommission'] as num?) ?? 0,
+    );
+  }
+}
+
 class CheckoutData {
   final String orderRefNo;
   final String cartRefNo;
