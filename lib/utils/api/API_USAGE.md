@@ -105,6 +105,7 @@ await ApiMiddleware.init();
 - `ApiMiddleware.orders.getOrders()` → `ApiResponse<List<OrderItem?>>`
 - `ApiMiddleware.orders.getOrderDetail(refNo)` → `ApiResponse<OrderDetailItem?>`
 - `ApiMiddleware.orders.getOrderHistory(refNo)` → `ApiResponse<List<OrderStatusHistoryItem?>>` (GET `/Orders/{orderRefNo}/History`) — status timeline (e.g. `Delivered`, `In Transit`, with `trackingNo`, `remarks`, `userName`, `tranDate`)
+ - `ApiMiddleware.orders.getReferralOrders(status: 'PENDING')` → `ApiResponse<List<ReferralOrderItem?>>` (GET `/Orders/ReferralOrders?status={status}`) — returns referral-linked orders with `buyerIdNo` and `referralId` in each item.
 
 ## Product Review
 
