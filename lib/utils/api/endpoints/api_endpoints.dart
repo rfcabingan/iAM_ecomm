@@ -76,6 +76,10 @@ class ApiEndpoints {
   static const String points = '/Points';
   static const String pointsBalance = '/Points/Balance';
 
+  // Commissions APIs
+  static const String commissionsEcomSalesTotal = '/Commissions/EcomSales/Total';
+  static const String commissionsEcomSalesDetails = '/Commissions/EcomSales/Details';
+
   static const String helpCenterTopics = '/HelpCenter/Topics';
 
   // Referral APIs

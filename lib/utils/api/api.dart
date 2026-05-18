@@ -17,6 +17,7 @@ import 'services/products_api.dart';
 import 'services/referral_api.dart';
 import 'services/wallet_api.dart';
 import 'services/wishlist_api.dart';
+import 'services/commissions_api.dart';
 
 /// Single entry point for API calls...
 ///
@@ -41,6 +42,7 @@ class ApiMiddleware {
   static final OrdersApi orders = OrdersApi(_client);
   static final PaymentApi payment = PaymentApi(_client);
   static final PointsApi points = PointsApi(_client);
+  static final CommissionsApi commissions = CommissionsApi(_client);
   static final ProductReviewApi productReview = ProductReviewApi(_client);
   static final ProfileApi profile = ProfileApi(_client);
   static final ProductsApi products = ProductsApi(_client);
