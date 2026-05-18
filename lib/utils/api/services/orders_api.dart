@@ -39,4 +39,19 @@ class OrdersApi {
       },
     );
   }
+
+  /// Get referral orders filtered by status (e.g. PENDING, COMPLETED)
+  Future<ApiResponse<List<ReferralOrderItem?>>> getReferralOrders({required String status}) {
+    return _client.get<List<ReferralOrderItem?>>(
+      ApiEndpoints.referralOrders,
+      queryParameters: {
+        'status': status,
+      },
+      fromJsonData: (dynamic v) {
+        if (v == null) return null;
+        final list = v is List ? v : [];
+        return list.map((e) => ReferralOrderItem.fromJson(e)).toList();
+      },
+    );
+  }
 }

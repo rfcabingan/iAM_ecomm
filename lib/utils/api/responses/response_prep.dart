@@ -1093,6 +1093,55 @@ class OrderItem {
   }
 }
 
+class ReferralOrderItem {
+  final String orderRefno;
+  final String orderDate;
+  final num totalAmount;
+  final int orderStatusId;
+  final String orderStatusName;
+  final int paymentStatusId;
+  final String paymentStatusName;
+  final int itemCount;
+  final String paymentProvider;
+  final String imageUrl;
+  final String buyerIdNo;
+  final String referralId;
+
+  ReferralOrderItem({
+    required this.orderRefno,
+    required this.orderDate,
+    required this.totalAmount,
+    required this.orderStatusId,
+    required this.orderStatusName,
+    required this.paymentStatusId,
+    required this.paymentStatusName,
+    required this.itemCount,
+    required this.paymentProvider,
+    required this.imageUrl,
+    required this.buyerIdNo,
+    required this.referralId,
+  });
+
+  static ReferralOrderItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return ReferralOrderItem(
+      orderRefno: m['orderRefno'] as String? ?? '',
+      orderDate: m['orderDate'] as String? ?? '',
+      totalAmount: (m['totalAmount'] as num?) ?? 0,
+      orderStatusId: (m['orderStatusId'] as int?) ?? 0,
+      orderStatusName: m['orderStatusName'] as String? ?? '',
+      paymentStatusId: (m['paymentStatusId'] as int?) ?? 0,
+      paymentStatusName: m['paymentStatusName'] as String? ?? '',
+      itemCount: (m['itemCount'] as int?) ?? 0,
+      paymentProvider: m['paymentProvider'] as String? ?? '',
+      imageUrl: m['imageUrl'] as String? ?? '',
+      buyerIdNo: m['buyerIdNo'] as String? ?? '',
+      referralId: m['referralId'] as String? ?? '',
+    );
+  }
+}
+
 class OrderDetailItem {
   final String orderRefno;
   final String cartRefno;
