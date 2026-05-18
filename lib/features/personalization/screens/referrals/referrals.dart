@@ -131,7 +131,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
               );
             }
 
-            final referrals = data.referrals;
+            final referrals = data.referrals.where(_isVisibleReferral).toList();
 
             if (referrals.isEmpty) {
               return _EmptyReferralsContent(
@@ -149,7 +149,10 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                   const SizedBox(height: IAMSizes.spaceBtwItems),
               itemBuilder: (context, index) {
                 if (index == 0) {
-                  return _ReferralSummaryCard(data: data);
+                  return _ReferralSummaryCard(
+                    data: data,
+                    totalReferrals: referrals.length,
+                  );
                 }
 
                 return _ReferralCard(referral: referrals[index - 1]);
@@ -163,14 +166,18 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
 }
 
 class _ReferralSummaryCard extends StatelessWidget {
-  const _ReferralSummaryCard({required this.data});
+  const _ReferralSummaryCard({
+    required this.data,
+    required this.totalReferrals,
+  });
 
   final ReferralData data;
+  final int totalReferrals;
 
   @override
   Widget build(BuildContext context) {
     final dark = IAMHelperFunctions.isDarkMode(context);
-    final countText = NumberFormat.decimalPattern().format(data.totalReferrals);
+    final countText = NumberFormat.decimalPattern().format(totalReferrals);
 
     return Container(
       padding: const EdgeInsets.all(IAMSizes.md),
@@ -401,6 +408,15 @@ class _ReferralInfoLine extends StatelessWidget {
       ],
     );
   }
+}
+
+bool _isVisibleReferral(ReferralItem referral) {
+  final firstName = referral.firstName.trim().toLowerCase();
+  final fullName = referral.fullName.trim().toLowerCase();
+
+  return referral.isActive &&
+      firstName != 'deleted' &&
+      fullName != 'deleted user';
 }
 
 class _EmptyReferralsContent extends StatelessWidget {
