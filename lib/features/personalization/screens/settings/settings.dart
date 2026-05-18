@@ -8,6 +8,7 @@ import 'package:iam_ecomm/common/widgets/list_tiles/settings_menu_tile.dart';
 import 'package:iam_ecomm/common/widgets/list_tiles/user_profile_tile.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/personalization/screens/help_center/help_center.dart';
+import 'package:iam_ecomm/features/personalization/screens/referral_orders/referral_orders.dart';
 import 'package:iam_ecomm/features/personalization/screens/referrals/referrals.dart';
 import 'package:iam_ecomm/utils/theme/theme_controller.dart';
 import 'package:iam_ecomm/features/personalization/screens/address/address.dart';
@@ -32,23 +33,23 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
-  late Future<ApiResponse<PointsBalanceData?>> _pointsFuture;
+  late Future<ApiResponse<EcomSalesCommissionTotalData?>> _ecomSalesFuture;
   late Future<ApiResponse<ReferralData?>> _referralsFuture;
 
   @override
   void initState() {
     super.initState();
-    _pointsFuture = _loadPoints();
+    _ecomSalesFuture = _loadEcomSales();
     _referralsFuture = _loadReferrals();
   }
 
-  Future<void> _refreshPoints() async {
+  Future<void> _refreshEcomSales() async {
     setState(() {
-      _pointsFuture = _loadPoints();
+      _ecomSalesFuture = _loadEcomSales();
       _referralsFuture = _loadReferrals();
     });
     if (_canUseMemberFeatures) {
-      await Future.wait([_pointsFuture, _referralsFuture]);
+      await Future.wait([_ecomSalesFuture, _referralsFuture]);
     }
   }
 
@@ -59,18 +60,18 @@ class _SettingScreenState extends State<SettingScreen> {
 
   bool get _canUseReferralFeatures => _canUseMemberFeatures;
 
-  Future<ApiResponse<PointsBalanceData?>> _loadPoints() {
+  Future<ApiResponse<EcomSalesCommissionTotalData?>> _loadEcomSales() {
     if (!_canUseMemberFeatures) {
       return Future.value(
-        const ApiResponse<PointsBalanceData?>(
+        const ApiResponse<EcomSalesCommissionTotalData?>(
           status: 0,
           success: false,
-          message: 'Points are only available for members.',
+          message: 'Ecom Sales are only available for members.',
         ),
       );
     }
 
-    return ApiMiddleware.points.getBalance();
+    return ApiMiddleware.commissions.getEcomSalesTotal();
   }
 
   Future<ApiResponse<ReferralData?>> _loadReferrals() {
@@ -163,7 +164,7 @@ class _SettingScreenState extends State<SettingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: _refreshPoints,
+        onRefresh: _refreshEcomSales,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -189,8 +190,8 @@ class _SettingScreenState extends State<SettingScreen> {
                         padding: const EdgeInsets.symmetric(
                           horizontal: IAMSizes.defaultSpace,
                         ),
-                        child: _PointsBalanceView(
-                          pointsFuture: _pointsFuture,
+                        child: _EcomSalesSummaryView(
+                          ecomSalesFuture: _ecomSalesFuture,
                           referralsFuture: _referralsFuture,
                           onReferralTap: _openReferrals,
                           showReferralMetric: _canUseReferralFeatures,
@@ -262,6 +263,14 @@ class _SettingScreenState extends State<SettingScreen> {
                       subTitle: 'Track In-Progress and Completed Orders',
                       onTap: () => Get.to(() => const OrderScreen()),
                     ),
+                    if (_canUseReferralFeatures)
+                      IAMSettingMenu(
+                        icon: Iconsax.receipt_text,
+                        title: 'Referral Orders',
+                        subTitle: 'Orders from buyers using your code',
+                        onTap: () =>
+                            Get.to(() => const ReferralOrdersScreen()),
+                      ),
 
                     /*IAMSettingMenu(
                     icon: Iconsax.bank,
@@ -373,39 +382,44 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 }
 
-class _PointsBalanceView extends StatelessWidget {
-  const _PointsBalanceView({
-    required this.pointsFuture,
+class _EcomSalesSummaryView extends StatelessWidget {
+  const _EcomSalesSummaryView({
+    required this.ecomSalesFuture,
     required this.referralsFuture,
     required this.onReferralTap,
     required this.showReferralMetric,
   });
 
-  final Future<ApiResponse<PointsBalanceData?>> pointsFuture;
+  final Future<ApiResponse<EcomSalesCommissionTotalData?>> ecomSalesFuture;
   final Future<ApiResponse<ReferralData?>> referralsFuture;
   final VoidCallback onReferralTap;
   final bool showReferralMetric;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ApiResponse<PointsBalanceData?>>(
-      future: pointsFuture,
+    return FutureBuilder<ApiResponse<EcomSalesCommissionTotalData?>>(
+      future: ecomSalesFuture,
       builder: (context, snapshot) {
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
         final success =
             snapshot.data?.success == true && snapshot.data?.data != null;
         final data = snapshot.data?.data;
 
-        return _PointsCardShell(
-          data: success ? data : null,
+        return _EcomSalesCardShell(
           child: Row(
             children: [
               Expanded(
-                child: _PointMetricCard(
-                  label: 'Total Points',
-                  value: isLoading ? null : data?.totalPoints,
-                  suffix: 'pts',
-                  icon: Iconsax.medal_star,
+                child: _AccountMetricCard(
+                  label: 'Ecom Sales',
+                  value: isLoading || !success
+                      ? null
+                      : data?.totalNetCommission,
+                  suffix: '',
+                  icon: Iconsax.wallet_money,
+                  onTap: success && data != null
+                      ? () => _showEcomSalesDetails(context, data)
+                      : null,
+                  valueFormatter: _formatEcomSalesCurrency,
                 ),
               ),
               if (showReferralMetric) ...[
@@ -423,7 +437,7 @@ class _PointsBalanceView extends StatelessWidget {
                           referralSnapshot.connectionState ==
                           ConnectionState.waiting;
 
-                      return _PointMetricCard(
+                      return _AccountMetricCard(
                         label: 'Referrals',
                         value: referralLoading || !referralSuccess
                             ? null
@@ -599,40 +613,32 @@ class _ReferralIdSheet extends StatelessWidget {
   }
 }
 
-class _PointsCardShell extends StatelessWidget {
-  const _PointsCardShell({required this.child, this.data});
+class _EcomSalesCardShell extends StatelessWidget {
+  const _EcomSalesCardShell({required this.child});
 
   final Widget child;
-  final PointsBalanceData? data;
 
   @override
   Widget build(BuildContext context) {
     final darkMode = IAMHelperFunctions.isDarkMode(context);
-    final canOpenDetails = data != null;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: canOpenDetails
-            ? () => _showPointsBreakdown(context, data!)
-            : null,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(IAMSizes.md),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: darkMode ? 0.10 : 0.18),
         borderRadius: BorderRadius.circular(18),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(IAMSizes.md),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: darkMode ? 0.10 : 0.18),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
-          ),
-          child: child,
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
       ),
+      child: child,
     );
   }
 }
 
-void _showPointsBreakdown(BuildContext context, PointsBalanceData data) {
+void _showEcomSalesDetails(
+  BuildContext context,
+  EcomSalesCommissionTotalData data,
+) {
   showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
@@ -642,99 +648,104 @@ void _showPointsBreakdown(BuildContext context, PointsBalanceData data) {
       final darkMode = IAMHelperFunctions.isDarkMode(context);
 
       return SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(
-            IAMSizes.md,
-            0,
-            IAMSizes.md,
-            IAMSizes.md,
-          ),
-          padding: const EdgeInsets.fromLTRB(
-            IAMSizes.lg,
-            IAMSizes.md,
-            IAMSizes.lg,
-            IAMSizes.lg,
-          ),
-          decoration: BoxDecoration(
-            color: darkMode ? IAMColors.dark : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: darkMode ? IAMColors.darkerGrey : const Color(0xFFF1E8D2),
+        child: FractionallySizedBox(
+          heightFactor: 0.86,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(
+              IAMSizes.md,
+              0,
+              IAMSizes.md,
+              IAMSizes.md,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: IAMColors.black.withValues(alpha: 0.14),
-                blurRadius: 28,
-                offset: const Offset(0, 16),
+            padding: const EdgeInsets.fromLTRB(
+              IAMSizes.lg,
+              IAMSizes.md,
+              IAMSizes.lg,
+              IAMSizes.lg,
+            ),
+            decoration: BoxDecoration(
+              color: darkMode ? IAMColors.dark : Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: darkMode
+                    ? IAMColors.darkerGrey
+                    : const Color(0xFFF1E8D2),
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: IAMColors.primary.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: IAMColors.black.withValues(alpha: 0.14),
+                  blurRadius: 28,
+                  offset: const Offset(0, 16),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: IAMColors.primary.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Iconsax.wallet_money,
+                        color: IAMColors.primary,
+                        size: 24,
+                      ),
                     ),
-                    child: const Icon(
-                      Iconsax.medal_star,
-                      color: IAMColors.primary,
-                      size: 24,
+                    const SizedBox(width: IAMSizes.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ecom Sales Details',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: IAMSizes.xs),
+                          Text(
+                            'Account ${data.idno}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: darkMode
+                                      ? Colors.white70
+                                      : IAMColors.darkerGrey,
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: IAMSizes.lg),
+                _EcomSalesBreakdownRow(
+                  label: 'Total Net Commission',
+                  value: data.totalNetCommission,
+                  icon: Iconsax.money_recive,
+                  highlight: true,
+                  valueFormatter: _formatEcomSalesCurrency,
+                ),
+                const SizedBox(height: IAMSizes.sm),
+                _EcomSalesBreakdownRow(
+                  label: 'Total Quantity',
+                  value: data.totalQuantity,
+                  icon: Iconsax.box,
+                ),
+                const SizedBox(height: IAMSizes.md),
+                Expanded(
+                  child: _EcomSalesDetailsList(
+                    future: ApiMiddleware.commissions.getEcomSalesDetails(),
                   ),
-                  const SizedBox(width: IAMSizes.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Points Breakdown',
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: IAMSizes.xs),
-                        Text(
-                          'Account ${data.accountId}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: darkMode
-                                    ? Colors.white70
-                                    : IAMColors.darkerGrey,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: IAMSizes.lg),
-              _PointsBreakdownRow(
-                label: 'Total Points',
-                value: data.totalPoints,
-                icon: Iconsax.star_1,
-                highlight: true,
-              ),
-              const SizedBox(height: IAMSizes.sm),
-              _PointsBreakdownRow(
-                label: 'Earned Points',
-                value: data.earnedPoints,
-                icon: Iconsax.cup,
-              ),
-              const SizedBox(height: IAMSizes.sm),
-              _PointsBreakdownRow(
-                label: 'Redeemed Points',
-                value: data.redeemedPoints,
-                icon: Iconsax.receipt_minus,
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -742,23 +753,27 @@ void _showPointsBreakdown(BuildContext context, PointsBalanceData data) {
   );
 }
 
-class _PointsBreakdownRow extends StatelessWidget {
-  const _PointsBreakdownRow({
+class _EcomSalesBreakdownRow extends StatelessWidget {
+  const _EcomSalesBreakdownRow({
     required this.label,
     required this.value,
     required this.icon,
     this.highlight = false,
+    this.valueFormatter,
   });
 
   final String label;
   final num value;
   final IconData icon;
   final bool highlight;
+  final String Function(num value)? valueFormatter;
 
   @override
   Widget build(BuildContext context) {
     final darkMode = IAMHelperFunctions.isDarkMode(context);
-    final formatted = NumberFormat.decimalPattern().format(value);
+    final formatted =
+        valueFormatter?.call(value) ??
+        NumberFormat.decimalPattern().format(value);
 
     return Container(
       padding: const EdgeInsets.all(IAMSizes.md),
@@ -794,7 +809,7 @@ class _PointsBreakdownRow extends StatelessWidget {
             ),
           ),
           Text(
-            '$formatted pts',
+            formatted,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               color: highlight ? IAMColors.primary : null,
@@ -806,13 +821,208 @@ class _PointsBreakdownRow extends StatelessWidget {
   }
 }
 
-class _PointMetricCard extends StatelessWidget {
-  const _PointMetricCard({
+class _EcomSalesDetailsList extends StatelessWidget {
+  const _EcomSalesDetailsList({required this.future});
+
+  final Future<ApiResponse<List<EcomSalesCommissionDetailItem?>>> future;
+
+  @override
+  Widget build(BuildContext context) {
+    final darkMode = IAMHelperFunctions.isDarkMode(context);
+
+    return FutureBuilder<ApiResponse<List<EcomSalesCommissionDetailItem?>>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final response = snapshot.data;
+        final details =
+            response?.data
+                ?.whereType<EcomSalesCommissionDetailItem>()
+                .toList() ??
+            const <EcomSalesCommissionDetailItem>[];
+
+        if (response?.success != true) {
+          return _EcomSalesDetailsState(
+            icon: Iconsax.info_circle,
+            message: response?.message ?? 'Unable to load Ecom Sales details.',
+          );
+        }
+
+        if (details.isEmpty) {
+          return const _EcomSalesDetailsState(
+            icon: Iconsax.receipt_search,
+            message: 'No Ecom Sales details found for the last 30 days.',
+          );
+        }
+
+        return ListView.separated(
+          padding: EdgeInsets.zero,
+          itemCount: details.length,
+          separatorBuilder: (_, __) => const SizedBox(height: IAMSizes.sm),
+          itemBuilder: (context, index) {
+            final item = details[index];
+            return _EcomSalesDetailTile(item: item, darkMode: darkMode);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _EcomSalesDetailTile extends StatelessWidget {
+  const _EcomSalesDetailTile({
+    required this.item,
+    required this.darkMode,
+  });
+
+  final EcomSalesCommissionDetailItem item;
+  final bool darkMode;
+
+  @override
+  Widget build(BuildContext context) {
+    final refNo = item.refNo.isEmpty ? 'No reference' : item.refNo;
+    final title = item.tranDesc.isEmpty ? item.itemCode : item.tranDesc;
+    final date = _formatEcomSalesDate(item.tranDate);
+
+    return Container(
+      padding: const EdgeInsets.all(IAMSizes.md),
+      decoration: BoxDecoration(
+        color: darkMode ? IAMColors.black : const Color(0xFFFAF8F2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: darkMode ? IAMColors.darkerGrey : const Color(0xFFF0E8D7),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: IAMColors.primary.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Iconsax.receipt_item,
+              color: IAMColors.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: IAMSizes.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  refNo,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: IAMSizes.xs),
+                Text(
+                  title.isEmpty ? 'Ecom Sales transaction' : title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: darkMode ? Colors.white70 : IAMColors.darkerGrey,
+                  ),
+                ),
+                const SizedBox(height: IAMSizes.xs),
+                Text(
+                  '$date | Qty ${item.quantity}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: darkMode ? Colors.white60 : IAMColors.darkGrey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: IAMSizes.sm),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 118),
+            child: Text(
+              _formatEcomSalesCurrency(item.netCommission),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: IAMColors.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EcomSalesDetailsState extends StatelessWidget {
+  const _EcomSalesDetailsState({
+    required this.icon,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final darkMode = IAMHelperFunctions.isDarkMode(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(IAMSizes.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: IAMColors.primary, size: 32),
+            const SizedBox(height: IAMSizes.sm),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: darkMode ? Colors.white70 : IAMColors.darkerGrey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _formatEcomSalesCurrency(num value) {
+  return NumberFormat.currency(
+    locale: 'en_PH',
+    symbol: 'PHP ',
+    decimalDigits: 2,
+  ).format(value);
+}
+
+String _formatEcomSalesDate(String value) {
+  final parsed = DateTime.tryParse(value);
+  if (parsed == null) return value.isEmpty ? 'No date' : value;
+  return DateFormat('MMM d, yyyy').format(parsed);
+}
+
+class _AccountMetricCard extends StatelessWidget {
+  const _AccountMetricCard({
     required this.label,
     required this.value,
     required this.suffix,
     required this.icon,
     this.onTap,
+    this.valueFormatter,
   });
 
   final String label;
@@ -820,12 +1030,16 @@ class _PointMetricCard extends StatelessWidget {
   final String suffix;
   final IconData icon;
   final VoidCallback? onTap;
+  final String Function(num value)? valueFormatter;
 
   @override
   Widget build(BuildContext context) {
-    final formatted = value == null
+    final metricValue = value;
+    final formatted = metricValue == null
         ? '--'
-        : NumberFormat.decimalPattern().format(value);
+        : valueFormatter?.call(metricValue) ??
+              NumberFormat.decimalPattern().format(metricValue);
+    final suffixText = suffix.isEmpty ? '' : ' $suffix';
 
     return Material(
       color: Colors.transparent,
@@ -842,7 +1056,7 @@ class _PointMetricCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _PointsIcon(icon: icon),
+              _MetricIcon(icon: icon),
               const SizedBox(width: IAMSizes.sm),
               Expanded(
                 child: Column(
@@ -873,7 +1087,7 @@ class _PointMetricCard extends StatelessWidget {
                                 ),
                           ),
                           TextSpan(
-                            text: ' $suffix',
+                            text: suffixText,
                             style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
                                   color: Colors.white.withValues(alpha: 0.84),
@@ -894,8 +1108,8 @@ class _PointMetricCard extends StatelessWidget {
   }
 }
 
-class _PointsIcon extends StatelessWidget {
-  const _PointsIcon({required this.icon});
+class _MetricIcon extends StatelessWidget {
+  const _MetricIcon({required this.icon});
 
   final IconData icon;
 
