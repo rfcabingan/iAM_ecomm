@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
-import 'package:iam_ecomm/features/shop/screens/order/order_detail_screen.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
@@ -30,18 +29,25 @@ class _ReferralOrderListState extends State<ReferralOrderList> {
       emptySubtitle: 'Orders from referred buyers will appear here once placed.',
     ),
     _ReferralOrderTab(
+      label: 'To Ship',
+      status: 'TOSHIP',
+      emptyIcon: Iconsax.box,
+      emptyTitle: 'No referral orders to ship',
+      emptySubtitle: 'Referral-linked orders to ship will appear here.',
+    ),
+    _ReferralOrderTab(
+      label: 'To Receive',
+      status: 'TORECEIVE',
+      emptyIcon: Iconsax.truck_fast,
+      emptyTitle: 'No referral orders to receive',
+      emptySubtitle: 'Referral-linked orders to receive will appear here.',
+    ),
+    _ReferralOrderTab(
       label: 'Completed',
       status: 'COMPLETED',
       emptyIcon: Iconsax.tick_circle,
       emptyTitle: 'No completed referral orders',
       emptySubtitle: 'Completed referral-linked orders will appear here.',
-    ),
-    _ReferralOrderTab(
-      label: 'Cancelled',
-      status: 'CANCELLED',
-      emptyIcon: Iconsax.close_circle,
-      emptyTitle: 'No cancelled referral orders',
-      emptySubtitle: 'Cancelled referral-linked orders will appear here.',
     ),
   ];
 
@@ -225,144 +231,116 @@ class _ReferralOrderCard extends StatelessWidget {
       decimalDigits: 2,
     );
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => OrderDetailScreen(refNo: order.orderRefno),
-            ),
-          );
-        },
-        child: IAMRoundedContainer(
-          padding: const EdgeInsets.all(IAMSizes.md),
-          backgroundColor: dark ? IAMColors.dark : IAMColors.light,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return IAMRoundedContainer(
+      padding: const EdgeInsets.all(IAMSizes.md),
+      backgroundColor: dark ? IAMColors.dark : IAMColors.light,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '#${order.orderRefno}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium!.apply(fontWeightDelta: 2),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      Clipboard.setData(
-                        ClipboardData(text: order.orderRefno),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
-                            'Order number copied!',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.green[300],
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Iconsax.copy),
-                    iconSize: IAMSizes.iconSm,
-                  ),
-                ],
+              Expanded(
+                child: Text(
+                  '#${order.orderRefno}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium!.apply(fontWeightDelta: 2),
+                ),
               ),
-              const SizedBox(height: IAMSizes.spaceBtwItems / 2),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: IAMColors.primary,
-                      shape: BoxShape.circle,
+              IconButton(
+                onPressed: () {
+                  Clipboard.setData(
+                    ClipboardData(text: order.orderRefno),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text(
+                        'Order number copied!',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.green[300],
+                      behavior: SnackBarBehavior.floating,
                     ),
-                    child: const Icon(
-                      Iconsax.profile_2user,
-                      size: 20,
-                      color: IAMColors.grey,
-                    ),
-                  ),
-                  const SizedBox(width: IAMSizes.spaceBtwItems / 2),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                order.orderStatusName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodyMedium!
-                                    .apply(
-                                      color: IAMColors.primary,
-                                      fontWeightDelta: 1,
-                                    ),
-                              ),
-                            ),
-                            const Tooltip(
-                              message: 'View order details',
-                              child: Icon(
-                                Iconsax.arrow_right_3,
-                                size: 18,
-                                color: IAMColors.darkGrey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Buyer ${_fallbackText(order.buyerIdNo)}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwItems),
-              _ReferralOrderInfoRow(
-                icon: Iconsax.calendar,
-                label: _formatOrderDate(order.orderDate),
-              ),
-              const SizedBox(height: IAMSizes.sm),
-              _ReferralOrderInfoRow(
-                icon: Iconsax.user_tick,
-                label: 'Referral ID ${_fallbackText(order.referralId)}',
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwItems),
-              Divider(color: Colors.grey[400], thickness: 1),
-              const SizedBox(height: IAMSizes.spaceBtwItems / 2),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${order.itemCount} ${order.itemCount == 1 ? 'item' : 'items'}',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ),
-                  Text(
-                    formatter.format(order.totalAmount),
-                    style: Theme.of(context).textTheme.titleMedium!.apply(
-                      fontWeightDelta: 1,
-                    ),
-                  ),
-                ],
+                  );
+                },
+                icon: const Icon(Iconsax.copy),
+                iconSize: IAMSizes.iconSm,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: IAMSizes.spaceBtwItems / 2),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: IAMColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Iconsax.profile_2user,
+                  size: 20,
+                  color: IAMColors.grey,
+                ),
+              ),
+              const SizedBox(width: IAMSizes.spaceBtwItems / 2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.orderStatusName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium!.apply(
+                        color: IAMColors.primary,
+                        fontWeightDelta: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Buyer ${_fallbackText(order.buyerIdNo)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: IAMSizes.spaceBtwItems),
+          _ReferralOrderInfoRow(
+            icon: Iconsax.calendar,
+            label: _formatOrderDate(order.orderDate),
+          ),
+          const SizedBox(height: IAMSizes.sm),
+          _ReferralOrderInfoRow(
+            icon: Iconsax.user_tick,
+            label: 'Referral ID ${_fallbackText(order.referralId)}',
+          ),
+          const SizedBox(height: IAMSizes.spaceBtwItems),
+          Divider(color: Colors.grey[400], thickness: 1),
+          const SizedBox(height: IAMSizes.spaceBtwItems / 2),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${order.itemCount} ${order.itemCount == 1 ? 'item' : 'items'}',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+              Text(
+                formatter.format(order.totalAmount),
+                style: Theme.of(context).textTheme.titleMedium!.apply(
+                  fontWeightDelta: 1,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
