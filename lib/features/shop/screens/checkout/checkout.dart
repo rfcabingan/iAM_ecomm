@@ -169,6 +169,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String checkoutUrl,
     required String orderRef,
     required num totalAmount,
+    required bool redirectOnPaymentResult,
   }) async {
     if (!mounted) return false;
     return showCheckoutWebViewSheet(
@@ -176,6 +177,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       checkoutUrl: checkoutUrl,
       orderRef: orderRef,
       totalAmount: totalAmount,
+      redirectOnPaymentResult: redirectOnPaymentResult,
     );
   }
 
@@ -615,7 +617,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         checkoutUrl: checkoutUrl,
         orderRef: orderRef,
         totalAmount: totalAmount,
+        redirectOnPaymentResult: providerCode.toUpperCase().contains('MAYA'),
       );
+      if (paid && mounted) {
+        _redirectToHome();
+        return;
+      }
       if (!paid && mounted) {
         _redirectToStoreWithUnpaidToast();
       }
@@ -710,6 +717,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) => showOnReady());
+  }
+
+  void _redirectToHome() {
+    if (!mounted) return;
+    final navController = Get.isRegistered<NavigationController>()
+        ? Get.find<NavigationController>()
+        : Get.put(NavigationController());
+    navController.selectedIndex.value = 0;
+    Get.offAll(() => const NavigationMenu());
   }
 
   @override
