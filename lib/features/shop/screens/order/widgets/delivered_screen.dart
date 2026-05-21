@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart'; // [IEC-121]
 import 'package:flutter/material.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
@@ -346,7 +347,7 @@ Widget _itemRow(
             borderRadius: BorderRadius.circular(IAMSizes.sm),
             image: (imageUrl != null && imageUrl.isNotEmpty)
                 ? DecorationImage(
-                    image: NetworkImage(imageUrl),
+                    image: CachedNetworkImageProvider(imageUrl), // [IEC-121]
                     fit: BoxFit.cover,
                   )
                 : null,
@@ -658,7 +659,7 @@ class _RatingSheetState extends State<_RatingSheet> {
                                 (item.imageUrl != null &&
                                     item.imageUrl.isNotEmpty)
                                 ? DecorationImage(
-                                    image: NetworkImage(item.imageUrl),
+                                    image: CachedNetworkImageProvider(item.imageUrl), // [IEC-121]
                                     fit: BoxFit.cover,
                                   )
                                 : null,
