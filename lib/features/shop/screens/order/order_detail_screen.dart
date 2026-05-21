@@ -552,7 +552,7 @@ class OrderDetailScreen extends StatelessWidget {
                         locale: 'en_PH',
                         symbol: '₱',
                         decimalDigits: 2,
-                      ).format(order.shippingAmount),
+                      ).format(order.processingFeeAmount),
                     ),
                   ],
                 ),
