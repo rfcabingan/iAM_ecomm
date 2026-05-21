@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart'; // [IEC-121]
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
@@ -467,8 +468,8 @@ class _CartScreenState extends State<CartScreen> {
                         if (item.imageUrl.isNotEmpty)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(IAMSizes.sm),
-                            child: Image.network(
-                              item.imageUrl,
+                            child: CachedNetworkImage( // [IEC-121]
+                              imageUrl: item.imageUrl,
                               width: 56,
                               height: 56,
                               fit: BoxFit.cover,

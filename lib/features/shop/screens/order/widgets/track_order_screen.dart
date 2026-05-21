@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart'; // [IEC-121]
 import 'package:flutter/material.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
@@ -102,7 +103,7 @@ class TrackingOrderScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(IAMSizes.md),
               image: imageUrl.isNotEmpty
                   ? DecorationImage(
-                      image: NetworkImage(imageUrl),
+                      image: CachedNetworkImageProvider(imageUrl), // [IEC-121]
                       fit: BoxFit.cover,
                     )
                   : null,
