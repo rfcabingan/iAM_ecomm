@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart'; // [IEC-121]
 import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
@@ -245,7 +246,7 @@ Widget _itemRow({
             borderRadius: BorderRadius.circular(IAMSizes.sm),
             image: (imageUrl != null && imageUrl.isNotEmpty)
                 ? DecorationImage(
-                    image: NetworkImage(imageUrl),
+                    image: CachedNetworkImageProvider(imageUrl), // [IEC-121]
                     fit: BoxFit.cover,
                   )
                 : null,

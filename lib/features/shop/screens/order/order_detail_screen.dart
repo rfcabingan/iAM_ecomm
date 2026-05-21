@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart'; // [IEC-121]
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
@@ -475,8 +476,8 @@ class OrderDetailScreen extends StatelessWidget {
                       ),
 
                       leading: item.imageUrl.isNotEmpty
-                          ? Image.network(
-                              item.imageUrl,
+                          ? CachedNetworkImage( // [IEC-121]
+                              imageUrl: item.imageUrl,
                               width: 48,
                               height: 48,
                               fit: BoxFit.cover,
