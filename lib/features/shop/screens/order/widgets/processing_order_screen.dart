@@ -270,36 +270,69 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
             Divider(color: Colors.grey[400], thickness: 1),
             const SizedBox(height: IAMSizes.spaceBtwItems / 2),
 
-            /// TOTAL + BUTTON
+            /// TOTAL + PAYMENT STATUS
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Total: ${formatter.format(order.totalAmount)}',
-                  style: Theme.of(context).textTheme.titleMedium!.apply(
-                    fontWeightDelta: 1,
-                    color: IAMColors.dark,
+                Expanded(
+                  child: Text(
+                    'Total: ${formatter.format(order.totalAmount)}',
+                    style: Theme.of(context).textTheme.titleMedium!.apply(
+                      fontWeightDelta: 1,
+                      color: IAMColors.dark,
+                    ),
                   ),
                 ),
-
-                if (isUnpaid)
-                  TextButton(
-                    onPressed: () async {
-                      final didPay = await _showPayNowFlow(
-                        context,
-                        order,
-                        formatter,
-                      );
-                      if (!context.mounted) return;
-                      if (didPay) {
-                        _refresh();
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: IAMColors.primary,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isUnpaid ? Iconsax.clock : Iconsax.tick_circle,
+                          size: 18,
+                          color: isUnpaid
+                              ? IAMColors.warning
+                              : IAMColors.success,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isUnpaid ? 'Awaiting payment' : 'Paid',
+                          style: Theme.of(context).textTheme.labelLarge!.apply(
+                            color: isUnpaid
+                                ? IAMColors.warning
+                                : IAMColors.success,
+                            fontWeightDelta: 1,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const Text('Pay now'),
-                  ),
+                    if (isUnpaid) ...[
+                      const SizedBox(height: 4),
+                      TextButton(
+                        onPressed: () async {
+                          final didPay = await _showPayNowFlow(
+                            context,
+                            order,
+                            formatter,
+                          );
+                          if (!context.mounted) return;
+                          if (didPay) {
+                            _refresh();
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: IAMColors.primary,
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text('Pay now'),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
 
