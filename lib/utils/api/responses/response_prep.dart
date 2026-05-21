@@ -1148,6 +1148,7 @@ class OrderDetailItem {
   final String orderDate;
   final num subtotalAmount;
   final num shippingAmount;
+  final num processingFeeAmount;
   final num voucherDiscountAmount;
   final num discountAmount;
   final num totalAmount;
@@ -1173,6 +1174,7 @@ class OrderDetailItem {
     required this.orderDate,
     required this.subtotalAmount,
     required this.shippingAmount,
+    required this.processingFeeAmount,
     required this.voucherDiscountAmount,
     required this.discountAmount,
     required this.totalAmount,
@@ -1206,6 +1208,7 @@ class OrderDetailItem {
       orderDate: m['orderDate'] as String? ?? '',
       subtotalAmount: (m['subtotalAmount'] as num?) ?? 0,
       shippingAmount: (m['shippingAmount'] as num?) ?? 0,
+      processingFeeAmount: (m['processingFeeAmount'] as num?) ?? 0,
       voucherDiscountAmount: (m['voucherDiscountAmount'] as num?) ?? 0,
       discountAmount: (m['discountAmount'] as num?) ?? 0,
       totalAmount: (m['totalAmount'] as num?) ?? 0,
