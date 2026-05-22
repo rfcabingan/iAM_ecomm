@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/cancelled_order_screen.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/delivered_screen.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/processing_order_screen.dart';
+import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 
 class IAMOrderListItems extends StatefulWidget {
-  const IAMOrderListItems({super.key});
+  const IAMOrderListItems({super.key, required this.filters});
+
+  final OrderListFilters filters;
 
   @override
   State<IAMOrderListItems> createState() => _IAMOrderListItemsState();
@@ -53,9 +58,40 @@ class _IAMOrderListItemsState extends State<IAMOrderListItems> {
   @override
   Widget build(BuildContext context) {
     final dark = IAMHelperFunctions.isDarkMode(context);
+    final filters = widget.filters;
 
-    return Column(
+    return OrderListFilterScope(
+      filters: filters,
+      child: Column(
       children: [
+        if (filters.hasActiveFilter) ...[
+          IAMRoundedContainer(
+            padding: const EdgeInsets.symmetric(
+              horizontal: IAMSizes.md,
+              vertical: IAMSizes.sm,
+            ),
+            backgroundColor: IAMColors.primary.withValues(alpha: 0.12),
+            showBorder: true,
+            borderColor: IAMColors.primary.withValues(alpha: 0.35),
+            child: Row(
+              children: [
+                const Icon(Iconsax.calendar_1, size: 18, color: IAMColors.primary),
+                const SizedBox(width: IAMSizes.sm),
+                Expanded(
+                  child: Text(
+                    _filterSummary(filters),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: dark ? IAMColors.white : IAMColors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: IAMSizes.sm),
+        ],
         SizedBox(
           width: double.infinity,
           child: Row(
@@ -110,7 +146,22 @@ class _IAMOrderListItemsState extends State<IAMOrderListItems> {
           ),
         ),
       ],
+    ),
     );
+  }
+
+  String _filterSummary(OrderListFilters filters) {
+    final fmt = DateFormat('dd MMM yyyy');
+    if (filters.startDate != null && filters.endDate != null) {
+      return 'Showing orders from ${fmt.format(filters.startDate!)} to ${fmt.format(filters.endDate!)}';
+    }
+    if (filters.startDate != null) {
+      return 'Showing orders from ${fmt.format(filters.startDate!)}';
+    }
+    if (filters.endDate != null) {
+      return 'Showing orders until ${fmt.format(filters.endDate!)}';
+    }
+    return '';
   }
 
   Widget _buildChip(int index, String title) {

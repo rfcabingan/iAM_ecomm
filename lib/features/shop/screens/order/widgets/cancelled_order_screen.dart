@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
-import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
@@ -52,16 +52,13 @@ class CancelledTab extends StatelessWidget {
           return const Center(child: Text('No orders found'));
         }
 
-        const terminalIds = {
-          OrderStatusIds.cancelled,
-          OrderStatusIds.failedDelivery,
-          OrderStatusIds.returned,
-          OrderStatusIds.lostAndDamaged,
-        };
+        final dateFilters = OrderListFilterScope.of(context);
         final orders = (snapshot.data!.data ?? [])
             .where(
               (order) =>
-                  order != null && terminalIds.contains(order.orderStatusId),
+                  order != null &&
+                  OrderFilters.shouldShowInCancelledTab(order) &&
+                  dateFilters.matches(order),
             )
             .toList();
 

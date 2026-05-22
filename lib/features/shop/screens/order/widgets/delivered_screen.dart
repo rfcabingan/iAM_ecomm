@@ -9,6 +9,7 @@ import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:intl/intl.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/order_empty_state.dart';
 
@@ -53,12 +54,14 @@ class DeliveredTab extends StatelessWidget {
           return const Center(child: Text('No orders found'));
         }
 
+        final dateFilters = OrderListFilterScope.of(context);
         final orders = (snapshot.data!.data ?? [])
             .where(
               (order) =>
                   order != null &&
                   (order.orderStatusId == OrderStatusIds.delivered ||
-                      order.orderStatusName.toLowerCase() == 'delivered'),
+                      order.orderStatusName.toLowerCase() == 'delivered') &&
+                  dateFilters.matches(order),
             )
             .toList();
 
@@ -385,18 +388,31 @@ void _showRatingModal(
     context: context,
     backgroundColor: IAMColors.white,
     isScrollControlled: true,
+    useSafeArea: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (_) {
-      return Padding(
-        padding: EdgeInsets.only(
-          left: IAMSizes.md,
-          right: IAMSizes.md,
-          top: IAMSizes.md,
-          bottom: MediaQuery.of(context).viewInsets.bottom + IAMSizes.md,
+    builder: (sheetContext) {
+      final bottomInset = MediaQuery.viewInsetsOf(sheetContext).bottom;
+      final maxHeight =
+          MediaQuery.sizeOf(sheetContext).height * 0.92 - bottomInset;
+
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            IAMSizes.md,
+            IAMSizes.md,
+            IAMSizes.md,
+            IAMSizes.md,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: _RatingSheet(orderRefNo: orderRefNo, items: items),
+          ),
         ),
-        child: _RatingSheet(orderRefNo: orderRefNo, items: items),
       );
     },
   );
@@ -589,6 +605,8 @@ class _RatingSheetState extends State<_RatingSheet> {
     final validItems = widget.items.where((i) => i != null).toList();
 
     return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.only(bottom: IAMSizes.md),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -681,13 +699,32 @@ class _RatingSheetState extends State<_RatingSheet> {
 
                     const SizedBox(height: IAMSizes.sm),
 
-                    TextField(
-                      controller: _controllers[code],
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: 'Write your review here!',
-                        border: OutlineInputBorder(),
-                      ),
+                    Builder(
+                      builder: (fieldContext) {
+                        return TextField(
+                          controller: _controllers[code],
+                          maxLines: 3,
+                          scrollPadding: const EdgeInsets.only(bottom: 160),
+                          onTap: () {
+                            Future.delayed(
+                              const Duration(milliseconds: 300),
+                              () {
+                                if (!fieldContext.mounted) return;
+                                Scrollable.ensureVisible(
+                                  fieldContext,
+                                  alignment: 0.2,
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeOut,
+                                );
+                              },
+                            );
+                          },
+                          decoration: const InputDecoration(
+                            hintText: 'Write your review here!',
+                            border: OutlineInputBorder(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

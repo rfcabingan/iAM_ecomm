@@ -12,6 +12,7 @@ import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_detail_screen.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/order_empty_state.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
@@ -94,10 +95,13 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
           return const Center(child: Text('No orders found'));
         }
 
+        final dateFilters = OrderListFilterScope.of(context);
         final List<OrderItem?> orders = (snapshot.data!.data ?? [])
             .where((order) {
               final o = order;
-              return o != null && _orderMatchesPipelineStage(o, widget.stageIds);
+              return o != null &&
+                  _orderMatchesPipelineStage(o, widget.stageIds) &&
+                  dateFilters.matches(o);
             })
             .toList();
 
