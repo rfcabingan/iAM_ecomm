@@ -9,6 +9,7 @@ import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:intl/intl.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/order_empty_state.dart';
 
@@ -53,12 +54,14 @@ class DeliveredTab extends StatelessWidget {
           return const Center(child: Text('No orders found'));
         }
 
+        final dateFilters = OrderListFilterScope.of(context);
         final orders = (snapshot.data!.data ?? [])
             .where(
               (order) =>
                   order != null &&
                   (order.orderStatusId == OrderStatusIds.delivered ||
-                      order.orderStatusName.toLowerCase() == 'delivered'),
+                      order.orderStatusName.toLowerCase() == 'delivered') &&
+                  dateFilters.matches(order),
             )
             .toList();
 
