@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart'; // [IEC-121]
 import 'package:flutter/material.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 
@@ -44,20 +45,15 @@ class IAMRoundedImage extends StatelessWidget {
               ? BorderRadius.circular(borderRadius)
               : BorderRadius.zero,
           child: isNetworkImage
-              ? Image.network(
-                  imageUrl,
+              ? CachedNetworkImage( // [IEC-121]
+                  imageUrl: imageUrl,
                   fit: fit,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(child: CircularProgressIndicator());
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: backgroundColor ?? Colors.transparent,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.broken_image_outlined),
-                    );
-                  },
+                  placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) => Container(
+                    color: backgroundColor ?? Colors.transparent,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.broken_image_outlined),
+                  ),
                 )
               : Image(
                   fit: fit,

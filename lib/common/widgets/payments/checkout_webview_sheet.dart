@@ -276,7 +276,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
-                        Icons.payments_outlined,
+                        Icons.lock_outlined,
                         color: Colors.white,
                       ),
                     ),
@@ -295,7 +295,8 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                           const SizedBox(height: 4),
                           Text(
                             widget.orderRef.isNotEmpty
-                                ? 'Order ${widget.orderRef} · ₱${widget.totalAmount.toStringAsFixed(2)}'
+                                //? 'Order ${widget.orderRef} · ₱${widget.totalAmount.toStringAsFixed(2)}'
+                                ? 'Order ${widget.orderRef}'
                                 : 'Complete your payment to confirm the order.',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: onSurface.withOpacity(0.72),
@@ -389,7 +390,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                           vertical: 12,
                         ),
                       ),
-                    ),*/
+                    ),
                     const Spacer(),
                     IconButton(
                       tooltip: 'Refresh',
@@ -398,7 +399,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                         Icons.refresh_rounded,
                         color: onSurface.withOpacity(0.8),
                       ),
-                    ),
+                    ),*/
                   ],
                 ),
               ),

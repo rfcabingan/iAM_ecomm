@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart'; // [IEC-121]
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/payments/checkout_webview_sheet.dart';
 import 'package:iam_ecomm/common/widgets/payments/iam_wallet_pay_sheet.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/track_order_screen.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
@@ -11,6 +13,7 @@ import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetailScreen extends StatelessWidget {
@@ -475,8 +478,8 @@ class OrderDetailScreen extends StatelessWidget {
                       ),
 
                       leading: item.imageUrl.isNotEmpty
-                          ? Image.network(
-                              item.imageUrl,
+                          ? CachedNetworkImage( // [IEC-121]
+                              imageUrl: item.imageUrl,
                               width: 48,
                               height: 48,
                               fit: BoxFit.cover,
@@ -552,7 +555,7 @@ class OrderDetailScreen extends StatelessWidget {
                         locale: 'en_PH',
                         symbol: '₱',
                         decimalDigits: 2,
-                      ).format(order.shippingAmount),
+                      ).format(order.processingFeeAmount),
                     ),
                   ],
                 ),
@@ -990,9 +993,23 @@ class _PaymentCardModel {
   static _PaymentCardModel from(OrderDetailItem order) {
     final providerRaw = order.paymentProvider.trim();
     final provider = providerRaw.toUpperCase();
-    final paid =
-        order.paymentStatusName.toUpperCase() == 'PAID' ||
-        order.paymentStatusId != 0;
+    final expired = OrderFilters.isPaymentExpiredDetail(order);
+    final paid = !expired &&
+        (order.paymentStatusName.toUpperCase() == 'PAID' ||
+            (order.paymentStatusId != 0 &&
+                order.paymentStatusId != PaymentStatusIds.expired));
+
+    if (expired) {
+      return _PaymentCardModel(
+        title: 'Payment expired',
+        subtitle: order.paymentStatusMessage.isNotEmpty
+            ? order.paymentStatusMessage
+            : 'This payment link has expired. Place a new order to continue.',
+        accent: IAMColors.darkGrey,
+        icon: Iconsax.timer_1,
+        canPayNow: false,
+      );
+    }
 
     if (provider.isEmpty && !paid) {
       return const _PaymentCardModel(
