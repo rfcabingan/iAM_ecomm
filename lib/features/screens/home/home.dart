@@ -13,7 +13,10 @@ import 'package:iam_ecomm/features/screens/home/widgets/home_categories.dart';
 import 'package:iam_ecomm/features/shop/controllers/home_controller.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/promo_slider.dart';
 import 'package:iam_ecomm/features/shop/screens/all_products/all_products.dart';
-import 'package:iam_ecomm/utils/constants/image_strings.dart';
+import 'package:iam_ecomm/utils/api/api.dart';
+import 'package:iam_ecomm/utils/api/core/api_response.dart';
+import 'package:iam_ecomm/utils/api/models/image_item.dart';
+import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,6 +29,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final HomeController _controller;
 
+  static const String _bannersCacheKey = 'home_banners_cache_v1';
+  final IAMLocalStorage _storage = IAMLocalStorage();
+
+  List<String> _bannerUrls = const [];
+  bool _bannersLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +45,59 @@ class _HomeScreenState extends State<HomeScreen> {
     _controller = Get.find<HomeController>();
     if (homeControllerWasRegistered) {
       unawaited(_controller.fetchProducts());
+    }
+
+    unawaited(_loadBannerUrls());
+  }
+
+  Future<void> _loadBannerUrls() async {
+    try {
+      // 1) Load cached banners first to avoid re-calling the API.
+      final cached = _storage.readData<List>(_bannersCacheKey);
+      final cachedUrls = (cached ?? const []).whereType<String>().toList();
+      if (cachedUrls.isNotEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _bannerUrls = cachedUrls;
+          _bannersLoading = false;
+        });
+        return;
+      }
+
+      // 2) Fetch banners from backend (sort by sortOrder, only visible).
+      final ApiResponse<List<ImageItem>> res =
+          await ApiMiddleware.images.getImages(imageType: 'Banners');
+
+      if (!mounted) return;
+      if (res.success && res.data != null) {
+        final banners = res.data!
+            .where((img) => img.isVisible)
+            .toList()
+          ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+        final urls = banners.map((img) => img.filePath).toList();
+
+        if (urls.isNotEmpty) {
+          await _storage.saveData(_bannersCacheKey, urls);
+        }
+
+        setState(() {
+          _bannerUrls = urls;
+          _bannersLoading = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _bannerUrls = const [];
+        _bannersLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _bannerUrls = const [];
+        _bannersLoading = false;
+      });
     }
   }
 
@@ -99,13 +161,15 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(IAMSizes.defaultSpace),
               child: Column(
                 children: [
-                  IAMPromoSlider(
-                    banners: [
-                      IAMImages.banner1,
-                      IAMImages.banner2,
-                      IAMImages.banner3,
-                    ],
-                  ),
+                  if (_bannersLoading)
+                    const AspectRatio(
+                      aspectRatio: 725 / 450,
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (_bannerUrls.isNotEmpty)
+                    IAMPromoSlider(banners: _bannerUrls)
+                  else
+                    const SizedBox.shrink(),
                   const SizedBox(height: IAMSizes.spaceBtwItems),
 
                   //Heading
