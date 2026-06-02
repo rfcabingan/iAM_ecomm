@@ -1,5 +1,7 @@
 /// Central API base URL and path constants.
 class ApiEndpoints {
+  // New images endpoint
+  static const String images = '/Images';
   ApiEndpoints._();
 
   static const String baseUrl = 'https://ecom-api.iam-ww.com/v1';
