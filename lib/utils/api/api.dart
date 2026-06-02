@@ -18,6 +18,7 @@ import 'services/referral_api.dart';
 import 'services/wallet_api.dart';
 import 'services/wishlist_api.dart';
 import 'services/commissions_api.dart';
+import 'services/images_api.dart';
 
 /// Single entry point for API calls...
 ///
@@ -49,6 +50,7 @@ class ApiMiddleware {
   static final ReferralApi referral = ReferralApi(_client);
   static final WalletApi wallet = WalletApi(_client);
   static final WishlistApi wishlist = WishlistApi(_client);
+  static final ImagesApi images = ImagesApi(_client);
 
   static Future<void> init() async {
     final token = await _tokenStore.read();
