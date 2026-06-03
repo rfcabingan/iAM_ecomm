@@ -146,6 +146,33 @@ await ApiMiddleware.init();
 
 - `ApiMiddleware.helpCenter.getTopics()` → `ApiResponse<List<HelpTopicItem?>>` (GET `/HelpCenter/Topics`) — grouped into categories in the app Help Center screen.
 
+## Images
+
+- `ApiMiddleware.images.getImages(imageType: 'Products')` → `ApiResponse<List<ImageItem>>` (GET `/Images?imageType=Products`)
+- `ApiMiddleware.images.getImages(imageType: 'Banners')` → `ApiResponse<List<ImageItem>>` (GET `/Images?imageType=Banners`)
+
+  - Returns a list of images by type. Each `ImageItem` has:
+    - `autoId`, `imageType`, `imageName`, `description`, `filePath`, `isVisible`, `sortOrder`
+  - Example:
+    ```json
+    {
+      "status": 200,
+      "success": true,
+      "message": "Images loaded successfully.",
+      "data": [
+        {
+          "autoId": 2,
+          "imageType": "Products",
+          "imageName": "BARPOW",
+          "description": "Barpow product in ecom",
+          "filePath": "https://ecom-shop.iam-ww.com/Images/Products/barpow.jpg",
+          "isVisible": true,
+          "sortOrder": 1
+        }
+      ]
+    }
+    ```
+
 ## Response handling
 
 ```dart

@@ -26,13 +26,21 @@ class IAMLoginHeader extends StatelessWidget {
               elevation: 10,
               shape: const CircleBorder(),
               child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.white,
-                child: ClipOval(
-                  child: Image.asset(
-                    dark ? IAMImages.lightAppLogo : IAMImages.darkAppLogo,
-                    height: 70,
-                    fit: BoxFit.contain,
+                radius: 70,
+                backgroundColor: dark ? Colors.white : const Color(0xFF1A1A1A),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 4),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Image.asset(
+                        dark ? IAMImages.lightAppLogo : IAMImages.darkAppLogo,
+                      ),
+                    ),
                   ),
                 ),
               ),
