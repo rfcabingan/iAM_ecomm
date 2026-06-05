@@ -353,6 +353,55 @@ class WalletOrderPaymentData {
   }
 }
 
+class PointsHistoryItem {
+  final int autoId;
+  final String svrDate;
+  final String tranDate;
+  final String accountId;
+  final int tranType;
+  final String tranDesc;
+  final String sourceApp;
+  final String ptsRefNo;
+  final String? relatedTranNo;
+  final int pts;
+  final int amt;
+  final int runningBalance;
+
+  PointsHistoryItem({
+    required this.autoId,
+    required this.svrDate,
+    required this.tranDate,
+    required this.accountId,
+    required this.tranType,
+    required this.tranDesc,
+    required this.sourceApp,
+    required this.ptsRefNo,
+    this.relatedTranNo,
+    required this.pts,
+    required this.amt,
+    required this.runningBalance,
+  });
+
+  static PointsHistoryItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PointsHistoryItem(
+      autoId: (m['autoId'] as int?) ?? 0,
+      svrDate: m['svrDate'] as String? ?? '',
+      tranDate: m['tranDate'] as String? ?? '',
+      accountId: m['accountId'] as String? ?? '',
+      tranType: (m['tranType'] as int?) ?? 0,
+      tranDesc: m['tranDesc'] as String? ?? '',
+      sourceApp: m['sourceApp'] as String? ?? '',
+      ptsRefNo: m['ptsRefNo'] as String? ?? '',
+      relatedTranNo: m['relatedTranNo'] as String?,
+      pts: (m['pts'] as int?) ?? 0,
+      amt: (m['amt'] as int?) ?? 0,
+      runningBalance: (m['runningBalance'] as int?) ?? 0,
+    );
+  }
+}
+
 class PointsBalanceData {
   final String accountId;
   final num totalPoints;
