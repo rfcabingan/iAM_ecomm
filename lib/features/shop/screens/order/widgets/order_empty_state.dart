@@ -13,12 +13,14 @@ class IAMOrderEmptyState extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.ctaText = 'Browse Products',
+    this.footer,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final String ctaText;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +106,10 @@ class IAMOrderEmptyState extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (footer != null) ...[
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
+                  footer!,
+                ],
               ],
             ),
           ),

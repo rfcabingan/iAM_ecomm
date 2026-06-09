@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
+import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_timeline_note.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/cancelled_order_screen.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/delivered_screen.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/processing_order_screen.dart';
@@ -49,6 +50,7 @@ class _IAMOrderListItemsState extends State<IAMOrderListItems> {
         emptyIcon: Iconsax.truck_fast,
         emptyTitle: 'No orders in transit',
         emptySubtitle: 'Orders that are on the way will appear here.',
+        emptyFooter: const IAMDeliveryTimelineNote(),
       ),
     ),
     ('Delivered', const DeliveredTab()),

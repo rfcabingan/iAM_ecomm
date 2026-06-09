@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
@@ -23,6 +24,14 @@ String _iconForProviderCode(String providerCode) {
     default:
       return IAMImages.iamwallet;
   }
+}
+
+bool _isNetworkUrl(String url) =>
+    url.startsWith('http://') || url.startsWith('https://');
+
+String _resolveProviderImage(PaymentProviderItem provider) {
+  if (provider.imageUrl.isNotEmpty) return provider.imageUrl;
+  return _iconForProviderCode(provider.providerCode);
 }
 
 class IAMBillingPaymentProviderSection extends StatefulWidget {
@@ -74,6 +83,7 @@ class _IAMBillingPaymentProviderSectionState
           autoId: 0,
           providerCode: _iamWalletProviderCode,
           providerName: 'IAM Wallet',
+          imageUrl: '',
           isActive: true,
           sortOrder: -1,
         ),
@@ -118,10 +128,6 @@ class _IAMBillingPaymentProviderSectionState
     }
 
     final hasSelection = _current != null;
-
-    final iconPath = hasSelection
-        ? _iconForProviderCode(_current!.provider.providerCode)
-        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,11 +174,8 @@ class _IAMBillingPaymentProviderSectionState
               backgroundColor: dark ? IAMColors.darkContainer : IAMColors.white,
               padding: const EdgeInsets.all(IAMSizes.sm),
               child: Center(
-                child: hasSelection && iconPath != null
-                    ? _PaymentProviderIcon(
-                        iconPath: iconPath,
-                        fallbackText: _current!.provider.providerCode,
-                      )
+                child: hasSelection
+                    ? _PaymentProviderIcon(provider: _current!.provider)
                     : const SizedBox.shrink(),
               ),
             ),
@@ -263,6 +266,7 @@ class _IAMBillingPaymentProviderSectionState
           autoId: 0,
           providerCode: _iamWalletProviderCode,
           providerName: 'IAM Wallet',
+          imageUrl: '',
           isActive: true,
           sortOrder: -1,
         ),
@@ -282,15 +286,11 @@ class _IAMBillingPaymentProviderSectionState
             final p = providerList[index];
             final isSelected =
                 _current?.provider.providerCode == p.providerCode;
-            final iconPath = _iconForProviderCode(p.providerCode);
             return ListTile(
               leading: SizedBox(
                 width: 48,
                 height: 28,
-                child: _PaymentProviderIcon(
-                  iconPath: iconPath,
-                  fallbackText: p.providerCode,
-                ),
+                child: _PaymentProviderIcon(provider: p),
               ),
               title: Text(p.providerName),
               subtitle: Text(p.providerCode),
@@ -324,24 +324,22 @@ class _PaymentViewModel {
 }
 
 class _PaymentProviderIcon extends StatelessWidget {
-  const _PaymentProviderIcon({
-    required this.iconPath,
-    required this.fallbackText,
-  });
+  const _PaymentProviderIcon({required this.provider});
 
-  final String iconPath;
-  final String fallbackText;
+  final PaymentProviderItem provider;
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      iconPath,
+    final image = _resolveProviderImage(provider);
+    final isNetwork =
+        provider.imageUrl.isNotEmpty && _isNetworkUrl(image);
+
+    return IAMRoundedImage(
+      imageUrl: image,
+      isNetworkImage: isNetwork,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Text(
-        fallbackText,
-        style: Theme.of(context).textTheme.labelSmall,
-        overflow: TextOverflow.ellipsis,
-      ),
+      applyImageRadius: false,
+      borderRadius: 0,
     );
   }
 }

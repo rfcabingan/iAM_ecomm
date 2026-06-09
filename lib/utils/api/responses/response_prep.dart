@@ -933,6 +933,7 @@ class PaymentMethodItem {
   final int paymentMethodId;
   final String methodCode;
   final String methodName;
+  final String imageUrl;
   final bool isInternal;
   final bool requiresRedirect;
   final int sortOrder;
@@ -942,6 +943,7 @@ class PaymentMethodItem {
     required this.paymentMethodId,
     required this.methodCode,
     required this.methodName,
+    required this.imageUrl,
     required this.isInternal,
     required this.requiresRedirect,
     required this.sortOrder,
@@ -955,6 +957,7 @@ class PaymentMethodItem {
       paymentMethodId: (m['paymentMethodId'] as int?) ?? 0,
       methodCode: m['methodCode'] as String? ?? '',
       methodName: m['methodName'] as String? ?? '',
+      imageUrl: m['imageUrl'] as String? ?? '',
       isInternal: (m['isInternal'] as bool?) ?? false,
       requiresRedirect: (m['requiresRedirect'] as bool?) ?? false,
       sortOrder: (m['sortOrder'] as int?) ?? 0,
@@ -967,6 +970,7 @@ class PaymentProviderItem {
   final int autoId;
   final String providerCode;
   final String providerName;
+  final String imageUrl;
   final bool isActive;
   final int sortOrder;
 
@@ -974,6 +978,7 @@ class PaymentProviderItem {
     required this.autoId,
     required this.providerCode,
     required this.providerName,
+    required this.imageUrl,
     required this.isActive,
     required this.sortOrder,
   });
@@ -985,6 +990,7 @@ class PaymentProviderItem {
       autoId: (m['autoId'] as int?) ?? 0,
       providerCode: m['providerCode'] as String? ?? '',
       providerName: m['providerName'] as String? ?? '',
+      imageUrl: m['imageUrl'] as String? ?? '',
       isActive: (m['isActive'] as bool?) ?? false,
       sortOrder: (m['sortOrder'] as int?) ?? 0,
     );
