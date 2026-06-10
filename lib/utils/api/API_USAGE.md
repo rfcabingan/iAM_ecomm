@@ -130,7 +130,7 @@ await ApiMiddleware.init();
 
 ## Points (JWT required)
 
-- `ApiMiddleware.points.getPoints()` → `ApiResponse<List<dynamic>?>` (GET `/Points`)
+- `ApiMiddleware.points.getPoints()` → `ApiResponse<List<PointsHistoryItem>?>` (GET `/Points`) — returns per-transaction points history; each item includes `autoId`, `svrDate`, `tranDate`, `accountId`, `tranType`, `tranDesc`, `sourceApp`, `ptsRefNo`, `relatedTranNo`, `pts`, `amt`, `runningBalance`.
 - `ApiMiddleware.points.getBalance()` → `ApiResponse<PointsBalanceData?>` (GET `/Points/Balance`)
 
 ## Commissions (JWT required)
