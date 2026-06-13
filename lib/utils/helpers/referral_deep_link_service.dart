@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
+// 1
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -11,7 +11,7 @@ import 'package:iam_ecomm/utils/constants/app_links.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:play_install_referrer/play_install_referrer.dart';
 
-/// Handles referral deep links and Android Play install referrer data.
+/// Handles referral deep links and Android Play install referrer data.  ,
 class ReferralDeepLinkService {
   ReferralDeepLinkService._();
 

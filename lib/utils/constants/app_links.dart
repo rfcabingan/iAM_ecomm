@@ -35,7 +35,7 @@ class IamAppLinks {
     ).toString();
   }
 
-  /// Play Store link that passes the referral ID via the install referrer
+  ///  Play Store link that passes the referral ID via the install referrer
   /// (Android only; read with the Play Install Referrer API on first launch).
   static String playStoreReferralUrl(String referralId) {
     final ref = referralId.trim();
