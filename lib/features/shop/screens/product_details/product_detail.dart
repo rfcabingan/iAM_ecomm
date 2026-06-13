@@ -222,7 +222,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   if (widget.product?.productCode != null)
                     IAMRatingAndShare(
                       productCode: widget.product!.productCode,
-                      shareLink: widget.product!.shareLink,
                     ),
                   IAMProductMetaData(product: widget.product),
                   const SizedBox(height: IAMSizes.spaceBtwItems / 1.5),
