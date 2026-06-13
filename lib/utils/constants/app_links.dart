@@ -11,9 +11,16 @@ class IamAppLinks {
   static const String referralScheme = 'iamecomm';
   static const String referralHost = 'signup';
 
-  // [temp] Vercel share bridge domain for referral links
+  // [temp] Vercel share bridge domain (referrals + product pages)
   static const String referralWebHost = 'iam-ecomm-share.vercel.app';
   static const String referralWebPath = '/r';
+  static const String productSharePath = '/products';
+
+  /// [temp] Product share landing: https://iam-ecomm-share.vercel.app/products/{CODE}
+  static String productShareUrl(String productCode) {
+    final code = productCode.trim();
+    return Uri.https(referralWebHost, '$productSharePath/$code').toString();
+  }
 
   // [temp] legacy shop domain — kept for backward-compatible deep links
   static const String legacyReferralWebHost = 'ecom-shop.iam-ww.com';
