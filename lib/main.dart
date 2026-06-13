@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
+import 'package:iam_ecomm/utils/helpers/referral_deep_link_service.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'app.dart';
 
@@ -17,6 +18,7 @@ Future<void> main() async {
   await GetStorage.init();
   await _clearExpiredSession();
   await ApiMiddleware.init();
+  await ReferralDeepLinkService.instance.init();
   runApp(const App());
 }
 

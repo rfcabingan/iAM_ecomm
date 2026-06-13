@@ -6,10 +6,13 @@ import 'package:iam_ecomm/features/authentication/screens/signup/widgets/termsan
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
+import 'package:iam_ecomm/utils/helpers/referral_deep_link_service.dart';
 import 'package:iconsax/iconsax.dart';
 
 class IAMSignupForm extends StatefulWidget {
-  const IAMSignupForm({super.key});
+  const IAMSignupForm({super.key, this.initialReferralId});
+
+  final String? initialReferralId;
 
   @override
   State<IAMSignupForm> createState() => _IAMSignupFormState();
@@ -29,6 +32,26 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
   final _referralIdController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _applyReferralPrefill();
+  }
+
+  void _applyReferralPrefill() {
+    final fromRoute = widget.initialReferralId?.trim();
+    if (fromRoute != null && fromRoute.isNotEmpty) {
+      _referralIdController.text = fromRoute;
+      return;
+    }
+
+    final fromPending =
+        ReferralDeepLinkService.instance.consumePendingReferralId();
+    if (fromPending != null && fromPending.isNotEmpty) {
+      _referralIdController.text = fromPending;
+    }
+  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
