@@ -971,6 +971,7 @@ class PaymentProviderItem {
   final String providerCode;
   final String providerName;
   final String imageUrl;
+  final String altText;
   final bool isActive;
   final int sortOrder;
 
@@ -979,6 +980,7 @@ class PaymentProviderItem {
     required this.providerCode,
     required this.providerName,
     required this.imageUrl,
+    required this.altText,
     required this.isActive,
     required this.sortOrder,
   });
@@ -991,6 +993,7 @@ class PaymentProviderItem {
       providerCode: m['providerCode'] as String? ?? '',
       providerName: m['providerName'] as String? ?? '',
       imageUrl: m['imageUrl'] as String? ?? '',
+      altText: m['altText'] as String? ?? '',
       isActive: (m['isActive'] as bool?) ?? false,
       sortOrder: (m['sortOrder'] as int?) ?? 0,
     );

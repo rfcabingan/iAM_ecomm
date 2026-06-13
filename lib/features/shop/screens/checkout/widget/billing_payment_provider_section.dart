@@ -84,6 +84,7 @@ class _IAMBillingPaymentProviderSectionState
           providerCode: _iamWalletProviderCode,
           providerName: 'IAM Wallet',
           imageUrl: '',
+          altText: 'IAM Wallet',
           isActive: true,
           sortOrder: -1,
         ),
@@ -267,6 +268,7 @@ class _IAMBillingPaymentProviderSectionState
           providerCode: _iamWalletProviderCode,
           providerName: 'IAM Wallet',
           imageUrl: '',
+          altText: 'IAM Wallet',
           isActive: true,
           sortOrder: -1,
         ),
@@ -334,12 +336,19 @@ class _PaymentProviderIcon extends StatelessWidget {
     final isNetwork =
         provider.imageUrl.isNotEmpty && _isNetworkUrl(image);
 
-    return IAMRoundedImage(
-      imageUrl: image,
-      isNetworkImage: isNetwork,
-      fit: BoxFit.contain,
-      applyImageRadius: false,
-      borderRadius: 0,
+    final label = provider.altText.isNotEmpty
+        ? provider.altText
+        : provider.providerName;
+
+    return Semantics(
+      label: label,
+      child: IAMRoundedImage(
+        imageUrl: image,
+        isNetworkImage: isNetwork,
+        fit: BoxFit.contain,
+        applyImageRadius: false,
+        borderRadius: 0,
+      ),
     );
   }
 }
