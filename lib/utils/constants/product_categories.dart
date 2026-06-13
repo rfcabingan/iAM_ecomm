@@ -39,6 +39,10 @@ class ProductCategories {
         sourceCategoryId: amazingBarley,
         productCode: 'BARGUM',
       ),
+      CategoryProductAlias(
+        sourceCategoryId: amazingBarley,
+        productCode: 'BARGMY',
+      ),
     ],
     healthyCoffee: [
       CategoryProductAlias(

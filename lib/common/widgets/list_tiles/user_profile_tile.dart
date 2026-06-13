@@ -28,12 +28,39 @@ class IAMUserProfile extends StatelessWidget {
             context,
           ).textTheme.headlineSmall!.apply(color: IAMColors.white),
         ),
-        subtitle: Text(
-          user != null ? '${user.packageName} (${user.idno})' : '@iamusername',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium!.apply(color: IAMColors.white),
-        ),
+        subtitle: user != null
+            ? Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 166, 131, 25),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: IAMColors.primary.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      '${user.packageName} (${user.idno})',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: IAMColors.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                '@iamusername',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium!.apply(color: IAMColors.white),
+              ),
         trailing: IconButton(
           onPressed: onPressed,
           icon: Icon(Iconsax.edit, color: IAMColors.white),

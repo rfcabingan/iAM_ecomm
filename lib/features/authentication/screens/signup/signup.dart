@@ -6,7 +6,9 @@ import 'package:iam_ecomm/utils/constants/text_strings.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
 class SignupScreen extends StatelessWidget {
-  const SignupScreen({super.key});
+  const SignupScreen({super.key, this.initialReferralId});
+
+  final String? initialReferralId;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class SignupScreen extends StatelessWidget {
               const SizedBox(height: IAMSizes.spaceBtwSections),
 
               //Form
-              const IAMSignupForm(),
+              IAMSignupForm(initialReferralId: initialReferralId),
               const SizedBox(height: IAMSizes.spaceBtwSections),
 
               //Divider

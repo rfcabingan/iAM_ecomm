@@ -72,6 +72,23 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app requires access to location to provide relevant local content and features.</string>
 
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.IAM.IAMEcomm.referral</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>iamecomm</string>
+			</array>
+		</dict>
+	</array>
+
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+
 </dict>
 </plist>
 

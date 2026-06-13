@@ -8,6 +8,7 @@ import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/formatters/formatter.dart';
+import 'package:iam_ecomm/features/screens/home/widgets/iam_points_summary_sheet.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
 void showIamWalletBalanceQuickSheet(BuildContext context) {
@@ -263,6 +264,12 @@ class _IamWalletBalanceQuickSheetState
                                 dark: dark,
                                 muted: muted,
                                 onSurface: onSurface,
+                                onTap: _pointsData != null && _pointsError == null
+                                    ? () => showIamPointsSummarySheet(
+                                        context,
+                                        balance: _pointsData,
+                                      )
+                                    : null,
                               ),
                             ],
                             const SizedBox(height: IAMSizes.md),
@@ -311,6 +318,7 @@ class _PointsBalanceCard extends StatelessWidget {
     required this.dark,
     required this.muted,
     required this.onSurface,
+    this.onTap,
   });
 
   final PointsBalanceData? points;
@@ -318,89 +326,115 @@ class _PointsBalanceCard extends StatelessWidget {
   final bool dark;
   final Color muted;
   final Color onSurface;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final total = points?.totalPoints;
+    final tappable = onTap != null;
 
-    return IAMRoundedContainer(
-      showBorder: true,
-      padding: const EdgeInsets.all(IAMSizes.md),
-      backgroundColor: dark ? IAMColors.black : IAMColors.lightGrey,
-      borderColor: onSurface.withOpacity(0.1),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+        child: IAMRoundedContainer(
+          showBorder: true,
+          padding: const EdgeInsets.all(IAMSizes.md),
+          backgroundColor: dark ? IAMColors.black : IAMColors.lightGrey,
+          borderColor: onSurface.withOpacity(0.1),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: IAMColors.primary.withOpacity(dark ? 0.22 : 0.14),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.stars_rounded,
-                  color: IAMColors.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: IAMSizes.sm),
-              Expanded(
-                child: Text(
-                  'Total Points',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: onSurface,
-                    fontWeight: FontWeight.w700,
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: IAMColors.primary.withOpacity(dark ? 0.22 : 0.14),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.stars_rounded,
+                      color: IAMColors.primary,
+                      size: 20,
+                    ),
                   ),
-                ),
-              ),
-              Text(
-                total == null
-                    ? '-- pts'
-                    : '${IAMFormatter.formatAccountingAmount(total.toDouble())} pts',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: IAMColors.primary,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          if (error != null) ...[
-            const SizedBox(height: IAMSizes.xs),
-            Text(
-              error!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: IAMColors.error,
-                height: 1.25,
-              ),
-            ),
-          ] else if (points != null) ...[
-            const SizedBox(height: IAMSizes.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: _PointStat(
-                    label: 'Earned',
-                    value: points!.earnedPoints,
-                    muted: muted,
-                    onSurface: onSurface,
+                  const SizedBox(width: IAMSizes.sm),
+                  Expanded(
+                    child: Text(
+                      'Total Points',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: IAMSizes.sm),
-                Expanded(
-                  child: _PointStat(
-                    label: 'Redeemed',
-                    value: points!.redeemedPoints,
-                    muted: muted,
-                    onSurface: onSurface,
+                  Text(
+                    total == null
+                        ? '-- pts'
+                        : '${IAMFormatter.formatAccountingAmount(total.toDouble())} pts',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: IAMColors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (tappable) ...[
+                    const SizedBox(width: IAMSizes.xs),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: muted,
+                      size: 22,
+                    ),
+                  ],
+                ],
+              ),
+              if (tappable) ...[
+                const SizedBox(height: IAMSizes.xs),
+                Text(
+                  'Tap to view points history',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: muted,
                   ),
                 ),
               ],
-            ),
-          ],
-        ],
+              if (error != null) ...[
+                const SizedBox(height: IAMSizes.xs),
+                Text(
+                  error!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: IAMColors.error,
+                    height: 1.25,
+                  ),
+                ),
+              ] else if (points != null) ...[
+                const SizedBox(height: IAMSizes.sm),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _PointStat(
+                        label: 'Earned',
+                        value: points!.earnedPoints,
+                        muted: muted,
+                        onSurface: onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: IAMSizes.sm),
+                    Expanded(
+                      child: _PointStat(
+                        label: 'Redeemed',
+                        value: points!.redeemedPoints,
+                        muted: muted,
+                        onSurface: onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

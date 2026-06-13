@@ -16,6 +16,7 @@ import 'package:iam_ecomm/features/personalization/screens/profile/profile.dart'
 import 'package:iam_ecomm/features/shop/screens/cart/cart.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
+import 'package:iam_ecomm/utils/constants/app_links.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
@@ -151,7 +152,7 @@ class _SettingScreenState extends State<SettingScreen> {
       return;
     }
 
-    await Share.share('Use my IAM Ecomm referral code: $referralId');
+    await Share.share(IamAppLinks.referralShareMessage(referralId));
   }
 
   void _showMessage(String message) {
@@ -408,50 +409,47 @@ class _EcomSalesSummaryView extends StatelessWidget {
         final data = snapshot.data?.data;
 
         return _EcomSalesCardShell(
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: _AccountMetricCard(
-                  label: 'Ecom Sales',
-                  value: isLoading || !success
-                      ? null
-                      : data?.totalNetCommission,
-                  suffix: '',
-                  icon: Iconsax.wallet_money,
-                  onTap: success && data != null
-                      ? () => _showEcomSalesDetails(context, data)
-                      : null,
-                  valueFormatter: _formatEcomSalesCurrency,
-                ),
+              _AccountMetricCard(
+                label: 'Ecom Sales',
+                value: isLoading || !success
+                    ? null
+                    : data?.totalNetCommission,
+                suffix: '',
+                icon: Iconsax.wallet_money,
+                onTap: success && data != null
+                    ? () => _showEcomSalesDetails(context, data)
+                    : null,
+                valueFormatter: _formatEcomSalesCurrency,
               ),
               if (showReferralMetric) ...[
-                const SizedBox(width: IAMSizes.sm),
-                Expanded(
-                  child: FutureBuilder<ApiResponse<ReferralData?>>(
-                    future: referralsFuture,
-                    builder: (context, referralSnapshot) {
-                      final referralData = referralSnapshot.data?.data;
-                      final referralCount = referralData == null
-                          ? null
-                          : _activeReferralCount(referralData);
-                      final referralSuccess =
-                          referralSnapshot.data?.success == true &&
-                          referralData != null;
-                      final referralLoading =
-                          referralSnapshot.connectionState ==
-                          ConnectionState.waiting;
+                const SizedBox(height: IAMSizes.sm),
+                FutureBuilder<ApiResponse<ReferralData?>>(
+                  future: referralsFuture,
+                  builder: (context, referralSnapshot) {
+                    final referralData = referralSnapshot.data?.data;
+                    final referralCount = referralData == null
+                        ? null
+                        : _activeReferralCount(referralData);
+                    final referralSuccess =
+                        referralSnapshot.data?.success == true &&
+                        referralData != null;
+                    final referralLoading =
+                        referralSnapshot.connectionState ==
+                        ConnectionState.waiting;
 
-                      return _AccountMetricCard(
-                        label: 'Referrals',
-                        value: referralLoading || !referralSuccess
-                            ? null
-                            : referralCount,
-                        suffix: referralCount == 1 ? 'person' : 'people',
-                        icon: Iconsax.profile_2user,
-                        onTap: onReferralTap,
-                      );
-                    },
-                  ),
+                    return _AccountMetricCard(
+                      label: 'Referrals',
+                      value: referralLoading || !referralSuccess
+                          ? null
+                          : referralCount,
+                      suffix: referralCount == 1 ? 'person' : 'people',
+                      icon: Iconsax.profile_2user,
+                      onTap: onReferralTap,
+                    );
+                  },
                 ),
               ],
             ],
@@ -630,7 +628,7 @@ class _EcomSalesCardShell extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(IAMSizes.md),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: darkMode ? 0.10 : 0.18),
+        color: Colors.white.withValues(alpha: darkMode ? 0.10 : 0.15),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
       ),

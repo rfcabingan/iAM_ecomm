@@ -68,7 +68,7 @@ await ApiMiddleware.init();
 ## Payment
 
 - `ApiMiddleware.payment.getPaymentMethods()` → `ApiResponse<List<PaymentMethodItem?>>`
-- `ApiMiddleware.payment.getPaymentProviders()` → `ApiResponse<List<PaymentProviderItem?>>`
+- `ApiMiddleware.payment.getPaymentProviders()` → `ApiResponse<List<PaymentProviderItem?>>` — each item: `autoId`, `providerCode`, `providerName`, `imageUrl`, `altText`, `isActive`, `sortOrder`
 - `ApiMiddleware.payment.createPayment(orderNo: ..., idno: ..., amount: ..., currency: ..., paymentProvider: ..., paymentMethod: ..., description: ..., clientReferenceNo: ...)` → `ApiResponse<PaymentData?>`
 - `ApiMiddleware.payment.callbackPayment(...)` → `ApiResponse<dynamic>`
 - `ApiMiddleware.payment.getPaymentByTransaction(transactionId)` → `ApiResponse<dynamic>`
@@ -130,7 +130,7 @@ await ApiMiddleware.init();
 
 ## Points (JWT required)
 
-- `ApiMiddleware.points.getPoints()` → `ApiResponse<List<dynamic>?>` (GET `/Points`)
+- `ApiMiddleware.points.getPoints()` → `ApiResponse<List<PointsHistoryItem>?>` (GET `/Points`) — returns per-transaction points history; each item includes `autoId`, `svrDate`, `tranDate`, `accountId`, `tranType`, `tranDesc`, `sourceApp`, `ptsRefNo`, `relatedTranNo`, `pts`, `amt`, `runningBalance`.
 - `ApiMiddleware.points.getBalance()` → `ApiResponse<PointsBalanceData?>` (GET `/Points/Balance`)
 
 ## Commissions (JWT required)
@@ -145,6 +145,33 @@ await ApiMiddleware.init();
 ## Help Center
 
 - `ApiMiddleware.helpCenter.getTopics()` → `ApiResponse<List<HelpTopicItem?>>` (GET `/HelpCenter/Topics`) — grouped into categories in the app Help Center screen.
+
+## Images
+
+- `ApiMiddleware.images.getImages(imageType: 'Products')` → `ApiResponse<List<ImageItem>>` (GET `/Images?imageType=Products`)
+- `ApiMiddleware.images.getImages(imageType: 'Banners')` → `ApiResponse<List<ImageItem>>` (GET `/Images?imageType=Banners`)
+
+  - Returns a list of images by type. Each `ImageItem` has:
+    - `autoId`, `imageType`, `imageName`, `description`, `filePath`, `isVisible`, `sortOrder`
+  - Example:
+    ```json
+    {
+      "status": 200,
+      "success": true,
+      "message": "Images loaded successfully.",
+      "data": [
+        {
+          "autoId": 2,
+          "imageType": "Products",
+          "imageName": "BARPOW",
+          "description": "Barpow product in ecom",
+          "filePath": "https://ecom-shop.iam-ww.com/Images/Products/barpow.jpg",
+          "isVisible": true,
+          "sortOrder": 1
+        }
+      ]
+    }
+    ```
 
 ## Response handling
 

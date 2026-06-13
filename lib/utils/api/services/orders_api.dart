@@ -41,6 +41,7 @@ class OrdersApi {
   }
 
   /// Get referral orders filtered by status (e.g. PENDING, COMPLETED)
+  /// eto yung parameters, "PENDING", "TOSHIP", "TORECEIVE", "COMPLETED"
   Future<ApiResponse<List<ReferralOrderItem?>>> getReferralOrders({required String status}) {
     return _client.get<List<ReferralOrderItem?>>(
       ApiEndpoints.referralOrders,

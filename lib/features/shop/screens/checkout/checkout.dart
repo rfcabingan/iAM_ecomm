@@ -11,6 +11,7 @@ import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_address_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_amount_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_fulfillment_section.dart';
+import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_timeline_note.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_payment_provider_section.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
@@ -72,6 +73,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   ];
   bool get _isPickupSelected =>
       _isPickupFulfillmentCode(_selectedFulfillmentTypeCode);
+
+  bool get _isHomeDeliverySelected => !_isPickupSelected;
 
   bool _isPickupFulfillmentCode(String fulfillmentCode) {
     final normalizedCode = fulfillmentCode.trim().toUpperCase();
@@ -169,6 +172,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String checkoutUrl,
     required String orderRef,
     required num totalAmount,
+    required bool redirectOnPaymentResult,
   }) async {
     if (!mounted) return false;
     return showCheckoutWebViewSheet(
@@ -176,6 +180,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       checkoutUrl: checkoutUrl,
       orderRef: orderRef,
       totalAmount: totalAmount,
+      redirectOnPaymentResult: redirectOnPaymentResult,
     );
   }
 
@@ -615,7 +620,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         checkoutUrl: checkoutUrl,
         orderRef: orderRef,
         totalAmount: totalAmount,
+        redirectOnPaymentResult: providerCode.toUpperCase().contains('MAYA'),
       );
+      if (paid && mounted) {
+        _redirectToHome();
+        return;
+      }
       if (!paid && mounted) {
         _redirectToStoreWithUnpaidToast();
       }
@@ -710,6 +720,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) => showOnReady());
+  }
+
+  void _redirectToHome() {
+    if (!mounted) return;
+    final navController = Get.isRegistered<NavigationController>()
+        ? Get.find<NavigationController>()
+        : Get.put(NavigationController());
+    navController.selectedIndex.value = 0;
+    Get.offAll(() => const NavigationMenu());
   }
 
   @override
@@ -871,6 +890,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             _refreshComputedFees();
                           },
                         ),
+                        if (_isHomeDeliverySelected) ...[
+                          const SizedBox(height: IAMSizes.spaceBtwItems),
+                          const IAMDeliveryTimelineNote(),
+                        ],
                         const SizedBox(height: IAMSizes.spaceBtwItems),
                         IAMBillingPaymentProviderSection(),
                         const SizedBox(height: IAMSizes.spaceBtwItems),

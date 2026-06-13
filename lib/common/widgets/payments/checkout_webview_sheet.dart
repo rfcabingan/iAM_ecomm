@@ -14,6 +14,7 @@ Future<bool> showCheckoutWebViewSheet({
   required String checkoutUrl,
   required String orderRef,
   required num totalAmount,
+  bool redirectOnPaymentResult = false,
 }) {
   return showModalBottomSheet<bool>(
     context: context,
@@ -27,6 +28,7 @@ Future<bool> showCheckoutWebViewSheet({
         checkoutUrl: checkoutUrl,
         orderRef: orderRef,
         totalAmount: totalAmount,
+        redirectOnPaymentResult: redirectOnPaymentResult,
       );
     },
   ).then((v) => v ?? false);
@@ -36,12 +38,14 @@ class CheckoutWebViewSheet extends StatefulWidget {
   final String checkoutUrl;
   final String orderRef;
   final num totalAmount;
+  final bool redirectOnPaymentResult;
 
   const CheckoutWebViewSheet({
     super.key,
     required this.checkoutUrl,
     required this.orderRef,
     required this.totalAmount,
+    this.redirectOnPaymentResult = false,
   });
 
   @override
@@ -63,6 +67,81 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
     }
   }
 
+  void _finishPaymentResult() {
+    if (_isExiting) return;
+    _isExiting = true;
+    if (mounted) {
+      Navigator.of(context).pop(true);
+    }
+  }
+
+  bool _isPaymentResultUrl(String url) {
+    if (!widget.redirectOnPaymentResult) return false;
+
+    final uri = Uri.tryParse(url);
+    if (uri == null) return false;
+
+    final pathSegments = uri.pathSegments
+        .map((segment) => segment.toLowerCase())
+        .toSet();
+    const resultSegments = {
+      'success',
+      'successful',
+      'error',
+      'failed',
+      'failure',
+      'fail',
+      'cancel',
+      'cancelled',
+      'canceled',
+    };
+    if (pathSegments.any(resultSegments.contains)) return true;
+
+    final pathAndFragment = '${uri.path} ${uri.fragment}'.toLowerCase();
+    final resultTokenPattern = RegExp(
+      r'(^|[/_\-\s])(success|successful|error|failed|failure|fail|cancelled|canceled|cancel)([/_\-.\s]|$)',
+    );
+    if (resultTokenPattern.hasMatch(pathAndFragment)) return true;
+
+    const statusKeys = {
+      'status',
+      'paymentstatus',
+      'payment_status',
+      'result',
+      'state',
+    };
+    const statusValues = {
+      'success',
+      'successful',
+      'paid',
+      'completed',
+      'error',
+      'failed',
+      'failure',
+      'fail',
+      'cancel',
+      'cancelled',
+      'canceled',
+    };
+
+    for (final entry in uri.queryParameters.entries) {
+      final key = entry.key.toLowerCase();
+      final value = entry.value.toLowerCase();
+      if (statusKeys.contains(key) &&
+          statusValues.any((status) => value.contains(status))) {
+        return true;
+      }
+    }
+
+    final normalized = '${uri.path} ${uri.fragment} ${uri.query}'.toLowerCase();
+    return normalized.contains('payment/success') ||
+        normalized.contains('payment/error') ||
+        normalized.contains('payment/failed') ||
+        normalized.contains('checkout/success') ||
+        normalized.contains('checkout/error') ||
+        normalized.contains('checkout/failed');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -80,6 +159,24 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
             onProgress: (p) {
               if (!mounted) return;
               setState(() => _progress = p.clamp(0, 100));
+            },
+            onPageStarted: (url) {
+              if (_isPaymentResultUrl(url)) {
+                _finishPaymentResult();
+              }
+            },
+            onUrlChange: (change) {
+              final url = change.url;
+              if (url != null && _isPaymentResultUrl(url)) {
+                _finishPaymentResult();
+              }
+            },
+            onNavigationRequest: (request) {
+              if (_isPaymentResultUrl(request.url)) {
+                _finishPaymentResult();
+                return NavigationDecision.prevent;
+              }
+              return NavigationDecision.navigate;
             },
           ),
         )
@@ -179,7 +276,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
-                        Icons.payments_outlined,
+                        Icons.lock_outlined,
                         color: Colors.white,
                       ),
                     ),
@@ -198,7 +295,8 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                           const SizedBox(height: 4),
                           Text(
                             widget.orderRef.isNotEmpty
-                                ? 'Order ${widget.orderRef} · ₱${widget.totalAmount.toStringAsFixed(2)}'
+                                //? 'Order ${widget.orderRef} · ₱${widget.totalAmount.toStringAsFixed(2)}'
+                                ? 'Order ${widget.orderRef}'
                                 : 'Complete your payment to confirm the order.',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: onSurface.withOpacity(0.72),
@@ -292,7 +390,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                           vertical: 12,
                         ),
                       ),
-                    ),*/
+                    ),
                     const Spacer(),
                     IconButton(
                       tooltip: 'Refresh',
@@ -301,7 +399,7 @@ class _CheckoutWebViewSheetState extends State<CheckoutWebViewSheet> {
                         Icons.refresh_rounded,
                         color: onSurface.withOpacity(0.8),
                       ),
-                    ),
+                    ),*/
                   ],
                 ),
               ),
