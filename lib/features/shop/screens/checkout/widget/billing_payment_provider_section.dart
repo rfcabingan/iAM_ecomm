@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
@@ -34,6 +35,14 @@ String _resolveProviderImage(PaymentProviderItem provider) {
   return _iconForProviderCode(provider.providerCode);
 }
 
+bool _isIamWalletProvider(PaymentProviderItem provider) =>
+    provider.providerCode.toUpperCase() == _iamWalletProviderCode;
+
+bool _canSelectProvider(PaymentProviderItem provider) {
+  if (!_isIamWalletProvider(provider)) return true;
+  return AuthController.instance.isMember;
+}
+
 class IAMBillingPaymentProviderSection extends StatefulWidget {
   const IAMBillingPaymentProviderSection({super.key});
 
@@ -57,6 +66,13 @@ class _IAMBillingPaymentProviderSectionState
         ? CheckoutController.instance
         : Get.put(CheckoutController());
     _loadPayment();
+  }
+
+  void _clearInvalidSelection() {
+    if (_current != null && !_canSelectProvider(_current!.provider)) {
+      _current = null;
+      _checkout.clearPaymentProvider();
+    }
   }
 
   Future<void> _loadPayment() async {
@@ -110,6 +126,7 @@ class _IAMBillingPaymentProviderSectionState
           _current = null;
           _checkout.clearPaymentProvider();
         }
+        _clearInvalidSelection();
       });
     }
   }
@@ -288,25 +305,48 @@ class _IAMBillingPaymentProviderSectionState
             final p = providerList[index];
             final isSelected =
                 _current?.provider.providerCode == p.providerCode;
+            final isDisabled = !_canSelectProvider(p);
             return ListTile(
-              leading: SizedBox(
-                width: 48,
-                height: 28,
-                child: _PaymentProviderIcon(provider: p),
+              enabled: !isDisabled,
+              leading: Opacity(
+                opacity: isDisabled ? 0.45 : 1,
+                child: SizedBox(
+                  width: 48,
+                  height: 28,
+                  child: _PaymentProviderIcon(provider: p),
+                ),
               ),
-              title: Text(p.providerName),
-              subtitle: Text(p.providerCode),
+              title: Text(
+                p.providerName,
+                style: isDisabled
+                    ? TextStyle(color: Colors.grey.shade500)
+                    : null,
+              ),
+              subtitle: Text(
+                isDisabled ? 'Available for members only' : p.providerCode,
+                style: isDisabled
+                    ? TextStyle(color: Colors.grey.shade500, fontSize: 12)
+                    : null,
+              ),
               trailing: isSelected
-                  ? const Icon(Icons.check_circle, color: IAMColors.primary)
-                  : const Icon(Icons.radio_button_unchecked),
-              onTap: () => Navigator.of(context).pop(p),
+                  ? Icon(
+                      Icons.check_circle,
+                      color: isDisabled
+                          ? Colors.grey.shade400
+                          : IAMColors.primary,
+                    )
+                  : Icon(
+                      Icons.radio_button_unchecked,
+                      color: isDisabled ? Colors.grey.shade400 : null,
+                    ),
+              onTap: isDisabled ? null : () => Navigator.of(context).pop(p),
             );
           },
         );
       },
     );
 
-    if (selected != null && mounted) {
+    if (selected != null && mounted && _canSelectProvider(selected)) {
       setState(() {
         _current = _PaymentViewModel(provider: selected);
       });

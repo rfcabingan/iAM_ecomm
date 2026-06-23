@@ -12,6 +12,7 @@ import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_address_
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_amount_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_fulfillment_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_timeline_note.dart';
+import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_branch_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_payment_provider_section.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
@@ -897,7 +898,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const SizedBox(height: IAMSizes.spaceBtwItems),
                         IAMBillingPaymentProviderSection(),
                         const SizedBox(height: IAMSizes.spaceBtwItems),
-                        if (!_isPickupSelected)
+                        if (!_isPickupSelected) ...[
+                          //const IAMDeliveryBranchSection(),
+                          const SizedBox(height: IAMSizes.spaceBtwItems),
                           IAMBillingAddressSection(
                             onAddressAvailabilityChanged: (hasAddress) {
                               setState(() => _hasSavedAddress = hasAddress);
@@ -917,6 +920,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               _refreshComputedFees();
                             },
                           ),
+                        ],
                       ],
                     ),
                   ),
