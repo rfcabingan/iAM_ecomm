@@ -420,7 +420,7 @@ class _PointsBalanceCard extends StatelessWidget {
                         onSurface: onSurface,
                       ),
                     ),
-                    const SizedBox(width: IAMSizes.sm),
+                    /*const SizedBox(width: IAMSizes.sm),
                     Expanded(
                       child: _PointStat(
                         label: 'Redeemed',
@@ -428,7 +428,7 @@ class _PointsBalanceCard extends StatelessWidget {
                         muted: muted,
                         onSurface: onSurface,
                       ),
-                    ),
+                    ),*/
                   ],
                 ),
               ],

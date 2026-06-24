@@ -128,7 +128,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                             )
                           else
                             Text(
-                              'Points earned and redeemed from your orders',
+                              'Points earned from your orders',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: muted,
                               ),
@@ -185,7 +185,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                             onSurface: onSurface,
                           ),
                         ),
-                        const SizedBox(width: IAMSizes.sm),
+                        /*const SizedBox(width: IAMSizes.sm),
                         Expanded(
                           child: _SummaryStat(
                             label: 'Redeemed',
@@ -193,7 +193,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                             muted: muted,
                             onSurface: onSurface,
                           ),
-                        ),
+                        ),*/
                       ],
                     ),
                   ),
