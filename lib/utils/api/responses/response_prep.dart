@@ -262,6 +262,8 @@ class ProductReviewItem {
 class WishlistItem {
   final String productCode;
   final String productName;
+  final num regularPrice;
+  final num memberPrice;
   final num sellingPrice;
   final String shortDesc;
   final String imageUrl;
@@ -271,6 +273,8 @@ class WishlistItem {
   WishlistItem({
     required this.productCode,
     required this.productName,
+    required this.regularPrice,
+    required this.memberPrice,
     required this.sellingPrice,
     required this.shortDesc,
     required this.imageUrl,
@@ -284,6 +288,8 @@ class WishlistItem {
     return WishlistItem(
       productCode: m['productCode'] as String? ?? '',
       productName: m['productName'] as String? ?? '',
+      regularPrice: (m['regularPrice'] as num?) ?? 0,
+      memberPrice: (m['memberPrice'] as num?) ?? 0,
       sellingPrice: (m['sellingPrice'] as num?) ?? 0,
       shortDesc: m['shortDesc'] as String? ?? '',
       imageUrl: m['imageUrl'] as String? ?? '',
