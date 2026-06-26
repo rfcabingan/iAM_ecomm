@@ -11,6 +11,8 @@ import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_address_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_amount_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_fulfillment_section.dart';
+import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_timeline_note.dart';
+import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_branch_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_payment_provider_section.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
@@ -72,6 +74,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   ];
   bool get _isPickupSelected =>
       _isPickupFulfillmentCode(_selectedFulfillmentTypeCode);
+
+  bool get _isHomeDeliverySelected => !_isPickupSelected;
 
   bool _isPickupFulfillmentCode(String fulfillmentCode) {
     final normalizedCode = fulfillmentCode.trim().toUpperCase();
@@ -887,10 +891,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             _refreshComputedFees();
                           },
                         ),
+                        if (_isHomeDeliverySelected) ...[
+                          const SizedBox(height: IAMSizes.spaceBtwItems),
+                          const IAMDeliveryTimelineNote(),
+                        ],
                         const SizedBox(height: IAMSizes.spaceBtwItems),
                         IAMBillingPaymentProviderSection(),
                         const SizedBox(height: IAMSizes.spaceBtwItems),
-                        if (!_isPickupSelected)
+                        if (!_isPickupSelected) ...[
+                          //const IAMDeliveryBranchSection(),
+                          const SizedBox(height: IAMSizes.spaceBtwItems),
                           IAMBillingAddressSection(
                             onAddressAvailabilityChanged: (hasAddress) {
                               setState(() => _hasSavedAddress = hasAddress);
@@ -910,6 +920,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               _refreshComputedFees();
                             },
                           ),
+                        ],
                       ],
                     ),
                   ),

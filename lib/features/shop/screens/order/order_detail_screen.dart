@@ -1026,13 +1026,11 @@ class _PaymentCardModel {
           ? 'PAID'
           : (order.paymentStatusName.isNotEmpty
                 ? order.paymentStatusName
-                : order.paymentStatusMessage);
+                : order.paymentStatusName);
       return _PaymentCardModel(
         title: 'Maya · $statusText',
-        subtitle: order.paymentStatusMessage.isNotEmpty
-            ? 'Pending Payment'
-            : (paid ? 'Payment successful.' : 'Complete your Maya checkout.'),
-        accent: Colors.green.shade600,
+        subtitle: paid ? 'Payment successful.' : 'Awaiting payment.',
+        accent: paid ? Colors.green.shade600 : IAMColors.warning,
         icon: Icons.payment_rounded,
         canPayNow: !paid,
       );

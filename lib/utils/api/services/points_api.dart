@@ -1,7 +1,7 @@
 import '../core/api_client.dart';
 import '../core/api_response.dart';
 import '../endpoints/api_endpoints.dart';
-import '../responses/response_prep.dart';
+import '../responses/response_prep.dart' show PointsHistoryItem, PointsBalanceData;
 
 class PointsApi {
   PointsApi(this._client);
@@ -17,11 +17,14 @@ class PointsApi {
     );
   }
 
-  Future<ApiResponse<List<dynamic>?>> getPoints() {
-    if (!_client.hasAuthToken) return Future.value(_unauthorized<List<dynamic>?>());
-    return _client.get<List<dynamic>?>(
+  Future<ApiResponse<List<PointsHistoryItem>?>> getPoints() {
+    if (!_client.hasAuthToken) return Future.value(_unauthorized<List<PointsHistoryItem>?>());
+    return _client.get<List<PointsHistoryItem>?>(
       ApiEndpoints.points,
-      fromJsonData: (dynamic v) => v is List ? v : <dynamic>[],
+      fromJsonData: (dynamic v) {
+        if (v is! List) return <PointsHistoryItem>[];
+        return v.map((e) => PointsHistoryItem.fromJson(e)).whereType<PointsHistoryItem>().toList();
+      },
     );
   }
 

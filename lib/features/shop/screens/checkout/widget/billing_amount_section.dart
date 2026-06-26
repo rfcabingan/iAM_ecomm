@@ -41,14 +41,14 @@ class IAMBillingAmountSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: IAMSizes.spaceBtwItems / 2),
-        Row(
+        /*Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Processing Fee', style: Theme.of(context).textTheme.bodyMedium),
             Text(IAMFormatter.formatAccountingAmount(tax.toDouble()),
                 style: Theme.of(context).textTheme.labelLarge),
           ],
-        ),
+        ),*/
         const SizedBox(height: IAMSizes.spaceBtwItems / 2),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

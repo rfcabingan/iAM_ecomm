@@ -16,6 +16,7 @@ import 'package:iam_ecomm/features/personalization/screens/profile/profile.dart'
 import 'package:iam_ecomm/features/shop/screens/cart/cart.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
+import 'package:iam_ecomm/utils/constants/app_links.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
@@ -141,8 +142,10 @@ class _SettingScreenState extends State<SettingScreen> {
       return;
     }
 
-    Clipboard.setData(ClipboardData(text: referralId));
-    _showMessage('Referral ID copied.');
+    Clipboard.setData(
+      ClipboardData(text: IamAppLinks.referralShareMessage(referralId)),
+    );
+    _showMessage('Referral link copied.');
   }
 
   Future<void> _shareReferralId(String referralId) async {
@@ -151,7 +154,7 @@ class _SettingScreenState extends State<SettingScreen> {
       return;
     }
 
-    await Share.share('Use my IAM Ecomm referral code: $referralId');
+    await Share.share(IamAppLinks.referralShareMessage(referralId));
   }
 
   void _showMessage(String message) {

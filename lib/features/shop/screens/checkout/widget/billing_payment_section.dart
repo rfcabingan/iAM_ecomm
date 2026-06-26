@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
@@ -22,6 +23,14 @@ String _iconForMethodCode(String methodCode) {
     default:
       return IAMImages.iamwallet;
   }
+}
+
+bool _isNetworkUrl(String url) =>
+    url.startsWith('http://') || url.startsWith('https://');
+
+String _resolveMethodImage(PaymentMethodItem method) {
+  if (method.imageUrl.isNotEmpty) return method.imageUrl;
+  return _iconForMethodCode(method.methodCode);
 }
 
 class IAMBillingPaymentSection extends StatefulWidget {
@@ -134,9 +143,6 @@ class _IAMBillingPaymentSectionState extends State<IAMBillingPaymentSection> {
         return Text(_error ?? 'Unable to load payment methods.');
       }
       final hasSelection = _current != null;
-      final iconPath = hasSelection
-          ? _iconForMethodCode(_current!.method.methodCode)
-          : null;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,16 +161,8 @@ class _IAMBillingPaymentSectionState extends State<IAMBillingPaymentSection> {
                 backgroundColor: dark ? IAMColors.light : IAMColors.white,
                 padding: const EdgeInsets.all(IAMSizes.sm),
                 child: Center(
-                  child: hasSelection && iconPath != null
-                      ? Image.asset(
-                          iconPath,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => Text(
-                            _current!.method.methodCode,
-                            style: Theme.of(context).textTheme.labelSmall,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
+                  child: hasSelection
+                      ? _PaymentMethodIcon(method: _current!.method)
                       : const SizedBox.shrink(),
                 ),
               ),
@@ -208,16 +206,11 @@ class _IAMBillingPaymentSectionState extends State<IAMBillingPaymentSection> {
           itemBuilder: (context, index) {
             final m = methodList[index];
             final isSelected = _current?.method.methodCode == m.methodCode;
-            final iconPath = _iconForMethodCode(m.methodCode);
             return ListTile(
               leading: SizedBox(
                 width: 48,
                 height: 28,
-                child: Image.asset(
-                  iconPath,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
+                child: _PaymentMethodIcon(method: m),
               ),
               title: Text(m.methodName),
               subtitle: Text(m.methodCode),
@@ -238,7 +231,7 @@ class _IAMBillingPaymentSectionState extends State<IAMBillingPaymentSection> {
 
       _checkout.setPaymentMethod(
         name: selected.methodName,
-        image: _iconForMethodCode(selected.methodCode),
+        image: _resolveMethodImage(selected),
       );
       // Also set the provider code so checkout can proceed
       _checkout.selectedPaymentProviderCode.value = selected.methodCode;
@@ -250,4 +243,24 @@ class _PaymentViewModel {
   final PaymentMethodItem method;
 
   _PaymentViewModel({required this.method});
+}
+
+class _PaymentMethodIcon extends StatelessWidget {
+  const _PaymentMethodIcon({required this.method});
+
+  final PaymentMethodItem method;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = _resolveMethodImage(method);
+    final isNetwork = method.imageUrl.isNotEmpty && _isNetworkUrl(image);
+
+    return IAMRoundedImage(
+      imageUrl: image,
+      isNetworkImage: isNetwork,
+      fit: BoxFit.contain,
+      applyImageRadius: false,
+      borderRadius: 0,
+    );
+  }
 }

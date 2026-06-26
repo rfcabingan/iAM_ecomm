@@ -28,12 +28,14 @@ class PipelineStageTab extends StatefulWidget {
     required this.emptyTitle,
     required this.emptySubtitle,
     required this.emptyIcon,
+    this.emptyFooter,
   });
 
   final Set<int> stageIds;
   final String emptyTitle;
   final String emptySubtitle;
   final IconData emptyIcon;
+  final Widget? emptyFooter;
 
   @override
   State<PipelineStageTab> createState() => _PipelineStageTabState();
@@ -110,6 +112,7 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
             icon: widget.emptyIcon,
             title: widget.emptyTitle,
             subtitle: widget.emptySubtitle,
+            footer: widget.emptyFooter,
           );
         }
 

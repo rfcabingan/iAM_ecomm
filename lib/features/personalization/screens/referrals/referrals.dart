@@ -11,6 +11,7 @@ import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:iam_ecomm/utils/constants/app_links.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ReferralsScreen extends StatefulWidget {
@@ -71,10 +72,12 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
     final referralId = widget.referralId.trim();
     if (referralId.isEmpty) return;
 
-    Clipboard.setData(ClipboardData(text: referralId));
+    Clipboard.setData(
+      ClipboardData(text: IamAppLinks.referralShareMessage(referralId)),
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Referral ID copied.'),
+        content: Text('Referral link copied.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -84,7 +87,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
     final referralId = widget.referralId.trim();
     if (referralId.isEmpty) return;
 
-    await Share.share('Use my IAM Ecomm referral code: $referralId');
+    await Share.share(IamAppLinks.referralShareMessage(referralId));
   }
 
   @override

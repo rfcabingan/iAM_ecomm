@@ -68,7 +68,7 @@ await ApiMiddleware.init();
 ## Payment
 
 - `ApiMiddleware.payment.getPaymentMethods()` → `ApiResponse<List<PaymentMethodItem?>>`
-- `ApiMiddleware.payment.getPaymentProviders()` → `ApiResponse<List<PaymentProviderItem?>>`
+- `ApiMiddleware.payment.getPaymentProviders()` → `ApiResponse<List<PaymentProviderItem?>>` — each item: `autoId`, `providerCode`, `providerName`, `imageUrl`, `altText`, `isActive`, `sortOrder`
 - `ApiMiddleware.payment.createPayment(orderNo: ..., idno: ..., amount: ..., currency: ..., paymentProvider: ..., paymentMethod: ..., description: ..., clientReferenceNo: ...)` → `ApiResponse<PaymentData?>`
 - `ApiMiddleware.payment.callbackPayment(...)` → `ApiResponse<dynamic>`
 - `ApiMiddleware.payment.getPaymentByTransaction(transactionId)` → `ApiResponse<dynamic>`
@@ -130,7 +130,7 @@ await ApiMiddleware.init();
 
 ## Points (JWT required)
 
-- `ApiMiddleware.points.getPoints()` → `ApiResponse<List<dynamic>?>` (GET `/Points`)
+- `ApiMiddleware.points.getPoints()` → `ApiResponse<List<PointsHistoryItem>?>` (GET `/Points`) — returns per-transaction points history; each item includes `autoId`, `svrDate`, `tranDate`, `accountId`, `tranType`, `tranDesc`, `sourceApp`, `ptsRefNo`, `relatedTranNo`, `pts`, `amt`, `runningBalance`.
 - `ApiMiddleware.points.getBalance()` → `ApiResponse<PointsBalanceData?>` (GET `/Points/Balance`)
 
 ## Commissions (JWT required)

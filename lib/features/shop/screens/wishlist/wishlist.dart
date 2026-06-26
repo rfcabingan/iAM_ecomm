@@ -7,6 +7,7 @@ import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_ver
 import 'package:iam_ecomm/features/screens/home/home.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/login.dart';
+import 'package:iam_ecomm/features/shop/controllers/product_cache_controller.dart';
 import 'package:iam_ecomm/features/shop/controllers/wishlist_controller.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
@@ -25,11 +26,17 @@ class FavouriteScreen extends StatefulWidget {
 class _FavouriteScreenState extends State<FavouriteScreen> {
   late final WishlistController _wishlistController;
 
+  ProductCacheController get _productCache =>
+      Get.isRegistered<ProductCacheController>()
+          ? ProductCacheController.instance
+          : Get.put(ProductCacheController(), permanent: true);
+
   @override
   void initState() {
     super.initState();
     _wishlistController = Get.put(WishlistController());
     _wishlistController.loadWishlistItems();
+    _productCache.ensureProducts();
   }
 
   Widget _buildEmptyWishlistContent(BuildContext context) {
@@ -177,23 +184,28 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
   }
 
   ProductItem _productFromWishlistItem(WishlistItem item) {
-    // Wishlist API doesn't return full `ProductItem` fields; we adapt the
-    // response so the existing product card can render.
+    final cached = _productCache.productByCode(item.productCode);
+    if (cached != null) return cached;
+
+    // Wishlist API may omit full pricing; use whatever is available and let
+    // the product cache refresh update cards once products are loaded.
+    final regularPrice =
+        item.regularPrice > 0 ? item.regularPrice : item.sellingPrice;
     return ProductItem(
       categoryId: 0,
       categoryName: '',
       productCode: item.productCode,
       productName: item.productName,
-      regularPrice: item.sellingPrice,
-      memberPrice: 0,
+      regularPrice: regularPrice,
+      memberPrice: item.memberPrice,
       sellingPrice: item.sellingPrice,
       shortDesc: item.shortDesc,
       longDesc: item.shortDesc,
       isActive: true,
       isFeatured: false,
       isPopular: false,
-      imageUrl: item.imageUrl ?? '',
-      altText: item.altText ?? '',
+      imageUrl: item.imageUrl,
+      altText: item.altText,
       shareLink: '',
     );
   }
@@ -214,6 +226,8 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         ],
       ),
       body: Obx(() {
+        final productsVersion = _productCache.productsVersion.value;
+
         if (_wishlistController.loading.value) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -261,11 +275,16 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
           child: Padding(
             padding: const EdgeInsets.all(IAMSizes.defaultSpace),
             child: IAMGridLayout(
+              key: ValueKey('wishlist-products-$productsVersion'),
               itemCount: _wishlistController.items.length,
               itemBuilder: (_, index) {
                 final item = _wishlistController.items[index];
+                final product = _productFromWishlistItem(item);
                 return IAMProductCardVertical(
-                  product: _productFromWishlistItem(item),
+                  key: ValueKey(
+                    '${product.productCode}-${product.regularPrice}-${product.sellingPrice}-$productsVersion',
+                  ),
+                  product: product,
                 );
               },
             ),

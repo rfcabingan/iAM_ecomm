@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/shop/controllers/products/checkout_controller.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
@@ -23,6 +25,22 @@ String _iconForProviderCode(String providerCode) {
     default:
       return IAMImages.iamwallet;
   }
+}
+
+bool _isNetworkUrl(String url) =>
+    url.startsWith('http://') || url.startsWith('https://');
+
+String _resolveProviderImage(PaymentProviderItem provider) {
+  if (provider.imageUrl.isNotEmpty) return provider.imageUrl;
+  return _iconForProviderCode(provider.providerCode);
+}
+
+bool _isIamWalletProvider(PaymentProviderItem provider) =>
+    provider.providerCode.toUpperCase() == _iamWalletProviderCode;
+
+bool _canSelectProvider(PaymentProviderItem provider) {
+  if (!_isIamWalletProvider(provider)) return true;
+  return AuthController.instance.isMember;
 }
 
 class IAMBillingPaymentProviderSection extends StatefulWidget {
@@ -50,6 +68,13 @@ class _IAMBillingPaymentProviderSectionState
     _loadPayment();
   }
 
+  void _clearInvalidSelection() {
+    if (_current != null && !_canSelectProvider(_current!.provider)) {
+      _current = null;
+      _checkout.clearPaymentProvider();
+    }
+  }
+
   Future<void> _loadPayment() async {
     setState(() {
       _loading = true;
@@ -74,6 +99,8 @@ class _IAMBillingPaymentProviderSectionState
           autoId: 0,
           providerCode: _iamWalletProviderCode,
           providerName: 'IAM Wallet',
+          imageUrl: '',
+          altText: 'IAM Wallet',
           isActive: true,
           sortOrder: -1,
         ),
@@ -99,6 +126,7 @@ class _IAMBillingPaymentProviderSectionState
           _current = null;
           _checkout.clearPaymentProvider();
         }
+        _clearInvalidSelection();
       });
     }
   }
@@ -118,10 +146,6 @@ class _IAMBillingPaymentProviderSectionState
     }
 
     final hasSelection = _current != null;
-
-    final iconPath = hasSelection
-        ? _iconForProviderCode(_current!.provider.providerCode)
-        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,11 +192,8 @@ class _IAMBillingPaymentProviderSectionState
               backgroundColor: dark ? IAMColors.darkContainer : IAMColors.white,
               padding: const EdgeInsets.all(IAMSizes.sm),
               child: Center(
-                child: hasSelection && iconPath != null
-                    ? _PaymentProviderIcon(
-                        iconPath: iconPath,
-                        fallbackText: _current!.provider.providerCode,
-                      )
+                child: hasSelection
+                    ? _PaymentProviderIcon(provider: _current!.provider)
                     : const SizedBox.shrink(),
               ),
             ),
@@ -263,6 +284,8 @@ class _IAMBillingPaymentProviderSectionState
           autoId: 0,
           providerCode: _iamWalletProviderCode,
           providerName: 'IAM Wallet',
+          imageUrl: '',
+          altText: 'IAM Wallet',
           isActive: true,
           sortOrder: -1,
         ),
@@ -282,29 +305,48 @@ class _IAMBillingPaymentProviderSectionState
             final p = providerList[index];
             final isSelected =
                 _current?.provider.providerCode == p.providerCode;
-            final iconPath = _iconForProviderCode(p.providerCode);
+            final isDisabled = !_canSelectProvider(p);
             return ListTile(
-              leading: SizedBox(
-                width: 48,
-                height: 28,
-                child: _PaymentProviderIcon(
-                  iconPath: iconPath,
-                  fallbackText: p.providerCode,
+              enabled: !isDisabled,
+              leading: Opacity(
+                opacity: isDisabled ? 0.45 : 1,
+                child: SizedBox(
+                  width: 48,
+                  height: 28,
+                  child: _PaymentProviderIcon(provider: p),
                 ),
               ),
-              title: Text(p.providerName),
-              subtitle: Text(p.providerCode),
+              title: Text(
+                p.providerName,
+                style: isDisabled
+                    ? TextStyle(color: Colors.grey.shade500)
+                    : null,
+              ),
+              subtitle: Text(
+                isDisabled ? 'Available for members only' : p.providerCode,
+                style: isDisabled
+                    ? TextStyle(color: Colors.grey.shade500, fontSize: 12)
+                    : null,
+              ),
               trailing: isSelected
-                  ? const Icon(Icons.check_circle, color: IAMColors.primary)
-                  : const Icon(Icons.radio_button_unchecked),
-              onTap: () => Navigator.of(context).pop(p),
+                  ? Icon(
+                      Icons.check_circle,
+                      color: isDisabled
+                          ? Colors.grey.shade400
+                          : IAMColors.primary,
+                    )
+                  : Icon(
+                      Icons.radio_button_unchecked,
+                      color: isDisabled ? Colors.grey.shade400 : null,
+                    ),
+              onTap: isDisabled ? null : () => Navigator.of(context).pop(p),
             );
           },
         );
       },
     );
 
-    if (selected != null && mounted) {
+    if (selected != null && mounted && _canSelectProvider(selected)) {
       setState(() {
         _current = _PaymentViewModel(provider: selected);
       });
@@ -324,23 +366,28 @@ class _PaymentViewModel {
 }
 
 class _PaymentProviderIcon extends StatelessWidget {
-  const _PaymentProviderIcon({
-    required this.iconPath,
-    required this.fallbackText,
-  });
+  const _PaymentProviderIcon({required this.provider});
 
-  final String iconPath;
-  final String fallbackText;
+  final PaymentProviderItem provider;
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      iconPath,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => Text(
-        fallbackText,
-        style: Theme.of(context).textTheme.labelSmall,
-        overflow: TextOverflow.ellipsis,
+    final image = _resolveProviderImage(provider);
+    final isNetwork =
+        provider.imageUrl.isNotEmpty && _isNetworkUrl(image);
+
+    final label = provider.altText.isNotEmpty
+        ? provider.altText
+        : provider.providerName;
+
+    return Semantics(
+      label: label,
+      child: IAMRoundedImage(
+        imageUrl: image,
+        isNetworkImage: isNetwork,
+        fit: BoxFit.contain,
+        applyImageRadius: false,
+        borderRadius: 0,
       ),
     );
   }

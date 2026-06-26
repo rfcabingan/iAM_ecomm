@@ -262,6 +262,8 @@ class ProductReviewItem {
 class WishlistItem {
   final String productCode;
   final String productName;
+  final num regularPrice;
+  final num memberPrice;
   final num sellingPrice;
   final String shortDesc;
   final String imageUrl;
@@ -271,6 +273,8 @@ class WishlistItem {
   WishlistItem({
     required this.productCode,
     required this.productName,
+    required this.regularPrice,
+    required this.memberPrice,
     required this.sellingPrice,
     required this.shortDesc,
     required this.imageUrl,
@@ -284,6 +288,8 @@ class WishlistItem {
     return WishlistItem(
       productCode: m['productCode'] as String? ?? '',
       productName: m['productName'] as String? ?? '',
+      regularPrice: (m['regularPrice'] as num?) ?? 0,
+      memberPrice: (m['memberPrice'] as num?) ?? 0,
       sellingPrice: (m['sellingPrice'] as num?) ?? 0,
       shortDesc: m['shortDesc'] as String? ?? '',
       imageUrl: m['imageUrl'] as String? ?? '',
@@ -349,6 +355,55 @@ class WalletOrderPaymentData {
       paymentRefNo: m['paymentRefNo'] as String? ?? '',
       amount: (m['amount'] as num?) ?? 0,
       remainingBalance: (m['remainingBalance'] as num?) ?? 0,
+    );
+  }
+}
+
+class PointsHistoryItem {
+  final int autoId;
+  final String svrDate;
+  final String tranDate;
+  final String accountId;
+  final int tranType;
+  final String tranDesc;
+  final String sourceApp;
+  final String ptsRefNo;
+  final String? relatedTranNo;
+  final int pts;
+  final int amt;
+  final int runningBalance;
+
+  PointsHistoryItem({
+    required this.autoId,
+    required this.svrDate,
+    required this.tranDate,
+    required this.accountId,
+    required this.tranType,
+    required this.tranDesc,
+    required this.sourceApp,
+    required this.ptsRefNo,
+    this.relatedTranNo,
+    required this.pts,
+    required this.amt,
+    required this.runningBalance,
+  });
+
+  static PointsHistoryItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PointsHistoryItem(
+      autoId: (m['autoId'] as int?) ?? 0,
+      svrDate: m['svrDate'] as String? ?? '',
+      tranDate: m['tranDate'] as String? ?? '',
+      accountId: m['accountId'] as String? ?? '',
+      tranType: (m['tranType'] as int?) ?? 0,
+      tranDesc: m['tranDesc'] as String? ?? '',
+      sourceApp: m['sourceApp'] as String? ?? '',
+      ptsRefNo: m['ptsRefNo'] as String? ?? '',
+      relatedTranNo: m['relatedTranNo'] as String?,
+      pts: (m['pts'] as int?) ?? 0,
+      amt: (m['amt'] as int?) ?? 0,
+      runningBalance: (m['runningBalance'] as int?) ?? 0,
     );
   }
 }
@@ -884,6 +939,7 @@ class PaymentMethodItem {
   final int paymentMethodId;
   final String methodCode;
   final String methodName;
+  final String imageUrl;
   final bool isInternal;
   final bool requiresRedirect;
   final int sortOrder;
@@ -893,6 +949,7 @@ class PaymentMethodItem {
     required this.paymentMethodId,
     required this.methodCode,
     required this.methodName,
+    required this.imageUrl,
     required this.isInternal,
     required this.requiresRedirect,
     required this.sortOrder,
@@ -906,6 +963,7 @@ class PaymentMethodItem {
       paymentMethodId: (m['paymentMethodId'] as int?) ?? 0,
       methodCode: m['methodCode'] as String? ?? '',
       methodName: m['methodName'] as String? ?? '',
+      imageUrl: m['imageUrl'] as String? ?? '',
       isInternal: (m['isInternal'] as bool?) ?? false,
       requiresRedirect: (m['requiresRedirect'] as bool?) ?? false,
       sortOrder: (m['sortOrder'] as int?) ?? 0,
@@ -918,6 +976,8 @@ class PaymentProviderItem {
   final int autoId;
   final String providerCode;
   final String providerName;
+  final String imageUrl;
+  final String altText;
   final bool isActive;
   final int sortOrder;
 
@@ -925,6 +985,8 @@ class PaymentProviderItem {
     required this.autoId,
     required this.providerCode,
     required this.providerName,
+    required this.imageUrl,
+    required this.altText,
     required this.isActive,
     required this.sortOrder,
   });
@@ -936,6 +998,8 @@ class PaymentProviderItem {
       autoId: (m['autoId'] as int?) ?? 0,
       providerCode: m['providerCode'] as String? ?? '',
       providerName: m['providerName'] as String? ?? '',
+      imageUrl: m['imageUrl'] as String? ?? '',
+      altText: m['altText'] as String? ?? '',
       isActive: (m['isActive'] as bool?) ?? false,
       sortOrder: (m['sortOrder'] as int?) ?? 0,
     );

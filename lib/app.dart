@@ -5,6 +5,7 @@ import 'package:iam_ecomm/features/authentication/controllers/auth_controller.da
 import 'package:iam_ecomm/features/authentication/screens/onboarding.dart';
 import 'package:iam_ecomm/features/shop/controllers/product_cache_controller.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
+import 'package:iam_ecomm/utils/helpers/referral_deep_link_service.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/utils/theme/theme.dart';
 import 'package:iam_ecomm/utils/theme/theme_controller.dart';
@@ -133,6 +134,10 @@ class _RootDeciderState extends State<_RootDecider> {
     if (!mounted) return;
     setState(() {
       _hasSeenOnboarding = flag;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ReferralDeepLinkService.instance.handlePendingReferralAfterAppReady();
     });
   }
 
