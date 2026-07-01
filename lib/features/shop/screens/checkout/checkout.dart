@@ -40,6 +40,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   late Future<_CartViewModel> _cartFuture;
   final _notesController = TextEditingController();
+  final _referralIdController = TextEditingController();
   AddressItem? _selectedAddress;
   bool _hasSavedAddress = false;
   late final CheckoutController _checkoutController;
@@ -76,6 +77,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _isPickupFulfillmentCode(_selectedFulfillmentTypeCode);
 
   bool get _isHomeDeliverySelected => !_isPickupSelected;
+
+  bool get _showReferralInput =>
+      Get.isRegistered<AuthController>() && !AuthController.instance.isMember;
 
   bool _isPickupFulfillmentCode(String fulfillmentCode) {
     final normalizedCode = fulfillmentCode.trim().toUpperCase();
@@ -204,6 +208,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void dispose() {
     _paymentProviderWorker.dispose();
     _notesController.dispose();
+    _referralIdController.dispose();
     super.dispose();
   }
 
@@ -470,6 +475,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final notesInput = _notesController.text.trim();
     final notesToSend = notesInput.isEmpty ? 'checkout' : notesInput;
+    final referralIdToSend = _showReferralInput
+        ? _referralIdController.text.trim()
+        : '';
     final fulfillmentTypeCode = _selectedFulfillmentTypeCode.trim();
     final fulfillmentTypeId = _selectedFulfillmentTypeId;
     final selectedAreaCode = _selectedBranchAreaCode?.trim();
@@ -553,6 +561,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       notes: notesToSend,
       fulfillmentTypeId: fulfillmentTypeId,
       areaCode: areaCodeToSend,
+      referralId: referralIdToSend.isEmpty ? null : referralIdToSend,
     );
     if (!res.success) {
       final msg = res.message.isNotEmpty ? res.message : 'Checkout failed.';
@@ -847,6 +856,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                   ),
+                  if (_showReferralInput) ...[
+                    const SizedBox(height: IAMSizes.spaceBtwSections),
+                    TextField(
+                      controller: _referralIdController,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: dark ? IAMColors.white : IAMColors.black,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Referral#',
+                        labelStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(
+                              color: dark ? IAMColors.white : IAMColors.black,
+                            ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: IAMSizes.spaceBtwSections),
                   IAMRoundedContainer(
                     showBorder: true,
