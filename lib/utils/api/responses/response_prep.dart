@@ -392,18 +392,19 @@ class PointsHistoryItem {
     final m = asMap(json);
     if (m == null) return null;
     return PointsHistoryItem(
-      autoId: (m['autoId'] as int?) ?? 0,
-      svrDate: m['svrDate'] as String? ?? '',
-      tranDate: m['tranDate'] as String? ?? '',
-      accountId: m['accountId'] as String? ?? '',
-      tranType: (m['tranType'] as int?) ?? 0,
-      tranDesc: m['tranDesc'] as String? ?? '',
-      sourceApp: m['sourceApp'] as String? ?? '',
-      ptsRefNo: m['ptsRefNo'] as String? ?? '',
-      relatedTranNo: m['relatedTranno'] as String? ?? m['relatedTranNo'] as String?,
-      pts: (m['pts'] as int?) ?? 0,
-      amt: (m['amt'] as int?) ?? 0,
-      runningBalance: (m['runningBalance'] as int?) ?? 0,
+      autoId: readIntValue(m['autoId']),
+      svrDate: m['svrDate']?.toString() ?? '',
+      tranDate: m['tranDate']?.toString() ?? '',
+      accountId: m['accountId']?.toString() ?? '',
+      tranType: readIntValue(m['tranType']),
+      tranDesc: m['tranDesc']?.toString() ?? '',
+      sourceApp: m['sourceApp']?.toString() ?? '',
+      ptsRefNo: m['ptsRefNo']?.toString() ?? '',
+      relatedTranNo:
+          asNonEmptyString(m['relatedTranno']) ?? asNonEmptyString(m['relatedTranNo']),
+      pts: readIntValue(m['pts']),
+      amt: readIntValue(m['amt']),
+      runningBalance: readIntValue(m['runningBalance']),
     );
   }
 }
