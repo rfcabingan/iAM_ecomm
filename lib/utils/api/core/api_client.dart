@@ -130,7 +130,16 @@ class ApiClient {
     if (map == null) {
       return ApiResponse(status: res.statusCode ?? 0, success: false, message: 'No body', data: null);
     }
-    return ApiResponse.fromJson(map, fromJsonData);
+    try {
+      return ApiResponse.fromJson(map, fromJsonData);
+    } catch (_) {
+      return ApiResponse<T>(
+        status: res.statusCode ?? 0,
+        success: false,
+        message: 'Unable to read the server response. Please try again.',
+        data: null,
+      );
+    }
   }
 
   Future<ApiResponse<T>> request<T>(
