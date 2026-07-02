@@ -7,6 +7,10 @@ import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
+import 'package:iam_ecomm/features/shop/controllers/product_cache_controller.dart';
+import 'package:iam_ecomm/features/shop/screens/product_details/product_detail.dart';
+import 'package:iam_ecomm/utils/api/api.dart';
+import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/app_links.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:play_install_referrer/play_install_referrer.dart';
@@ -18,15 +22,17 @@ class ReferralDeepLinkService {
   static final ReferralDeepLinkService instance = ReferralDeepLinkService._();
 
   static const String pendingReferralKey = 'pending_referral_id';
-  static const String installReferrerConsumedKey =
-      'install_referrer_consumed';
+  static const String installReferrerConsumedKey = 'install_referrer_consumed';
   static const String shouldPromptSignupKey = 'referral_should_prompt_signup';
+  static const String pendingProductCodeKey = 'pending_shared_product_code';
 
   final _appLinks = AppLinks();
   final _storage = IAMLocalStorage();
   StreamSubscription<Uri>? _linkSubscription;
+  Worker? _authLoginWorker;
   bool _appReadyHandled = false;
   bool _signupNavigationScheduled = false;
+  bool _productNavigationScheduled = false;
 
   Future<void> init() async {
     try {
@@ -53,6 +59,8 @@ class ReferralDeepLinkService {
   void dispose() {
     _linkSubscription?.cancel();
     _linkSubscription = null;
+    _authLoginWorker?.dispose();
+    _authLoginWorker = null;
   }
 
   /// Call once [GetMaterialApp] is mounted so signup navigation works.
@@ -64,6 +72,13 @@ class ReferralDeepLinkService {
     await Future<void>.delayed(const Duration(milliseconds: 900));
 
     await _readInstallReferrerIfNeeded();
+
+    _registerAuthWorkerIfNeeded();
+    final pendingProductCode = peekPendingProductCode();
+    if (_isLoggedIn && pendingProductCode != null) {
+      openSharedProduct(pendingProductCode);
+      return;
+    }
 
     final shouldPrompt =
         _storage.readData<bool>(shouldPromptSignupKey) ?? false;
@@ -113,6 +128,25 @@ class ReferralDeepLinkService {
     return null;
   }
 
+  String? parseProductCodeFromUri(Uri uri) {
+    if (!_isProductShareUri(uri)) return null;
+    final segments = uri.pathSegments;
+    if (segments.isEmpty) return null;
+
+    if (uri.scheme == IamAppLinks.referralScheme &&
+        uri.host == IamAppLinks.productHost) {
+      final first = segments.first.trim();
+      return first.isEmpty ? null : first;
+    }
+
+    if (segments.length >= 2 && segments.first == 'products') {
+      final code = segments[1].trim();
+      return code.isEmpty ? null : code;
+    }
+
+    return null;
+  }
+
   bool _isReferralUri(Uri uri) {
     if (uri.scheme == IamAppLinks.referralScheme &&
         uri.host == IamAppLinks.referralHost) {
@@ -136,23 +170,49 @@ class ReferralDeepLinkService {
     return false;
   }
 
-  Future<void> _handleIncomingUri(
-    Uri uri, {
-    required bool promptSignup,
-  }) async {
+  bool _isProductShareUri(Uri uri) {
+    if (uri.scheme == IamAppLinks.referralScheme &&
+        uri.host == IamAppLinks.productHost) {
+      return uri.pathSegments.isNotEmpty;
+    }
+
+    if (uri.scheme != 'https' && uri.scheme != 'http') return false;
+    if (uri.host != IamAppLinks.referralWebHost) return false;
+
+    return uri.path == IamAppLinks.productSharePath ||
+        uri.path.startsWith('${IamAppLinks.productSharePath}/');
+  }
+
+  Future<void> _handleIncomingUri(Uri uri, {required bool promptSignup}) async {
     if (kDebugMode) {
       debugPrint('ReferralDeepLinkService incoming uri: $uri');
     }
 
+    final productCode = parseProductCodeFromUri(uri);
     final ref = parseReferralFromUri(uri);
-    if (ref == null || ref.isEmpty) return;
+    final normalizedRef = ref?.trim() ?? '';
+    if ((productCode == null || productCode.isEmpty) && normalizedRef.isEmpty) {
+      return;
+    }
 
-    await _savePendingReferral(ref, promptSignup: promptSignup);
+    if (normalizedRef.isNotEmpty) {
+      await _savePendingReferral(normalizedRef, promptSignup: promptSignup);
+    }
 
-    if (promptSignup) {
+    if (productCode != null && productCode.isNotEmpty) {
+      await _storage.saveData(pendingProductCodeKey, productCode.trim());
+      _registerAuthWorkerIfNeeded();
+
+      if (_isLoggedIn) {
+        openSharedProduct(productCode.trim());
+        return;
+      }
+    }
+
+    if (promptSignup && normalizedRef.isNotEmpty) {
       // [temp] Allow repeat opens from the web "Open in App" button.
       _signupNavigationScheduled = false;
-      openSignupWithReferral(ref);
+      openSignupWithReferral(normalizedRef);
     }
   }
 
@@ -218,6 +278,74 @@ class ReferralDeepLinkService {
     if (ref == null) return null;
     _storage.removeData(pendingReferralKey);
     return ref;
+  }
+
+  String? peekPendingProductCode() {
+    final code = _storage.readData<String>(pendingProductCodeKey)?.trim();
+    if (code == null || code.isEmpty) return null;
+    return code;
+  }
+
+  Future<void> clearPendingReferralAttribution() async {
+    await _storage.removeData(pendingReferralKey);
+    await _storage.removeData(shouldPromptSignupKey);
+  }
+
+  Future<void> clearPendingProductCode() async {
+    await _storage.removeData(pendingProductCodeKey);
+  }
+
+  void _registerAuthWorkerIfNeeded() {
+    if (_authLoginWorker != null) return;
+    if (!Get.isRegistered<AuthController>()) return;
+
+    _authLoginWorker = ever<bool>(AuthController.instance.isLoggedIn, (
+      loggedIn,
+    ) {
+      if (loggedIn != true) return;
+      final pendingProductCode = peekPendingProductCode();
+      if (pendingProductCode == null) return;
+      openSharedProduct(pendingProductCode);
+    });
+  }
+
+  void openSharedProduct(String productCode) {
+    final code = productCode.trim();
+    if (code.isEmpty) return;
+    if (_productNavigationScheduled) return;
+    _productNavigationScheduled = true;
+
+    Future<void> navigate({int attempt = 0}) async {
+      final navigator = Get.key.currentState;
+      if (navigator == null) {
+        if (attempt < 20) {
+          SchedulerBinding.instance.addPostFrameCallback(
+            (_) => navigate(attempt: attempt + 1),
+          );
+        } else {
+          _productNavigationScheduled = false;
+        }
+        return;
+      }
+
+      ProductItem? product;
+      if (Get.isRegistered<ProductCacheController>()) {
+        final cache = ProductCacheController.instance;
+        await cache.ensureProducts();
+        product = cache.productByCode(code);
+      }
+      product ??= (await ApiMiddleware.products.getProductDetail(code)).data;
+
+      if (product != null) {
+        Get.to(() => ProductDetailScreen(product: product));
+        await _storage.removeData(pendingProductCodeKey);
+      }
+      _productNavigationScheduled = false;
+    }
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      navigate();
+    });
   }
 
   void openSignupWithReferral(String referralId) {

@@ -10,6 +10,7 @@ class IamAppLinks {
 
   static const String referralScheme = 'iamecomm';
   static const String referralHost = 'signup';
+  static const String productHost = 'product';
 
   // [temp] Vercel share bridge domain (referrals + product pages)
   static const String referralWebHost = 'iam-ecomm-share.vercel.app';
@@ -17,9 +18,18 @@ class IamAppLinks {
   static const String productSharePath = '/products';
 
   /// [temp] Product share landing: https://iam-ecomm-share.vercel.app/products/{CODE}
-  static String productShareUrl(String productCode) {
+  static String productShareUrl(String productCode, {String? referralId}) {
     final code = productCode.trim();
-    return Uri.https(referralWebHost, '$productSharePath/$code').toString();
+    final ref = referralId?.trim() ?? '';
+    final query = <String, String>{};
+    if (ref.isNotEmpty) {
+      query['ref'] = ref;
+    }
+    return Uri.https(
+      referralWebHost,
+      '$productSharePath/$code',
+      query,
+    ).toString();
   }
 
   // [temp] legacy shop domain — kept for backward-compatible deep links
@@ -39,6 +49,21 @@ class IamAppLinks {
       scheme: referralScheme,
       host: referralHost,
       queryParameters: {'ref': ref},
+    ).toString();
+  }
+
+  static String productDeepLink(String productCode, {String? referralId}) {
+    final code = productCode.trim();
+    final ref = referralId?.trim() ?? '';
+    final query = <String, String>{};
+    if (ref.isNotEmpty) {
+      query['ref'] = ref;
+    }
+    return Uri(
+      scheme: referralScheme,
+      host: productHost,
+      pathSegments: [code],
+      queryParameters: query.isEmpty ? null : query,
     ).toString();
   }
 
