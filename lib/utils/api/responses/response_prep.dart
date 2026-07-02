@@ -400,7 +400,7 @@ class PointsHistoryItem {
       tranDesc: m['tranDesc'] as String? ?? '',
       sourceApp: m['sourceApp'] as String? ?? '',
       ptsRefNo: m['ptsRefNo'] as String? ?? '',
-      relatedTranNo: m['relatedTranNo'] as String?,
+      relatedTranNo: m['relatedTranno'] as String? ?? m['relatedTranNo'] as String?,
       pts: (m['pts'] as int?) ?? 0,
       amt: (m['amt'] as int?) ?? 0,
       runningBalance: (m['runningBalance'] as int?) ?? 0,
