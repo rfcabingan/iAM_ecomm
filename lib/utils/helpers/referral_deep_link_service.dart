@@ -286,6 +286,10 @@ class ReferralDeepLinkService {
     return code;
   }
 
+  Future<void> clearSignupPromptOnly() async {
+    await _storage.removeData(shouldPromptSignupKey);
+  }
+
   Future<void> clearPendingReferralAttribution() async {
     await _storage.removeData(pendingReferralKey);
     await _storage.removeData(shouldPromptSignupKey);
