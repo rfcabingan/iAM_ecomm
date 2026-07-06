@@ -24,6 +24,7 @@ import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/device/device_utility.dart';
 import 'package:iam_ecomm/utils/formatters/formatter.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
+import 'package:iam_ecomm/utils/helpers/referral_deep_link_service.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -40,6 +41,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   late Future<_CartViewModel> _cartFuture;
   final _notesController = TextEditingController();
+  final _referralIdController = TextEditingController();
   AddressItem? _selectedAddress;
   bool _hasSavedAddress = false;
   late final CheckoutController _checkoutController;
@@ -54,6 +56,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedFulfillmentTypeCode = 'DELIVERY';
   String? _selectedBranchAreaCode;
   bool _isLoadingFulfillment = false;
+  bool _hasLockedReferralFromShare = false;
   static final List<FulfillmentTypeItem> _fallbackFulfillmentTypes = [
     FulfillmentTypeItem(
       fulfillmentTypeId: 1,
@@ -76,6 +79,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _isPickupFulfillmentCode(_selectedFulfillmentTypeCode);
 
   bool get _isHomeDeliverySelected => !_isPickupSelected;
+
+  bool get _showReferralInput =>
+      _hasLockedReferralFromShare ||
+      (Get.isRegistered<AuthController>() && !AuthController.instance.isMember);
 
   bool _isPickupFulfillmentCode(String fulfillmentCode) {
     final normalizedCode = fulfillmentCode.trim().toUpperCase();
@@ -197,13 +204,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       (_) => _refreshComputedFees(),
     );
     _loadFulfillmentOptions();
+    _prefillReferralFromSharedLink();
     _refreshComputedFees();
+  }
+
+  void _prefillReferralFromSharedLink() {
+    final sharedReferral = ReferralDeepLinkService.instance
+        .peekPendingReferralId();
+    if (sharedReferral == null || sharedReferral.isEmpty) return;
+    _referralIdController.text = sharedReferral;
+    _hasLockedReferralFromShare = true;
   }
 
   @override
   void dispose() {
     _paymentProviderWorker.dispose();
     _notesController.dispose();
+    _referralIdController.dispose();
     super.dispose();
   }
 
@@ -269,20 +286,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _loadFulfillmentOptions() async {
     setState(() => _isLoadingFulfillment = true);
     try {
-      final fulfillmentRes = await ApiMiddleware.fulfillment.getFulfillmentTypes();
+      final fulfillmentRes = await ApiMiddleware.fulfillment
+          .getFulfillmentTypes();
       final branchesRes = await ApiMiddleware.fulfillment.getBranches();
       if (!mounted) return;
 
-      final fulfillmentItems = fulfillmentRes.data
+      final fulfillmentItems =
+          fulfillmentRes.data
               ?.whereType<FulfillmentTypeItem>()
               .where((item) => item.fulfillmentTypeCode.trim().isNotEmpty)
               .toList() ??
           const <FulfillmentTypeItem>[];
       final branchItems =
-          branchesRes.data?.whereType<BranchItem>().toList() ?? const <BranchItem>[];
+          branchesRes.data?.whereType<BranchItem>().toList() ??
+          const <BranchItem>[];
 
-      final typesToUse =
-          fulfillmentItems.isNotEmpty ? fulfillmentItems : _fallbackFulfillmentTypes;
+      final typesToUse = fulfillmentItems.isNotEmpty
+          ? fulfillmentItems
+          : _fallbackFulfillmentTypes;
       final deliveryOption = typesToUse.where((item) {
         return item.fulfillmentTypeCode.trim().toUpperCase() == 'DELIVERY';
       }).toList();
@@ -319,7 +340,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final branchesRes = await ApiMiddleware.fulfillment.getBranches();
     if (!mounted) return;
     setState(() {
-      _branches = branchesRes.data?.whereType<BranchItem>().toList() ??
+      _branches =
+          branchesRes.data?.whereType<BranchItem>().toList() ??
           _fallbackBranches;
     });
   }
@@ -470,10 +492,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final notesInput = _notesController.text.trim();
     final notesToSend = notesInput.isEmpty ? 'checkout' : notesInput;
+    final referralIdToSend = _showReferralInput
+        ? _referralIdController.text.trim()
+        : '';
+    final userIdno = AuthController.instance.user.value?.idno.trim() ?? '';
+    final normalizedReferralId = referralIdToSend.trim();
+    final isSelfReferral =
+        userIdno.isNotEmpty &&
+        normalizedReferralId.isNotEmpty &&
+        userIdno.toUpperCase() == normalizedReferralId.toUpperCase();
+    final effectiveReferralId = isSelfReferral ? '' : normalizedReferralId;
+    if (isSelfReferral) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Self-referral is not allowed. Referral was removed.',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red[300],
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+      );
+    }
     final fulfillmentTypeCode = _selectedFulfillmentTypeCode.trim();
     final fulfillmentTypeId = _selectedFulfillmentTypeId;
     final selectedAreaCode = _selectedBranchAreaCode?.trim();
-    final areaCodeToSend = (selectedAreaCode == null || selectedAreaCode.isEmpty)
+    final areaCodeToSend =
+        (selectedAreaCode == null || selectedAreaCode.isEmpty)
         ? ''
         : selectedAreaCode;
 
@@ -553,6 +599,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       notes: notesToSend,
       fulfillmentTypeId: fulfillmentTypeId,
       areaCode: areaCodeToSend,
+      referralId: effectiveReferralId.isEmpty ? null : effectiveReferralId,
     );
     if (!res.success) {
       final msg = res.message.isNotEmpty ? res.message : 'Checkout failed.';
@@ -842,11 +889,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     decoration: InputDecoration(
                       labelText: 'Order notes',
                       alignLabelWithHint: true,
-                      labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: dark ? IAMColors.white : IAMColors.black,
-                      ),
+                      labelStyle: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(
+                            color: dark ? IAMColors.white : IAMColors.black,
+                          ),
                     ),
                   ),
+                  if (_showReferralInput) ...[
+                    const SizedBox(height: IAMSizes.spaceBtwSections),
+                    TextField(
+                      controller: _referralIdController,
+                      readOnly: _hasLockedReferralFromShare,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: dark ? IAMColors.white : IAMColors.black,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Referral#',
+                        labelStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(
+                              color: dark ? IAMColors.white : IAMColors.black,
+                            ),
+                        suffixIcon: _hasLockedReferralFromShare
+                            ? IconButton(
+                                tooltip: 'Clear referral',
+                                icon: const Icon(Icons.close_rounded),
+                                onPressed: () async {
+                                  _referralIdController.clear();
+                                  await ReferralDeepLinkService.instance
+                                      .clearPendingReferralAttribution();
+                                  if (!mounted) return;
+                                  setState(
+                                    () => _hasLockedReferralFromShare = false,
+                                  );
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: IAMSizes.spaceBtwSections),
                   IAMRoundedContainer(
                     showBorder: true,
@@ -942,7 +1022,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           return Obx(() {
             final paymentProviderSelected =
                 _checkoutController.selectedPaymentProviderCode.isNotEmpty;
-            final hasFulfillment = _selectedFulfillmentTypeCode.trim().isNotEmpty;
+            final hasFulfillment = _selectedFulfillmentTypeCode
+                .trim()
+                .isNotEmpty;
             final hasPickupBranch =
                 !_isPickupSelected ||
                 ((_selectedBranchAreaCode?.trim().isNotEmpty ?? false));
@@ -974,82 +1056,93 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             _isComputingFees)
                         ? null
                         : () {
-                      if (!hasItems) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Your cart is empty.',
-                              style: TextStyle(color: Color.fromARGB(255, 35, 35, 35)),
-                            ),
-                            backgroundColor: Colors.red[300],
-                            behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-                      if (!paymentProviderSelected) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Please select a payment method.',
-                              style: TextStyle(color: Color.fromARGB(255, 35, 35, 35)),
-                            ),
-                            backgroundColor: Colors.red[300],
-                            behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-                      if (!hasFulfillment) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Please select fulfillment.',
-                              style: TextStyle(color: Color.fromARGB(255, 35, 35, 35)),
-                            ),
-                            backgroundColor: Colors.red[300],
-                            behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-                      if (!hasPickupBranch) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Please select a pickup branch.',
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 35, 35, 35),
-                              ),
-                            ),
-                            backgroundColor: Colors.red[300],
-                            behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-                      _placeOrder(model);
-                    },
+                            if (!hasItems) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Your cart is empty.',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 35, 35, 35),
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.red[300],
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            if (!paymentProviderSelected) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Please select a payment method.',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 35, 35, 35),
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.red[300],
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            if (!hasFulfillment) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Please select fulfillment.',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 35, 35, 35),
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.red[300],
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            if (!hasPickupBranch) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Please select a pickup branch.',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 35, 35, 35),
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.red[300],
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            _placeOrder(model);
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: IAMColors.primary,
                       foregroundColor: IAMColors.white,
-                      disabledBackgroundColor: const Color.fromARGB(255, 166, 166, 166),
+                      disabledBackgroundColor: const Color.fromARGB(
+                        255,
+                        166,
+                        166,
+                        166,
+                      ),
                       disabledForegroundColor: IAMColors.white,
                       padding: const EdgeInsets.symmetric(
                         vertical: IAMSizes.md,
@@ -1063,14 +1156,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                     child: Text(
                       ((!hasItems ||
-                                      !paymentProviderSelected ||
-                                      !hasFulfillment ||
-                                      !hasPickupBranch ||
-                                      _isComputingFees) &&
-                                  warningMessage !=
-                                      null)
-                              ? warningMessage
-                              : 'Checkout ${IAMFormatter.formatCurrency(payableTotal.toDouble())}',
+                                  !paymentProviderSelected ||
+                                  !hasFulfillment ||
+                                  !hasPickupBranch ||
+                                  _isComputingFees) &&
+                              warningMessage != null)
+                          ? warningMessage
+                          : 'Checkout ${IAMFormatter.formatCurrency(payableTotal.toDouble())}',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -2034,7 +2126,7 @@ class _CheckoutWebViewSheetState extends State<_CheckoutWebViewSheet> {
                           vertical: 12,
                         ),
                       ),
-                    ),*/ 
+                    ),*/
                     const Spacer(),
                     IconButton(
                       tooltip: 'Refresh',

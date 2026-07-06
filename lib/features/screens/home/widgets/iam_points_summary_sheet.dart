@@ -301,6 +301,14 @@ class _PointsHistoryList extends StatelessWidget {
           return const Center(child: CircularProgressIndicator(strokeWidth: 2));
         }
 
+        if (snapshot.hasError) {
+          return _PointsHistoryState(
+            icon: Icons.info_outline_rounded,
+            message: 'Unable to load points history.',
+            muted: muted,
+          );
+        }
+
         final response = snapshot.data;
         final items =
             response?.data?.whereType<PointsHistoryItem>().toList() ??

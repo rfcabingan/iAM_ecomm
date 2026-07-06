@@ -113,7 +113,7 @@ class _IamWalletBalanceQuickSheetState
     final canShowPoints = _canShowPoints;
 
     return FractionallySizedBox(
-      heightFactor: canShowPoints ? 0.54 : 0.42,
+      heightFactor: canShowPoints ? 0.60 : 0.42,
       alignment: Alignment.bottomCenter,
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
@@ -257,7 +257,7 @@ class _IamWalletBalanceQuickSheetState
                               ),
                             ),
                             if (canShowPoints) ...[
-                              const SizedBox(height: IAMSizes.md),
+                              const SizedBox(height: IAMSizes.spaceBtwItems),
                               _PointsBalanceCard(
                                 points: _pointsData,
                                 error: _pointsError,
@@ -272,35 +272,47 @@ class _IamWalletBalanceQuickSheetState
                                     : null,
                               ),
                             ],
-                            const SizedBox(height: IAMSizes.md),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _loading = true;
-                                    _error = null;
-                                    _pointsData = null;
-                                    _pointsError = null;
-                                  });
-                                  _load();
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: onSurface,
-                                  side: BorderSide(
-                                    color: onSurface.withOpacity(0.2),
-                                  ),
-                                  minimumSize: const Size.fromHeight(48),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                child: const Text('Refresh'),
-                              ),
-                            ),
                             ],
                           ),
                         ),
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    IAMSizes.defaultSpace,
+                    IAMSizes.sm,
+                    IAMSizes.defaultSpace,
+                    IAMSizes.sm,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: _loading
+                          ? null
+                          : () {
+                              setState(() {
+                                _loading = true;
+                                _error = null;
+                                _pointsData = null;
+                                _pointsError = null;
+                              });
+                              _load();
+                            },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: onSurface,
+                        side: BorderSide(
+                          color: onSurface.withOpacity(0.2),
+                        ),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text('Refresh'),
+                    ),
+                  ),
                 ),
               ),
             ],
