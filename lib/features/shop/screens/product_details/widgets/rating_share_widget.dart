@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/utils/constants/app_links.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
@@ -12,7 +14,12 @@ class IAMRatingAndShare extends StatelessWidget {
   final String productCode;
 
   // [temp] Vercel bridge while main ecom share URLs are unavailable.
-  String get _shareUrl => IamAppLinks.productShareUrl(productCode);
+  String get _shareUrl {
+    final referralId = Get.isRegistered<AuthController>()
+        ? AuthController.instance.user.value?.idno.trim()
+        : null;
+    return IamAppLinks.productShareUrl(productCode, referralId: referralId);
+  }
 
   void _shareProduct(BuildContext context) {
     showModalBottomSheet(
@@ -70,7 +77,7 @@ class IAMRatingAndShare extends StatelessWidget {
           if (count > 0) {
             final total = validReviews.fold<int>(
               0,
-              (sum, r) => sum + (r!.rating ?? 0),
+              (sum, r) => sum + r!.rating,
             );
             average = total / count;
           }
