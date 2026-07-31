@@ -21,6 +21,7 @@ class AuthApi {
     required String mobileNo,
     required String password,
     required String firstName,
+    required String middleName,
     required String lastName,
     String? referralId,
   }) {
@@ -31,6 +32,7 @@ class AuthApi {
         'mobileNo': mobileNo,
         'password': password,
         'firstName': firstName,
+        'middleName': middleName,
         'lastName': lastName,
         if (referralId != null && referralId.trim().isNotEmpty)
           'referralId': referralId.trim(),
