@@ -17,7 +17,9 @@ import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/models/image_item.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
+import 'package:iam_ecomm/features/screens/home/home_web.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
+import 'package:iam_ecomm/utils/device/platform_layout.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -109,6 +111,13 @@ class _HomeScreenState extends State<HomeScreen> {
       Get.to(() => AllProducts(initialSearchQuery: trimmedQuery));
     }
 
+    if (IAMPlatformLayout.isWebDesktop(context)) {
+      return HomeWebScreen(
+        bannerUrls: _bannerUrls,
+        bannersLoading: _bannersLoading,
+      );
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -116,11 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
             IAMPrimaryHeaderContainer(
               child: Column(
                 children: [
-                  //Appbar
                   const IAMHomeAppBar(),
                   SizedBox(height: IAMSizes.spaceBtwSections),
-
-                  //Searchbar
                   Obx(
                     () => IAMSearchBar(
                       text: 'Search in Store',
@@ -133,21 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   SizedBox(height: IAMSizes.spaceBtwSections),
-
-                  //Categories
                   Padding(
                     padding: EdgeInsets.only(left: IAMSizes.defaultSpace),
                     child: Column(
                       children: [
-                        //heading
                         IAMSectionHeading(
                           title: 'Popular Categories',
                           showActionButton: false,
                           textColor: Colors.white,
                         ),
                         const SizedBox(height: IAMSizes.spaceBtwItems),
-
-                        //Categories
                         IAMHomeCategories(),
                       ],
                     ),
@@ -156,7 +157,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            //Body
             Padding(
               padding: const EdgeInsets.all(IAMSizes.defaultSpace),
               child: Column(
@@ -171,8 +171,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   else
                     const SizedBox.shrink(),
                   const SizedBox(height: IAMSizes.spaceBtwItems),
-
-                  //Heading
                   IAMSectionHeading(
                     title: 'Popular Products',
                     onPressed: () => Get.to(() => const AllProducts()),
@@ -219,8 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   }),
                 ],
               ),
-
-              // Popular products
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iam_ecomm/common/widgets/layouts/web_storefront_header.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/login.dart';
 import 'package:iam_ecomm/features/personalization/screens/settings/settings.dart';
@@ -10,6 +11,7 @@ import 'package:iam_ecomm/features/shop/controllers/home_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/store/store.dart';
 import 'package:iam_ecomm/features/shop/screens/wishlist/wishlist.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
+import 'package:iam_ecomm/utils/device/platform_layout.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -21,6 +23,48 @@ class NavigationMenu extends StatelessWidget {
     final controller = Get.put(NavigationController());
     final auth = AuthController.instance;
     final darkMode = IAMHelperFunctions.isDarkMode(context);
+    final useWebShell = IAMPlatformLayout.isWebDesktop(context);
+
+    Widget bodyForIndex() {
+      return Obx(() {
+        final index = controller.selectedIndex.value;
+        final loggedIn = auth.isLoggedIn.value;
+        if (index == 1) {
+          return StoreScreen(
+            initialTabIndex: controller.storeInitialTabIndex.value,
+          );
+        }
+        if (index == 3 && !loggedIn) {
+          return const LoginScreen();
+        }
+        return controller.screens[index];
+      });
+    }
+
+    // Desktop web: top storefront header (not a mobile UI + side rail).
+    // Full-bleed login replaces the shell so the split panel can breathe.
+    if (useWebShell) {
+      return Obx(() {
+        final index = controller.selectedIndex.value;
+        final loggedIn = auth.isLoggedIn.value;
+        if (index == 3 && !loggedIn) {
+          return const LoginScreen();
+        }
+
+        return Scaffold(
+          backgroundColor:
+              darkMode ? IAMColors.dark : const Color(0xFFF7F5F0),
+          body: Column(
+            children: [
+              const IAMWebStorefrontHeader(),
+              Expanded(child: bodyForIndex()),
+            ],
+          ),
+        );
+      });
+    }
+
+    // Android / iOS / narrow web: original bottom navigation.
     return Scaffold(
       bottomNavigationBar: Obx(
         () => NavigationBar(
@@ -63,21 +107,7 @@ class NavigationMenu extends StatelessWidget {
           ],
         ),
       ),
-      body: Obx(() {
-        final index = controller.selectedIndex.value;
-        final loggedIn = auth.isLoggedIn.value;
-        // If navigating to Store, pass the initial tab index
-        if (index == 1) {
-          return StoreScreen(
-            initialTabIndex: controller.storeInitialTabIndex.value,
-          );
-        }
-        // If navigating to Profile/Settings, show Login when logged out
-        if (index == 3 && !loggedIn) {
-          return const LoginScreen();
-        }
-        return controller.screens[index];
-      }),
+      body: bodyForIndex(),
     );
   }
 }
@@ -120,7 +150,7 @@ class NavigationController extends GetxController {
 
   void navigateToStore(int tabIndex) {
     storeInitialTabIndex.value = tabIndex;
-    selectedIndex.value = 1; // Store tab index
+    selectedIndex.value = 1;
   }
 
   void navigateToProfileOrLogin() => selectedIndex.value = 3;

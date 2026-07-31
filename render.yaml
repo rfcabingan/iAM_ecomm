@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: iam-ecomm-web
+    runtime: static
+    buildCommand: flutter config --enable-web && flutter pub get && flutter build web --release --no-tree-shake-icons --no-wasm-dry-run
+    staticPublishPath: build/web
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
