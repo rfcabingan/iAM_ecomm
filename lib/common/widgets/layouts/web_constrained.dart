@@ -40,8 +40,7 @@ class IAMWebConstrained extends StatelessWidget {
   }
 }
 
-/// Soft page canvas for web: subtle vertical wash so full-bleed phone UIs
-/// still feel intentional when centered on a large monitor.
+
 class IAMWebPageScaffold extends StatelessWidget {
   const IAMWebPageScaffold({
     super.key,

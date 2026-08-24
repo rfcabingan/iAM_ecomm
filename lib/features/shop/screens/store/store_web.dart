@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
-import 'package:iam_ecomm/common/widgets/layouts/web_hover_card.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_horizontal.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
@@ -14,8 +13,8 @@ import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 
-/// Dedicated desktop-web storefront (sidebar categories + editorial hero).
-/// Android/iOS continue using the mobile [StoreScreen] NestedScrollView.
+/// Dedicated desktop-web storefront (sidebar categories + editorial hero) heree!
+/// 
 class StoreWebScreen extends StatefulWidget {
   const StoreWebScreen({super.key, this.initialTabIndex = 0});
 
@@ -101,77 +100,32 @@ class _StoreWebScreenState extends State<StoreWebScreen> {
                 ),
               ),
               SliverToBoxAdapter(
-                child: _WebSectionReveal(
-                  delay: const Duration(milliseconds: 100),
-                  offsetY: 24,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: dark ? const Color(0xFF16110A) : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: IAMColors.primary.withValues(alpha: 0.2),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: dark ? 0.12 : 0.04),
-                            blurRadius: 16,
-                            offset: const Offset(0, 7),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 10,
-                            height: 10,
-                            decoration: const BoxDecoration(
-                              color: IAMColors.primary,
-                              shape: BoxShape.circle,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 8),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Featured',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2,
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Featured',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.2,
-                                ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _AnimatedUnderline(dark: dark),
-                          ),
-                        ],
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          height: 1,
+                          color: IAMColors.primary.withValues(alpha: 0.35),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
               SliverToBoxAdapter(
-                child: _WebSectionReveal(
-                  delay: const Duration(milliseconds: 180),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: dark ? const Color(0xFF15120D) : const Color(0xFFFFFCF7),
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                          color: IAMColors.primary.withValues(alpha: 0.16),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: SizedBox(
-                        height: 140,
-                        child: _FeaturedRow(),
-                      ),
-                    ),
-                  ),
+                child: SizedBox(
+                  height: 140,
+                  child: _FeaturedRow(),
                 ),
               ),
               SliverPadding(
@@ -203,96 +157,80 @@ class _StoreWebScreenState extends State<StoreWebScreen> {
                             );
                           }
                           final list = controller.productsFor(categoryId);
-                          return Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: dark ? const Color(0xFF17120B) : Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: IAMColors.primary.withValues(alpha: 0.18),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: dark ? 0.12 : 0.04),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      categoryName,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headlineSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.2,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _AnimatedUnderline(dark: dark),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    TextButton.icon(
-                                      onPressed: () => Get.to(() => const AllProducts()),
-                                      icon: const Icon(Icons.arrow_right_alt_rounded, size: 18),
-                                      label: const Text('View all'),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: IAMColors.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  '${list.length} curated picks',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: dark
-                                            ? IAMColors.lightGrey
-                                            : IAMColors.textSecondary,
-                                      ),
-                                ),
-                                const SizedBox(height: 18),
-                                if (list.isEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 48,
-                                    ),
-                                    child: Text(
-                                      'No products in this collection yet.',
-                                      style:
-                                          Theme.of(context).textTheme.bodyMedium,
-                                    ),
-                                  )
-                                else
-                                  IAMGridLayout(
-                                    itemCount: list.length,
-                                    mainAxisExtent: 300,
-                                    itemBuilder: (_, index) => WebHoverCard(
-                                      child: IAMProductCardVertical(
-                                        product: list[index],
-                                      ),
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    categoryName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.2,
+                                        ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Container(
+                                      height: 1,
+                                      color: IAMColors.primary.withValues(alpha: 0.35),
                                     ),
                                   ),
-                              ],
-                            ),
-                           );
-                         }),
-                       ),
-                     ],
-                    ),
+                                  const SizedBox(width: 12),
+                                  TextButton.icon(
+                                    onPressed: () => Get.to(() => const AllProducts()),
+                                    icon: const Icon(Icons.arrow_right_alt_rounded, size: 18),
+                                    label: const Text('View all'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: IAMColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '${list.length} curated picks',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: dark
+                                          ? IAMColors.lightGrey
+                                          : IAMColors.textSecondary,
+                                    ),
+                              ),
+                              const SizedBox(height: 18),
+                              if (list.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 48,
+                                  ),
+                                  child: Text(
+                                    'No products in this collection yet.',
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                )
+                              else
+                                IAMGridLayout(
+                                  itemCount: list.length,
+                                  mainAxisExtent: 300,
+                                  itemBuilder: (_, index) =>
+                                      IAMProductCardVertical(
+                                    product: list[index],
+                                  ),
+                                ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
+            ],
           ),
         ),
       ),
@@ -467,68 +405,7 @@ class _InfoPill extends StatelessWidget {
   }
 }
 
-class _AnimatedUnderline extends StatelessWidget {
-  const _AnimatedUnderline({required this.dark});
-
-  final bool dark;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 1200),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Container(
-          height: 1.2,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                IAMColors.primary.withValues(alpha: 0.0),
-                IAMColors.primary.withValues(alpha: 0.55 * value),
-                IAMColors.primary.withValues(alpha: 0.0),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
-            borderRadius: BorderRadius.circular(1),
-          ),
-          transform: Matrix4.identity()..scale(value, 1.0),
-          alignment: Alignment.centerLeft,
-        );
-      },
-    );
-  }
-}
-
-class _WebSectionReveal extends StatelessWidget {
-  const _WebSectionReveal({
-    required this.child,
-    this.delay = Duration.zero,
-    this.offsetY = 18,
-  });
-
-  final Widget child;
-  final Duration delay;
-  final double offsetY;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 700),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, offsetY * (1 - value)),
-          child: Opacity(opacity: value, child: child),
-        );
-      },
-      child: child,
-    );
-  }
-}
-
-class _SearchField extends StatefulWidget {
+class _SearchField extends StatelessWidget {
   const _SearchField({
     required this.controller,
     required this.onSubmit,
@@ -540,83 +417,46 @@ class _SearchField extends StatefulWidget {
   final bool dark;
 
   @override
-  State<_SearchField> createState() => _SearchFieldState();
-}
-
-class _SearchFieldState extends State<_SearchField> {
-  final _focusNode = FocusNode();
-  bool _hovered = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final interactive = _hovered || _focusNode.hasFocus;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          color: widget.dark ? IAMColors.black : IAMColors.white,
-          border: Border.all(
-            color: interactive
-                ? IAMColors.primary.withValues(alpha: 0.55)
-                : IAMColors.primary.withValues(alpha: 0.22),
-            width: interactive ? 1.6 : 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: widget.dark ? 0.18 : 0.04),
-              blurRadius: interactive ? 22 : 16,
-              offset: Offset(0, interactive ? 10 : 8),
-            ),
-            if (interactive)
-              BoxShadow(
-                color: IAMColors.primary.withValues(alpha: 0.10),
-                blurRadius: 18,
-                offset: const Offset(0, 4),
-              ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: dark ? IAMColors.black : IAMColors.white,
+        border: Border.all(
+          color: IAMColors.primary.withValues(alpha: 0.24),
+          width: 1.2,
         ),
-        child: TextField(
-          controller: widget.controller,
-          focusNode: _focusNode,
-          onSubmitted: (_) => widget.onSubmit(),
-          decoration: InputDecoration(
-            hintText: 'Search the store for wellness essentials',
-            prefixIcon: const Icon(Iconsax.search_normal, size: 20),
-            suffixIcon: Container(
-              margin: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                onPressed: widget.onSubmit,
-                icon: const Icon(Iconsax.arrow_right_3),
-                color: IAMColors.primary,
-                splashRadius: 20,
-              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: dark ? 0.18 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        onSubmitted: (_) => onSubmit(),
+        decoration: InputDecoration(
+          hintText: 'Search the store for wellness essentials',
+          prefixIcon: const Icon(Iconsax.search_normal, size: 20),
+          suffixIcon: Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: onSubmit,
+              icon: const Icon(Iconsax.arrow_right_3),
+              color: IAMColors.primary,
+              splashRadius: 20,
             ),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            filled: true,
-            fillColor: Colors.transparent,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 16,
-            ),
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
           ),
         ),
       ),
@@ -654,12 +494,9 @@ class _FeaturedRow extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(width: 16),
         itemBuilder: (_, index) {
           final product = controller.featuredProducts[index];
-          return WebHoverCard(
-            lift: 4,
-            child: SizedBox(
-              width: 320,
-              child: IAMProductCardHorizontal(product: product),
-            ),
+          return SizedBox(
+            width: 320,
+            child: IAMProductCardHorizontal(product: product),
           );
         },
       );
@@ -714,80 +551,59 @@ class _CategorySidebar extends StatelessWidget {
               final selected = index == selectedIndex;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    bool hovered = false;
-                    return MouseRegion(
-                      onEnter: (_) => setState(() => hovered = true),
-                      onExit: (_) => setState(() => hovered = false),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutCubic,
-                        transform: Matrix4.identity()
-                          ..translate(0.0, hovered && !selected ? -2 : 0.0),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? IAMColors.primary.withValues(alpha: dark ? 0.15 : 0.08)
-                              : (hovered
-                                  ? IAMColors.primary.withValues(alpha: dark ? 0.08 : 0.04)
-                                  : Colors.transparent),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            onTap: () => onSelect(index),
-                            borderRadius: BorderRadius.circular(14),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 14,
-                                ),
-                                child: Row(
-                                  children: [
-                                  AnimatedContainer(
-                                    duration: const Duration(milliseconds: 250),
-                                    width: selected ? 4 : 0,
-                                    height: 18,
-                                    decoration: BoxDecoration(
-                                      color: selected ? IAMColors.primary : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  SizedBox(width: selected ? 10 : 0),
-                                  Expanded(
-                                    child: Text(
-                                      ProductCategories.names[index],
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: selected
-                                                ? FontWeight.w700
-                                                : FontWeight.w500,
-                                            color: selected
-                                                ? IAMColors.primary
-                                                : (dark
-                                                    ? IAMColors.lightGrey
-                                                    : IAMColors.darkerGrey),
-                                          ),
-                                    ),
-                                  ),
-                                  if (selected)
-                                    const Icon(
-                                      Icons.keyboard_arrow_right_rounded,
-                                      size: 16,
-                                      color: IAMColors.primary,
-                                    ),
-                                ],
-                              ),
+                child: Material(
+                  color: selected
+                      ? IAMColors.primary.withValues(alpha: dark ? 0.15 : 0.08)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: () => onSelect(index),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            width: selected ? 4 : 0,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              color: selected ? IAMColors.primary : Colors.transparent,
+                              borderRadius: BorderRadius.circular(2),
                             ),
                           ),
-                        ),
+                          SizedBox(width: selected ? 10 : 0),
+                          Expanded(
+                            child: Text(
+                              ProductCategories.names[index],
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    fontWeight: selected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: selected
+                                        ? IAMColors.primary
+                                        : (dark
+                                            ? IAMColors.lightGrey
+                                            : IAMColors.darkerGrey),
+                                  ),
+                            ),
+                          ),
+                          if (selected)
+                            const Icon(
+                              Icons.keyboard_arrow_right_rounded,
+                              size: 16,
+                              color: IAMColors.primary,
+                            ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               );
             }),
