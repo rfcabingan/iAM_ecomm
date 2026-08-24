@@ -8,10 +8,12 @@ import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:iam_ecomm/common/widgets/products.cart/cart_menu_icon.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_horizontal.dart';
 import 'package:iam_ecomm/features/shop/controllers/store_controller.dart';
+import 'package:iam_ecomm/features/shop/screens/store/store_web.dart';
 import 'package:iam_ecomm/features/shop/screens/store/widgets/category_tab.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/product_categories.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
+import 'package:iam_ecomm/utils/device/platform_layout.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 
 class StoreScreen extends StatelessWidget {
@@ -25,10 +27,15 @@ class StoreScreen extends StatelessWidget {
       Get.put(StoreController());
     }
 
-    // Initialize featured products data
     final controller = Get.find<StoreController>();
-    if (controller.featuredProducts.isEmpty && !controller.featuredLoading.value) {
+    if (controller.featuredProducts.isEmpty &&
+        !controller.featuredLoading.value) {
       controller.fetchFeaturedProducts();
+    }
+
+    // Dedicated desktop-web storefront; mobile apps keep NestedScrollView UI.
+    if (IAMPlatformLayout.isWebDesktop(context)) {
+      return StoreWebScreen(initialTabIndex: initialTabIndex);
     }
 
     return DefaultTabController(
@@ -52,8 +59,6 @@ class StoreScreen extends StatelessWidget {
                 backgroundColor: IAMHelperFunctions.isDarkMode(context)
                     ? IAMColors.black
                     : IAMColors.white,
-
-                // Divider for Featured Products & Products Category
                 expandedHeight: 370,
                 flexibleSpace: Padding(
                   padding: EdgeInsets.all(IAMSizes.defaultSpace),
@@ -61,7 +66,6 @@ class StoreScreen extends StatelessWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      //Search Bar
                       SizedBox(height: IAMSizes.spaceBtwItems),
                       IAMSearchBar(
                         text: 'Search in Store',
@@ -69,19 +73,13 @@ class StoreScreen extends StatelessWidget {
                         showBackground: false,
                         padding: EdgeInsets.zero,
                       ),
-
                       SizedBox(height: IAMSizes.spaceBtwSections),
-
-                      //Featured Items
                       IAMSectionHeading(
                         title: 'Featured Items',
                         showActionButton: false,
                         onPressed: () {},
                       ),
-
                       const SizedBox(height: IAMSizes.spaceBtwItems / 1.5),
-
-                      // Featured Products - Horizontal Cards
                       SizedBox(
                         height: 130,
                         child: Obx(() {
@@ -137,8 +135,6 @@ class StoreScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                //Tabs
                 bottom: IAMTabBar(
                   tabs: ProductCategories.names
                       .map((name) => Tab(child: Text(name)))
@@ -147,8 +143,6 @@ class StoreScreen extends StatelessWidget {
               ),
             ];
           },
-
-          //Body
           body: TabBarView(
             children: ProductCategories.ids
                 .map((id) => IAMCategoryTab(categoryId: id))

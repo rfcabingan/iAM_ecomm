@@ -1,0 +1,17 @@
+{
+  "buildCommand": "flutter build web --release --no-tree-shake-icons --no-wasm-dry-run",
+  "outputDirectory": "build/web",
+  "framework": null,
+  "installCommand": "git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter && export PATH=\"$HOME/flutter/bin:$PATH\" && flutter config --enable-web && flutter pub get",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/flutter_service_worker.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    }
+  ]
+}

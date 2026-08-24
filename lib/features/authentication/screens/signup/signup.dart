@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iam_ecomm/common/widgets/layouts/web_constrained.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/login.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/widgets/signup.form.dart';
+import 'package:iam_ecomm/utils/constants/breakpoints.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/text_strings.dart';
@@ -16,39 +19,63 @@ class SignupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = IAMHelperFunctions.isDarkMode(context);
+    final wideWeb = kIsWeb && IAMBreakpoints.isDesktop(context);
+
+    final formBody = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          IAMTexts.signupTitle,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: IAMSizes.spaceBtwSections),
+        IAMSignupForm(initialReferralId: initialReferralId),
+        const SizedBox(height: IAMSizes.spaceBtwSections),
+        _SignupMemberLoginPrompt(dark: dark),
+        const SizedBox(height: IAMSizes.spaceBtwSections),
+      ],
+    );
+
     return Scaffold(
+      backgroundColor: wideWeb
+          ? (dark ? IAMColors.dark : const Color(0xFFF7F5F0))
+          : null,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         foregroundColor: dark ? IAMColors.white : IAMColors.black,
         iconTheme: IconThemeData(
           color: dark ? IAMColors.white : IAMColors.black,
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              //Title
-              Text(
-                IAMTexts.signupTitle,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
-
-              //Form
-              IAMSignupForm(initialReferralId: initialReferralId),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
-              _SignupMemberLoginPrompt(dark: dark),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
-
-              //Divider
-              //IAMFormDivider(dividerText: IAMTexts.orSignUpWith.capitalize!),
-              //const SizedBox(height: IAMSizes.spaceBtwSections),
-
-              //Social Button
-              //const IAMSocialButton(),
-            ],
+      body: IAMWebPageScaffold(
+        maxWidth: IAMBreakpoints.formMaxWidth + 80,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+            child: wideWeb
+                ? DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: dark ? IAMColors.black : IAMColors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: IAMColors.primary.withValues(alpha: 0.35),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: dark ? 0.35 : 0.06,
+                          ),
+                          blurRadius: 28,
+                          offset: const Offset(0, 12),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(28, 28, 28, 32),
+                      child: formBody,
+                    ),
+                  )
+                : formBody,
           ),
         ),
       ),

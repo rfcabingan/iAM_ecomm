@@ -25,6 +25,7 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
   bool _obscureConfirmPassword = true;
 
   final _firstNameController = TextEditingController();
+  final _middleNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -68,6 +69,7 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
         mobileNo: _phoneController.text.trim(),
         password: _passwordController.text,
         firstName: _firstNameController.text.trim(),
+        middleName: _middleNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         referralId: _referralIdController.text.trim(),
       );
@@ -151,6 +153,7 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
   @override
   void dispose() {
     _firstNameController.dispose();
+    _middleNameController.dispose();
     _lastNameController.dispose();
     _usernameController.dispose();
     _emailController.dispose();
@@ -181,6 +184,34 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
                   inputFormatters: [
                     // Letters only (no numbers/special characters).
                     // Allow spaces to support multi-part names like "Mary Jane".
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'[A-Za-z ]'),
+                    ),
+                  ],
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Required Field*';
+                    }
+
+                    final normalized = v.trim();
+                    final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
+                    if (!regex.hasMatch(normalized)) {
+                      return 'Only letters are allowed';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(width: IAMSizes.spaceBtwInputFields),
+              Expanded(
+                child: TextFormField(
+                  controller: _middleNameController,
+                  expands: false,
+                  decoration: const InputDecoration(
+                    labelText: IAMTexts.middleName,
+                    prefixIcon: Icon(Iconsax.user),
+                  ),
+                  inputFormatters: [
                     FilteringTextInputFormatter.allow(
                       RegExp(r'[A-Za-z ]'),
                     ),

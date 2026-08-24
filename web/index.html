@@ -1,38 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="IAM Ecomm — shop curated products with the same experience on web and mobile.">
+  <meta name="theme-color" content="#D4AF37">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="iam_ecomm">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IAM Ecomm">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>iam_ecomm</title>
+  <title>IAM Ecomm</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #F7F5F0;
+    }
+
+    /* First-paint shell matches brand while Flutter boots */
+    .iam-boot {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 18px;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(212, 175, 55, 0.18), transparent 55%),
+        radial-gradient(ellipse at 80% 100%, rgba(35, 35, 35, 0.06), transparent 50%),
+        linear-gradient(180deg, #FFFBF3 0%, #F7F5F0 55%, #F3F1EB 100%);
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: #232323;
+    }
+
+    .iam-boot__mark {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      color: #D4AF37;
+      text-indent: 0.28em;
+    }
+
+    .iam-boot__bar {
+      width: 120px;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+      animation: iamPulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes iamPulse {
+      0%, 100% { opacity: 0.35; transform: scaleX(0.75); }
+      50% { opacity: 1; transform: scaleX(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .iam-boot__bar { animation: none; opacity: 0.8; }
+    }
+  </style>
 </head>
 <body>
+  <div class="iam-boot" id="iam-boot">
+    <div class="iam-boot__mark">IAM</div>
+    <div class="iam-boot__bar" aria-hidden="true"></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var boot = document.getElementById('iam-boot');
+      if (boot) boot.remove();
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
