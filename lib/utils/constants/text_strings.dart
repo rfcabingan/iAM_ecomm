@@ -22,6 +22,7 @@ class IAMTexts {
 
   // -- Authentication Form Text
   static const String firstName = "First Name";
+  static const String middleName = "Middle Name";
   static const String lastName = "Last Name";
   static const String email = "E-Mail/Username";
   static const String emailAddress = "E-Mail Address";

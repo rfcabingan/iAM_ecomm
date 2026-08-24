@@ -1,12 +1,12 @@
 {
-    "name": "iam_ecomm",
-    "short_name": "iam_ecomm",
+    "name": "IAM Ecomm",
+    "short_name": "IAM",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#F7F5F0",
+    "theme_color": "#D4AF37",
+    "description": "IAM Ecomm — curated shopping on web and mobile.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

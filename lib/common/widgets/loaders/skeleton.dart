@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iam_ecomm/utils/constants/breakpoints.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 
 class IAMSkeleton extends StatelessWidget {
@@ -35,12 +36,13 @@ class IAMProductGridSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final columns = IAMBreakpoints.productGridCount(context);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
         mainAxisExtent: 290,
         crossAxisSpacing: IAMSizes.gridViewSpacing,
         mainAxisSpacing: IAMSizes.gridViewSpacing,
