@@ -72,10 +72,12 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
     final referralId = widget.referralId.trim();
     if (referralId.isEmpty) return;
 
-    Clipboard.setData(ClipboardData(text: referralId));
+    Clipboard.setData(
+      ClipboardData(text: IamAppLinks.referralShareMessage(referralId)),
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Referral ID copied.'),
+        content: Text('Referral link copied.'),
         behavior: SnackBarBehavior.floating,
       ),
     );

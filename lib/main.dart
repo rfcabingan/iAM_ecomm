@@ -3,6 +3,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/helpers/referral_deep_link_service.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
+import 'package:iam_ecomm/utils/web/configure_app.dart'
+    if (dart.library.html) 'package:iam_ecomm/utils/web/configure_app_web.dart';
 import 'app.dart';
 
 /// entry point of Flutter App
@@ -15,6 +17,7 @@ Future<void> main() async {
   ///Todo: Inidtialize Authentication
 
   WidgetsFlutterBinding.ensureInitialized();
+  configureApp();
   await GetStorage.init();
   await _clearExpiredSession();
   await ApiMiddleware.init();

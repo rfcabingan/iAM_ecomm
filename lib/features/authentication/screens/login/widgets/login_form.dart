@@ -206,7 +206,7 @@ class _IAMLoginFormState extends State<IAMLoginForm> {
       ),
     );
 
-    Get.offAll(const NavigationMenu());
+    Get.offAll(() => const NavigationMenu());
   }
 
   @override

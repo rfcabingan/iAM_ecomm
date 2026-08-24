@@ -142,8 +142,10 @@ class _SettingScreenState extends State<SettingScreen> {
       return;
     }
 
-    Clipboard.setData(ClipboardData(text: referralId));
-    _showMessage('Referral ID copied.');
+    Clipboard.setData(
+      ClipboardData(text: IamAppLinks.referralShareMessage(referralId)),
+    );
+    _showMessage('Referral link copied.');
   }
 
   Future<void> _shareReferralId(String referralId) async {

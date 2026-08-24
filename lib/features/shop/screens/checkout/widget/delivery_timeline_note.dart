@@ -84,7 +84,7 @@ class IAMDeliveryTimelineNote extends StatelessWidget {
                     const SizedBox(height: IAMSizes.spaceBtwItems / 2),
                     _DeliveryNoteLine(
                       icon: Icons.public_outlined,
-                      text: 'Nationwide delivery: within 3–7 business days.',
+                      text: 'Nationwide delivery: within 3–5 business days.',
                       textColor: bodyColor,
                     ),
                   ],

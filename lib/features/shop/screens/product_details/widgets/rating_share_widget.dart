@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/utils/constants/app_links.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:share_plus/share_plus.dart';
 
-// const String kProductShareBaseUrl = 'https://iam-ecomm-share.vercel.app';
-
 class IAMRatingAndShare extends StatelessWidget {
-  const IAMRatingAndShare({super.key, required this.productCode, required this.shareLink});
+  const IAMRatingAndShare({super.key, required this.productCode});
 
   final String productCode;
-  final String shareLink;
+
+  // [temp] Vercel bridge while main ecom share URLs are unavailable.
+  String get _shareUrl {
+    final referralId = Get.isRegistered<AuthController>()
+        ? AuthController.instance.user.value?.idno.trim()
+        : null;
+    return IamAppLinks.productShareUrl(productCode, referralId: referralId);
+  }
 
   void _shareProduct(BuildContext context) {
     showModalBottomSheet(
@@ -26,7 +34,7 @@ class IAMRatingAndShare extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 Share.share(
-                  'Check out this product on IAM Worldwide! 🛍️\n\n$shareLink',
+                  'Check out this product on IAM Worldwide! 🛍️\n\n$_shareUrl',
                   subject: 'IAM Worldwide Product',
                 );
               },
@@ -35,7 +43,7 @@ class IAMRatingAndShare extends StatelessWidget {
               leading: const Icon(Icons.copy, color: Color(0xFFDBA724)),
               title: const Text('Copy Link'),
               onTap: () async {
-                await Clipboard.setData(ClipboardData(text: shareLink));
+                await Clipboard.setData(ClipboardData(text: _shareUrl));
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -69,7 +77,7 @@ class IAMRatingAndShare extends StatelessWidget {
           if (count > 0) {
             final total = validReviews.fold<int>(
               0,
-              (sum, r) => sum + (r!.rating ?? 0),
+              (sum, r) => sum + r!.rating,
             );
             average = total / count;
           }

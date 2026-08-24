@@ -128,7 +128,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                             )
                           else
                             Text(
-                              'Points earned and redeemed from your orders',
+                              'Points earned from your orders',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: muted,
                               ),
@@ -185,7 +185,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                             onSurface: onSurface,
                           ),
                         ),
-                        const SizedBox(width: IAMSizes.sm),
+                        /*const SizedBox(width: IAMSizes.sm),
                         Expanded(
                           child: _SummaryStat(
                             label: 'Redeemed',
@@ -193,7 +193,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                             muted: muted,
                             onSurface: onSurface,
                           ),
-                        ),
+                        ),*/
                       ],
                     ),
                   ),
@@ -299,6 +299,14 @@ class _PointsHistoryList extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+        }
+
+        if (snapshot.hasError) {
+          return _PointsHistoryState(
+            icon: Icons.info_outline_rounded,
+            message: 'Unable to load points history.',
+            muted: muted,
+          );
         }
 
         final response = snapshot.data;

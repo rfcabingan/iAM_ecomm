@@ -151,14 +151,18 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
   }
 
   Widget _buildActionChip({
-    required String label,
+    String? label,
     required VoidCallback? onTap,
     IconData? icon,
   }) {
+    final hasLabel = label != null && label.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: hasLabel ? 12 : 8,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: IAMColors.primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(20),
@@ -168,16 +172,17 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
           children: [
             if (icon != null) ...[
               Icon(icon, size: 14, color: IAMColors.primary),
-              const SizedBox(width: 4),
+              if (hasLabel) const SizedBox(width: 4),
             ],
-            Text(
-              label,
-              style: const TextStyle(
-                color: IAMColors.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
+            if (hasLabel)
+              Text(
+                label,
+                style: const TextStyle(
+                  color: IAMColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -306,7 +311,6 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
                 children: [
                   if (_addresses.isNotEmpty)
                     _buildActionChip(
-                      label: 'Add',
                       icon: Iconsax.add,
                       onTap: _openAddAddress,
                     ),

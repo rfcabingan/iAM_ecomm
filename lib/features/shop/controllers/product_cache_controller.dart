@@ -229,6 +229,18 @@ class ProductCacheController extends GetxController {
   List<ProductItem> productsFor(int categoryId) =>
       productsByCategory[categoryId] ?? [];
 
+  ProductItem? productByCode(String productCode) {
+    final normalizedCode = productCode.toUpperCase();
+    final fromAll = _findByProductCode(products, normalizedCode);
+    if (fromAll != null) return fromAll;
+
+    for (final categoryProducts in productsByCategory.values) {
+      final match = _findByProductCode(categoryProducts, normalizedCode);
+      if (match != null) return match;
+    }
+    return null;
+  }
+
   Future<void> _replaceLoadedCategoryBucketsFromProducts(int revision) async {
     final loadedCategoryIds = productsByCategory.keys.toList();
     for (final categoryId in loadedCategoryIds) {

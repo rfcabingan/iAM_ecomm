@@ -262,6 +262,8 @@ class ProductReviewItem {
 class WishlistItem {
   final String productCode;
   final String productName;
+  final num regularPrice;
+  final num memberPrice;
   final num sellingPrice;
   final String shortDesc;
   final String imageUrl;
@@ -271,6 +273,8 @@ class WishlistItem {
   WishlistItem({
     required this.productCode,
     required this.productName,
+    required this.regularPrice,
+    required this.memberPrice,
     required this.sellingPrice,
     required this.shortDesc,
     required this.imageUrl,
@@ -284,6 +288,8 @@ class WishlistItem {
     return WishlistItem(
       productCode: m['productCode'] as String? ?? '',
       productName: m['productName'] as String? ?? '',
+      regularPrice: (m['regularPrice'] as num?) ?? 0,
+      memberPrice: (m['memberPrice'] as num?) ?? 0,
       sellingPrice: (m['sellingPrice'] as num?) ?? 0,
       shortDesc: m['shortDesc'] as String? ?? '',
       imageUrl: m['imageUrl'] as String? ?? '',
@@ -386,18 +392,19 @@ class PointsHistoryItem {
     final m = asMap(json);
     if (m == null) return null;
     return PointsHistoryItem(
-      autoId: (m['autoId'] as int?) ?? 0,
-      svrDate: m['svrDate'] as String? ?? '',
-      tranDate: m['tranDate'] as String? ?? '',
-      accountId: m['accountId'] as String? ?? '',
-      tranType: (m['tranType'] as int?) ?? 0,
-      tranDesc: m['tranDesc'] as String? ?? '',
-      sourceApp: m['sourceApp'] as String? ?? '',
-      ptsRefNo: m['ptsRefNo'] as String? ?? '',
-      relatedTranNo: m['relatedTranNo'] as String?,
-      pts: (m['pts'] as int?) ?? 0,
-      amt: (m['amt'] as int?) ?? 0,
-      runningBalance: (m['runningBalance'] as int?) ?? 0,
+      autoId: readIntValue(m['autoId']),
+      svrDate: m['svrDate']?.toString() ?? '',
+      tranDate: m['tranDate']?.toString() ?? '',
+      accountId: m['accountId']?.toString() ?? '',
+      tranType: readIntValue(m['tranType']),
+      tranDesc: m['tranDesc']?.toString() ?? '',
+      sourceApp: m['sourceApp']?.toString() ?? '',
+      ptsRefNo: m['ptsRefNo']?.toString() ?? '',
+      relatedTranNo:
+          asNonEmptyString(m['relatedTranno']) ?? asNonEmptyString(m['relatedTranNo']),
+      pts: readIntValue(m['pts']),
+      amt: readIntValue(m['amt']),
+      runningBalance: readIntValue(m['runningBalance']),
     );
   }
 }

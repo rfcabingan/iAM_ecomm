@@ -23,6 +23,7 @@ class CheckoutApi {
     required String notes,
     required int fulfillmentTypeId,
     String? areaCode,
+    String? referralId,
   }) {
     return _client.post<CheckoutData?>(
       ApiEndpoints.checkout,
@@ -41,6 +42,8 @@ class CheckoutApi {
         'notes': notes,
         'fulfillmentTypeId': fulfillmentTypeId,
         'areaCode': areaCode,
+        if (referralId != null && referralId.trim().isNotEmpty)
+          'referralId': referralId.trim(),
       },
       fromJsonData: CheckoutData.fromJson,
     );

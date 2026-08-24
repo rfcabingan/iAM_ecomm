@@ -44,6 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+#
+.design-system
+
 # Android signing
 android/key.properties
 *.jks
