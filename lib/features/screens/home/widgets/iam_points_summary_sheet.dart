@@ -112,7 +112,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Points Summary',
+                            'Cashback Summary',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: onSurface,
                               fontWeight: FontWeight.w800,
@@ -128,7 +128,7 @@ class _IamPointsSummarySheetState extends State<_IamPointsSummarySheet> {
                             )
                           else
                             Text(
-                              'Points earned from your orders',
+                              'Cashback earned from your orders',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: muted,
                               ),
@@ -266,7 +266,7 @@ class _SummaryStat extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          '${IAMFormatter.formatAccountingAmount(value.toDouble())} pts',
+          '₱${IAMFormatter.formatAccountingAmount(value.toDouble())}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -304,7 +304,7 @@ class _PointsHistoryList extends StatelessWidget {
         if (snapshot.hasError) {
           return _PointsHistoryState(
             icon: Icons.info_outline_rounded,
-            message: 'Unable to load points history.',
+            message: 'Unable to load cashback history.',
             muted: muted,
           );
         }
@@ -319,7 +319,7 @@ class _PointsHistoryList extends StatelessWidget {
             icon: Icons.info_outline_rounded,
             message: response?.message.isNotEmpty == true
                 ? response!.message
-                : 'Unable to load points history.',
+                : 'Unable to load cashback history.',
             muted: muted,
           );
         }
@@ -327,7 +327,7 @@ class _PointsHistoryList extends StatelessWidget {
         if (items.isEmpty) {
           return _PointsHistoryState(
             icon: Icons.receipt_long_outlined,
-            message: 'No points transactions found yet.',
+            message: 'No cashback transactions found yet.',
             muted: muted,
           );
         }
@@ -373,7 +373,7 @@ class _PointsHistoryTile extends StatelessWidget {
   String get _title {
     if (item.tranDesc.isNotEmpty) return item.tranDesc;
     if (item.sourceApp.isNotEmpty) return item.sourceApp;
-    return 'Points transaction';
+    return 'Cashback transaction';
   }
 
   @override
@@ -460,7 +460,7 @@ class _PointsHistoryTile extends StatelessWidget {
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 96),
             child: Text(
-              '$ptsPrefix${IAMFormatter.formatAccountingAmount(pts.abs().toDouble())} pts',
+              ' ₱$ptsPrefix${IAMFormatter.formatAccountingAmount(pts.abs().toDouble())}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
