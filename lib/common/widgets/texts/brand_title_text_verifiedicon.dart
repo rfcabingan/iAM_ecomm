@@ -12,7 +12,7 @@ class IAMBrandTitleWithVerifiedIcon extends StatelessWidget {
     this.maxLines = 1,
     this.textColor,
     this.iconColor = IAMColors.primary,
-    this.textAlign = TextAlign.center,
+    this.textAlign = TextAlign.left,
     this.brandTextSize = TextSizes.small,
   });
 

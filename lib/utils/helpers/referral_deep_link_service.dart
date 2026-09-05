@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'dart:io';
-// 1
+
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -12,8 +11,8 @@ import 'package:iam_ecomm/features/shop/screens/product_details/product_detail.d
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/app_links.dart';
+import 'package:iam_ecomm/utils/helpers/install_referrer/install_referrer_reader.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
-import 'package:play_install_referrer/play_install_referrer.dart';
 
 /// Handles referral deep links and Android Play install referrer data.  ,
 class ReferralDeepLinkService {
@@ -217,21 +216,21 @@ class ReferralDeepLinkService {
   }
 
   Future<void> _readInstallReferrerIfNeeded() async {
-    if (!Platform.isAndroid) return;
+    // Install referrer is Android-only; stubbed out on web/iOS via conditional import.
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
 
     final consumed =
         _storage.readData<bool>(installReferrerConsumedKey) ?? false;
     if (consumed) return;
 
     try {
-      final ReferrerDetails details = await PlayInstallReferrer.installReferrer;
+      final referrer = await readInstallReferrer();
       await _storage.saveData(installReferrerConsumedKey, true);
 
-      final referrer = details.installReferrer?.trim() ?? '';
       if (kDebugMode) {
         debugPrint('ReferralDeepLinkService install referrer: $referrer');
       }
-      if (referrer.isEmpty) return;
+      if (referrer == null || referrer.isEmpty) return;
 
       final ref = _parseReferrerString(referrer);
       if (ref != null && ref.isNotEmpty) {

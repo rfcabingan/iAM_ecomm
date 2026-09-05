@@ -41,7 +41,17 @@ class App extends StatelessWidget {
             themeController.isDarkMode ? ThemeMode.dark : ThemeMode.light,
         theme: IAMTheme.lightTheme,
         darkTheme: IAMTheme.darkTheme,
-        home: const _RootDecider(),
+        initialRoute: '/',
+        getPages: [
+          GetPage(name: '/', page: () => const _RootDecider()),
+          // GetX names anonymous navigations after the widget class; keep a
+          // matching entry so deep links / reloads never soft-fail.
+          GetPage(name: '/NavigationMenu', page: () => const NavigationMenu()),
+        ],
+        unknownRoute: GetPage(
+          name: '/not-found',
+          page: () => const NavigationMenu(),
+        ),
         builder: (context, child) =>
             _SessionActivityListener(child: child ?? const SizedBox.shrink()),
         debugShowCheckedModeBanner: false,
