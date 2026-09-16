@@ -30,36 +30,51 @@ int readIntValue(dynamic v) {
 }
 
 class PackageItem {
+  final int packageId;
   final String packageCode;
   final String packageName;
-  final String description;
+  final String packageDescription;
+  final num packageAmount;
+  final String imageUrl;
 
   PackageItem({
+    required this.packageId,
     required this.packageCode,
     required this.packageName,
-    required this.description,
+    required this.packageDescription,
+    required this.packageAmount,
+    required this.imageUrl,
   });
 
   static PackageItem? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
     return PackageItem(
+      packageId: readIntValue(m['packageId']),
       packageCode: m['packageCode'] as String? ?? '',
       packageName: m['packageName'] as String? ?? '',
-      description: m['description'] as String? ?? '',
+      packageDescription: m['packageDescription'] as String? ?? '',
+      packageAmount: (m['packageAmount'] as num?) ?? 0,
+      imageUrl: m['imageUrl'] as String? ?? '',
     );
   }
 }
 
 class PackageOptionItem {
   final int optionId;
+  final String packageCode;
+  final String packageName;
   final String optionName;
-  final num price;
+  final int displayOrder;
+  final num? price;
 
   PackageOptionItem({
     required this.optionId,
+    required this.packageCode,
+    required this.packageName,
     required this.optionName,
-    required this.price,
+    required this.displayOrder,
+    this.price,
   });
 
   static PackageOptionItem? fromJson(dynamic json) {
@@ -67,30 +82,48 @@ class PackageOptionItem {
     if (m == null) return null;
     return PackageOptionItem(
       optionId: readIntValue(m['optionId']),
+      packageCode: m['packageCode'] as String? ?? '',
+      packageName: m['packageName'] as String? ?? '',
       optionName: m['optionName'] as String? ?? '',
-      price: (m['price'] as num?) ?? 0,
+      displayOrder: readIntValue(m['displayOrder']),
+      price: (m['price'] as num?),
     );
   }
 }
 
 class PackageOptionItemDetail {
-  final String itemId;
-  final String itemName;
-  final int quantity;
+  final String packageCode;
+  final String packageName;
+  final int optionId;
+  final String optionName;
+  final String productCode;
+  final String productName;
+  final int qty;
+  final int displayOrder;
 
   PackageOptionItemDetail({
-    required this.itemId,
-    required this.itemName,
-    required this.quantity,
+    required this.packageCode,
+    required this.packageName,
+    required this.optionId,
+    required this.optionName,
+    required this.productCode,
+    required this.productName,
+    required this.qty,
+    required this.displayOrder,
   });
 
   static PackageOptionItemDetail? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
     return PackageOptionItemDetail(
-      itemId: m['itemId']?.toString() ?? '',
-      itemName: m['itemName'] as String? ?? '',
-      quantity: readIntValue(m['quantity']),
+      packageCode: m['packageCode'] as String? ?? '',
+      packageName: m['packageName'] as String? ?? '',
+      optionId: readIntValue(m['optionId']),
+      optionName: m['optionName'] as String? ?? '',
+      productCode: m['productCode'] as String? ?? '',
+      productName: m['productName'] as String? ?? '',
+      qty: readIntValue(m['qty']),
+      displayOrder: readIntValue(m['displayOrder']),
     );
   }
 }

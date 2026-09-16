@@ -9,7 +9,6 @@ import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/package_card.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
-import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_appbar.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_categories.dart';
 import 'package:iam_ecomm/features/shop/controllers/home_controller.dart';
@@ -19,11 +18,11 @@ import 'package:iam_ecomm/features/shop/screens/packages/all_packages.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/models/image_item.dart';
+import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/features/screens/home/home_web.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/device/platform_layout.dart';
-import 'package:iam_ecomm/utils/models/package_option.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,93 +37,10 @@ class _HomeScreenState extends State<HomeScreen> {
   static const String _bannersCacheKey = 'home_banners_cache_v1';
   final IAMLocalStorage _storage = IAMLocalStorage();
 
-  // Mock package data for display
-  static final List<PackageOption> _mockPackages = [
-    PackageOption(
-      name: 'Copper Package',
-      image: IAMImages.copper,
-      price: 5000,
-      description: 'Basic wellness starter kit with essential supplements for beginners starting their health journey.',
-      selectionOptions: [
-        PackageSelectionOption(
-          id: 'copper_opt1',
-          name: 'Option 1',
-          price: 5000,
-          products: [
-            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 2),
-            PackageProduct(productCode: 'BARCHO', productName: 'Barley Chocolate', quantity: 1),
-          ],
-        ),
-        PackageSelectionOption(
-          id: 'copper_opt2',
-          name: 'Option 2',
-          price: 6000,
-          products: [
-            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 3),
-            PackageProduct(productCode: 'BLACOF', productName: 'Black Coffee', quantity: 1),
-          ],
-        ),
-      ],
-    ),
-    PackageOption(
-      name: 'Bronze Package',
-      image: IAMImages.bronze,
-      price: 10000,
-      description: 'Enhanced wellness package with premium supplements for improved health benefits.',
-      selectionOptions: [
-        PackageSelectionOption(
-          id: 'bronze_opt1',
-          name: 'Option 1',
-          price: 10000,
-          products: [
-            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 5),
-            PackageProduct(productCode: 'BARCHO', productName: 'Barley Chocolate', quantity: 2),
-            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 1),
-          ],
-        ),
-        PackageSelectionOption(
-          id: 'bronze_opt2',
-          name: 'Option 2',
-          price: 12000,
-          products: [
-            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 6),
-            PackageProduct(productCode: 'BLACOF', productName: 'Black Coffee', quantity: 2),
-            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 2),
-          ],
-        ),
-      ],
-    ),
-    PackageOption(
-      name: 'Silver Package',
-      image: IAMImages.silver2,
-      price: 15000,
-      description: 'Complete wellness solution with advanced supplements for comprehensive health support.',
-      selectionOptions: [
-        PackageSelectionOption(
-          id: 'silver_opt1',
-          name: 'Option 1',
-          price: 15000,
-          products: [
-            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 8),
-            PackageProduct(productCode: 'BARCHO', productName: 'Barley Chocolate', quantity: 3),
-            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 2),
-            PackageProduct(productCode: 'COFTKA', productName: 'Coffee Taro', quantity: 1),
-          ],
-        ),
-        PackageSelectionOption(
-          id: 'silver_opt2',
-          name: 'Option 2',
-          price: 18000,
-          products: [
-            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 10),
-            PackageProduct(productCode: 'BLACOF', productName: 'Black Coffee', quantity: 3),
-            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 3),
-            PackageProduct(productCode: 'COFGLU', productName: 'Coffee Gluta', quantity: 1),
-          ],
-        ),
-      ],
-    ),
-  ];
+  // Package data from API
+  List<PackageItem?> _packages = [];
+  bool _loadingPackages = false;
+  String? _packagesError;
 
   List<String> _bannerUrls = const [];
   bool _bannersLoading = true;
@@ -142,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     unawaited(_loadBannerUrls());
+    unawaited(_loadPackages());
   }
 
   Future<void> _loadBannerUrls() async {
@@ -191,6 +108,23 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _bannerUrls = const [];
         _bannersLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadPackages() async {
+    setState(() => _loadingPackages = true);
+    final res = await ApiMiddleware.packages.getPackages();
+    if (mounted) {
+      setState(() {
+        _loadingPackages = false;
+        if (res.success) {
+          _packages = res.data ?? [];
+          // Sort by packageId for consistent ordering
+          _packages.sort((a, b) => a?.packageId.compareTo(b?.packageId ?? 0) ?? 0);
+        } else {
+          _packagesError = 'Unable to load packages. Please check your internet connection and try again.';
+        }
       });
     }
   }
@@ -313,13 +247,43 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () => Get.to(() => const AllPackages()),
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwItems),
-                  // Mock package data for display
-                  IAMGridLayout(
-                    itemCount: _mockPackages.length,
-                    itemBuilder: (_, index) {
-                      return IAMPackageCard(packageOption: _mockPackages[index]);
-                    },
-                  ),
+                  if (_loadingPackages)
+                    const IAMProductGridSkeleton(itemCount: 3)
+                  else if (_packagesError != null)
+                    Padding(
+                      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                      child: Column(
+                        children: [
+                          Text(
+                            _packagesError!,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: IAMSizes.sm),
+                          ElevatedButton(
+                            onPressed: _loadPackages,
+                            child: const Text('Try Again'),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (_packages.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                      child: Text(
+                        'No packages available at the moment. Please check back later.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    )
+                  else
+                    IAMGridLayout(
+                      itemCount: _packages.length,
+                      itemBuilder: (_, index) {
+                        final package = _packages[index];
+                        if (package == null) return const SizedBox.shrink();
+                        return IAMPackageCard(package: package);
+                      },
+                    ),
                 ],
               ),
             ),

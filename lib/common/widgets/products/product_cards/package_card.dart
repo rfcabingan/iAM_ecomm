@@ -7,15 +7,15 @@ import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_price_text.dart';
 import 'package:iam_ecomm/common/widgets/texts/product_title_text.dart';
 import 'package:iam_ecomm/features/shop/screens/packages/package_detail.dart';
+import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
-import 'package:iam_ecomm/utils/models/package_option.dart';
 
 class IAMPackageCard extends StatelessWidget {
-  const IAMPackageCard({super.key, required this.packageOption});
+  const IAMPackageCard({super.key, required this.package});
 
-  final PackageOption packageOption;
+  final PackageItem package;
 
   static String _formatPrice(num value) {
     return NumberFormat('#,##0.00', 'en_PH').format(value);
@@ -27,7 +27,7 @@ class IAMPackageCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => Get.to(
-        () => PackageDetailScreen(package: packageOption),
+        () => PackageDetailScreen(package: package),
       ),
       child: Container(
         width: 180,
@@ -46,9 +46,9 @@ class IAMPackageCard extends StatelessWidget {
               child: Stack(
                 children: [
                   IAMRoundedImage(
-                    imageUrl: packageOption.image,
+                    imageUrl: package.imageUrl,
                     applyImageRadius: true,
-                    isNetworkImage: false,
+                    isNetworkImage: true,
                   ),
                   Positioned(
                     top: 7,
@@ -78,12 +78,12 @@ class IAMPackageCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IAMProductTitleText(
-                    title: packageOption.name,
+                    title: package.packageName,
                     smallSize: true,
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwItems / 2),
                   Text(
-                    packageOption.description,
+                    package.packageDescription,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: dark ? IAMColors.lightGrey : IAMColors.darkGrey,
                     ),
@@ -100,7 +100,7 @@ class IAMPackageCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: IAMSizes.sm),
                   child: IAMProductPriceText(
-                    price: _formatPrice(packageOption.price),
+                    price: _formatPrice(package.packageAmount),
                   ),
                 ),
                 Container(

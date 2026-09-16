@@ -11,7 +11,6 @@ import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/models/member_enrollment_info.dart';
-import 'package:iam_ecomm/utils/models/package_option.dart';
 import 'package:iconsax/iconsax.dart';
 import 'dart:io';
 
@@ -20,10 +19,12 @@ class MemberEnrollmentForm extends StatefulWidget {
     super.key,
     required this.package,
     required this.selectedOption,
+    this.optionItems,
   });
 
-  final PackageOption package;
-  final PackageSelectionOption selectedOption;
+  final PackageItem package;
+  final PackageOptionItem selectedOption;
+  final List<PackageOptionItemDetail?>? optionItems;
 
   @override
   State<MemberEnrollmentForm> createState() => _MemberEnrollmentFormState();
@@ -317,9 +318,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Package: ${widget.package.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('Option: ${widget.selectedOption.name}'),
-              Text('Price: ₱${widget.selectedOption.price.toStringAsFixed(2)}'),
+              Text('Package: ${widget.package.packageName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text('Option: ${widget.selectedOption.optionName}'),
+              Text('Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}'),
               const Divider(),
               const Text('Personal Information', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('Name: ${_firstNameController.text} ${_middleNameController.text} ${_lastNameController.text}'),
@@ -410,6 +411,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       selectedOption: widget.selectedOption,
       memberInfo: memberInfo,
       enrollmentAddress: enrollmentAddress,
+      optionItems: widget.optionItems,
     ));
   }
 
@@ -443,14 +445,14 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.package.name,
+                        widget.package.packageName,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: IAMSizes.sm),
-                      Text('Selected: ${widget.selectedOption.name}'),
-                      Text('Price: ₱${widget.selectedOption.price.toStringAsFixed(2)}'),
+                      Text('Selected: ${widget.selectedOption.optionName}'),
+                      Text('Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}'),
                     ],
                   ),
                 ),

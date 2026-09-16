@@ -25,7 +25,6 @@ import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/helpers/referral_deep_link_service.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/utils/models/member_enrollment_info.dart';
-import 'package:iam_ecomm/utils/models/package_option.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'package:webview_flutter/webview_flutter.dart';
@@ -37,12 +36,14 @@ class CheckoutScreen extends StatefulWidget {
     this.selectedOption,
     this.memberInfo,
     this.enrollmentAddress,
+    this.optionItems,
   });
 
-  final PackageOption? package;
-  final PackageSelectionOption? selectedOption;
+  final PackageItem? package;
+  final PackageOptionItem? selectedOption;
   final MemberEnrollmentInfo? memberInfo;
   final AddressItem? enrollmentAddress;
+  final List<PackageOptionItemDetail?>? optionItems;
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -364,22 +365,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (_isPackagePurchase) {
       final package = widget.package!;
       final selectedOption = widget.selectedOption!;
+      final optionItems = widget.optionItems ?? [];
 
       // Map package products to checkout items
-      final items = selectedOption.products.map((product) {
+      final items = optionItems.map((item) {
+        if (item == null) return null;
         return _CheckoutItemView(
-          productCode: product.productCode,
-          name: product.productName,
-          qty: product.quantity,
+          productCode: item.productCode,
+          name: item.productName,
+          qty: item.qty,
           price: 0, // Package price is shown separately
           lineTotal: 0, // Individual product prices not applicable for packages
-          imageUrl: product.imageUrl ?? '',
+          imageUrl: '', // Product images not available in API response
         );
-      }).toList();
+      }).whereType<_CheckoutItemView>().toList();
 
       return _CartViewModel(
         items: items,
-        subtotal: selectedOption.price,
+        subtotal: selectedOption.price ?? package.packageAmount,
         package: package,
         selectedOption: selectedOption,
       );
@@ -876,19 +879,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            model.package!.name,
+                            model.package!.packageName,
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: IAMSizes.sm),
                           Text(
-                            'Selected Option: ${model.selectedOption!.name}',
+                            'Selected Option: ${model.selectedOption!.optionName}',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           const SizedBox(height: IAMSizes.sm),
                           Text(
-                            'Package Price: ${IAMFormatter.formatCurrency(model.selectedOption!.price.toDouble())}',
+                            'Package Price: ${IAMFormatter.formatCurrency((model.selectedOption!.price ?? model.package!.packageAmount).toDouble())}',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: IAMColors.primary,
                               fontWeight: FontWeight.bold,
@@ -1298,8 +1301,8 @@ class _CartViewModel {
   final List<_CheckoutItemView> items;
   final num subtotal;
   final String? error;
-  final PackageOption? package;
-  final PackageSelectionOption? selectedOption;
+  final PackageItem? package;
+  final PackageOptionItem? selectedOption;
 
   const _CartViewModel({
     required this.items,
