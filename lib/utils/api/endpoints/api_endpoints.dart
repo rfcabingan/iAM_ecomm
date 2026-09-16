@@ -36,6 +36,15 @@ class ApiEndpoints {
   static const String checkout = '/Checkout';
   static const String checkoutComputeFees = '/Checkout/ComputeFees';
 
+  // Packages APIs
+  static const String packages = '/Packages';
+  static String packageOptions(String packageCode) =>
+      '/Packages/$packageCode/Options';
+  static String packageOptionItems(String packageCode, int optionId) =>
+      '/Packages/$packageCode/Options/$optionId/Items';
+  static const String packagesComputeFees = '/Packages/ComputeFees';
+  static const String packagesRegister = '/Packages/Register';
+
   static const String paymentCreate = '/Payment/CreatePayment';
   static const String paymentCallback = '/Payment/Callback';
   static String paymentByTransaction(String transactionId) => '/Payment/$transactionId';
