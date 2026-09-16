@@ -12,7 +12,6 @@ import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_address_
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_amount_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_fulfillment_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_timeline_note.dart';
-import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_branch_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_payment_provider_section.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
@@ -21,18 +20,29 @@ import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
-import 'package:iam_ecomm/utils/device/device_utility.dart';
 import 'package:iam_ecomm/utils/formatters/formatter.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/helpers/referral_deep_link_service.dart';
 import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
-import 'package:flutter/services.dart';
+import 'package:iam_ecomm/utils/models/member_enrollment_info.dart';
+import 'package:iam_ecomm/utils/models/package_option.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'package:webview_flutter/webview_flutter.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  const CheckoutScreen({
+    super.key,
+    this.package,
+    this.selectedOption,
+    this.memberInfo,
+    this.enrollmentAddress,
+  });
+
+  final PackageOption? package;
+  final PackageSelectionOption? selectedOption;
+  final MemberEnrollmentInfo? memberInfo;
+  final AddressItem? enrollmentAddress;
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -80,9 +90,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   bool get _isHomeDeliverySelected => !_isPickupSelected;
 
+  bool get _isPackagePurchase => widget.package != null;
+
   bool get _showReferralInput =>
-      _hasLockedReferralFromShare ||
-      (Get.isRegistered<AuthController>() && !AuthController.instance.isMember);
+      !_isPackagePurchase &&  // Hide for packages
+      (_hasLockedReferralFromShare ||
+      (Get.isRegistered<AuthController>() && !AuthController.instance.isMember));
 
   bool _isPickupFulfillmentCode(String fulfillmentCode) {
     final normalizedCode = fulfillmentCode.trim().toUpperCase();
@@ -347,6 +360,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<_CartViewModel> _loadCart() async {
+    // Package purchase mode
+    if (_isPackagePurchase) {
+      final package = widget.package!;
+      final selectedOption = widget.selectedOption!;
+
+      // Map package products to checkout items
+      final items = selectedOption.products.map((product) {
+        return _CheckoutItemView(
+          productCode: product.productCode,
+          name: product.productName,
+          qty: product.quantity,
+          price: 0, // Package price is shown separately
+          lineTotal: 0, // Individual product prices not applicable for packages
+          imageUrl: product.imageUrl ?? '',
+        );
+      }).toList();
+
+      return _CartViewModel(
+        items: items,
+        subtotal: selectedOption.price,
+        package: package,
+        selectedOption: selectedOption,
+      );
+    }
+
+    // Regular cart purchase mode
     final isLoggedIn =
         Get.isRegistered<AuthController>() &&
         AuthController.instance.isLoggedIn.value;
@@ -418,6 +457,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<AddressItem?> _resolveCheckoutAddress() async {
     if (_selectedAddress != null) return _selectedAddress;
+
+    // For package purchases, default to enrollment address if provided
+    if (_isPackagePurchase && widget.enrollmentAddress != null) {
+      return widget.enrollmentAddress;
+    }
+
     final res = await ApiMiddleware.address.getAddresses();
     if (!res.success) return null;
     final addresses = res.data?.whereType<AddressItem>().toList() ?? const [];
@@ -453,7 +498,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     String emailAddress = '';
     String memberIdno = '';
-    if (isLoggedIn) {
+
+    // For package purchases, use member info from enrollment form
+    if (_isPackagePurchase && widget.memberInfo != null) {
+      emailAddress = widget.memberInfo!.email;
+      memberIdno = ''; // Will be assigned after enrollment
+    } else if (isLoggedIn) {
       final memberRes = await ApiMiddleware.member.getMember();
       if (!memberRes.success || memberRes.data == null) {
         final msg = memberRes.message.trim();
@@ -600,6 +650,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       fulfillmentTypeId: fulfillmentTypeId,
       areaCode: areaCodeToSend,
       referralId: effectiveReferralId.isEmpty ? null : effectiveReferralId,
+      // TODO: Add package-specific parameters when backend is ready
+      // packageId: model.package?.id,
+      // packageOptionId: model.selectedOption?.id,
     );
     if (!res.success) {
       final msg = res.message.isNotEmpty ? res.message : 'Checkout failed.';
@@ -813,12 +866,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Package Summary Card (only for package purchases)
+                  if (_isPackagePurchase && model.package != null && model.selectedOption != null) ...[
+                    IAMRoundedContainer(
+                      showBorder: true,
+                      padding: const EdgeInsets.all(IAMSizes.md),
+                      backgroundColor: dark ? IAMColors.black : IAMColors.white,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            model.package!.name,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: IAMSizes.sm),
+                          Text(
+                            'Selected Option: ${model.selectedOption!.name}',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: IAMSizes.sm),
+                          Text(
+                            'Package Price: ${IAMFormatter.formatCurrency(model.selectedOption!.price.toDouble())}',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: IAMColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: IAMSizes.md),
+                          const Divider(),
+                          const SizedBox(height: IAMSizes.md),
+                          const Text(
+                            'Included Products:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: IAMSizes.sm),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: IAMSizes.spaceBtwSections),
+                  ],
+
+                  // Items List
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: model.items.length,
                     separatorBuilder: (_, __) =>
-                        const SizedBox(height: IAMSizes.spaceBtwSections),
+                        const SizedBox(height: IAMSizes.spaceBtwItems),
                     itemBuilder: (context, index) {
                       final item = model.items[index];
                       return ListTile(
@@ -860,20 +956,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text('x${item.qty}  ·  ${item.productCode}'),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Price: ${IAMFormatter.formatCurrency(item.price.toDouble())}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
+                            if (!_isPackagePurchase) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                'Price: ${IAMFormatter.formatCurrency(item.price.toDouble())}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                           ],
                         ),
-                        trailing: Text(
-                          IAMFormatter.formatCurrency(
-                            item.lineTotal.toDouble(),
-                          ),
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
+                        trailing: _isPackagePurchase
+                            ? null // Don't show line total for package items
+                            : Text(
+                                IAMFormatter.formatCurrency(
+                                  item.lineTotal.toDouble(),
+                                ),
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
                       );
                     },
                   ),
@@ -1198,11 +1298,15 @@ class _CartViewModel {
   final List<_CheckoutItemView> items;
   final num subtotal;
   final String? error;
+  final PackageOption? package;
+  final PackageSelectionOption? selectedOption;
 
   const _CartViewModel({
     required this.items,
     required this.subtotal,
     this.error,
+    this.package,
+    this.selectedOption,
   });
 }
 

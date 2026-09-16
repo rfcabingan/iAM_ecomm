@@ -7,12 +7,15 @@ import 'package:iam_ecomm/common/widgets/custom_shapes/containers/primary_header
 import 'package:iam_ecomm/common/widgets/custom_shapes/containers/search_bar.dart';
 import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
+import 'package:iam_ecomm/common/widgets/products/product_cards/package_card.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
+import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_appbar.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_categories.dart';
 import 'package:iam_ecomm/features/shop/controllers/home_controller.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/promo_slider.dart';
 import 'package:iam_ecomm/features/shop/screens/all_products/all_products.dart';
+import 'package:iam_ecomm/features/shop/screens/packages/all_packages.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
 import 'package:iam_ecomm/utils/api/models/image_item.dart';
@@ -20,6 +23,7 @@ import 'package:iam_ecomm/utils/local_storage/storage_utility.dart';
 import 'package:iam_ecomm/features/screens/home/home_web.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/device/platform_layout.dart';
+import 'package:iam_ecomm/utils/models/package_option.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,6 +37,94 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const String _bannersCacheKey = 'home_banners_cache_v1';
   final IAMLocalStorage _storage = IAMLocalStorage();
+
+  // Mock package data for display
+  static final List<PackageOption> _mockPackages = [
+    PackageOption(
+      name: 'Copper Package',
+      image: IAMImages.copper,
+      price: 5000,
+      description: 'Basic wellness starter kit with essential supplements for beginners starting their health journey.',
+      selectionOptions: [
+        PackageSelectionOption(
+          id: 'copper_opt1',
+          name: 'Option 1',
+          price: 5000,
+          products: [
+            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 2),
+            PackageProduct(productCode: 'BARCHO', productName: 'Barley Chocolate', quantity: 1),
+          ],
+        ),
+        PackageSelectionOption(
+          id: 'copper_opt2',
+          name: 'Option 2',
+          price: 6000,
+          products: [
+            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 3),
+            PackageProduct(productCode: 'BLACOF', productName: 'Black Coffee', quantity: 1),
+          ],
+        ),
+      ],
+    ),
+    PackageOption(
+      name: 'Bronze Package',
+      image: IAMImages.bronze,
+      price: 10000,
+      description: 'Enhanced wellness package with premium supplements for improved health benefits.',
+      selectionOptions: [
+        PackageSelectionOption(
+          id: 'bronze_opt1',
+          name: 'Option 1',
+          price: 10000,
+          products: [
+            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 5),
+            PackageProduct(productCode: 'BARCHO', productName: 'Barley Chocolate', quantity: 2),
+            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 1),
+          ],
+        ),
+        PackageSelectionOption(
+          id: 'bronze_opt2',
+          name: 'Option 2',
+          price: 12000,
+          products: [
+            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 6),
+            PackageProduct(productCode: 'BLACOF', productName: 'Black Coffee', quantity: 2),
+            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 2),
+          ],
+        ),
+      ],
+    ),
+    PackageOption(
+      name: 'Silver Package',
+      image: IAMImages.silver2,
+      price: 15000,
+      description: 'Complete wellness solution with advanced supplements for comprehensive health support.',
+      selectionOptions: [
+        PackageSelectionOption(
+          id: 'silver_opt1',
+          name: 'Option 1',
+          price: 15000,
+          products: [
+            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 8),
+            PackageProduct(productCode: 'BARCHO', productName: 'Barley Chocolate', quantity: 3),
+            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 2),
+            PackageProduct(productCode: 'COFTKA', productName: 'Coffee Taro', quantity: 1),
+          ],
+        ),
+        PackageSelectionOption(
+          id: 'silver_opt2',
+          name: 'Option 2',
+          price: 18000,
+          products: [
+            PackageProduct(productCode: 'BARGUM', productName: 'Barley Gum', quantity: 10),
+            PackageProduct(productCode: 'BLACOF', productName: 'Black Coffee', quantity: 3),
+            PackageProduct(productCode: 'BARPOW', productName: 'Barley Powder', quantity: 3),
+            PackageProduct(productCode: 'COFGLU', productName: 'Coffee Gluta', quantity: 1),
+          ],
+        ),
+      ],
+    ),
+  ];
 
   List<String> _bannerUrls = const [];
   bool _bannersLoading = true;
@@ -215,6 +307,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     );
                   }),
+                  const SizedBox(height: IAMSizes.spaceBtwSections),
+                  IAMSectionHeading(
+                    title: 'Packages',
+                    onPressed: () => Get.to(() => const AllPackages()),
+                  ),
+                  const SizedBox(height: IAMSizes.spaceBtwItems),
+                  // Mock package data for display
+                  IAMGridLayout(
+                    itemCount: _mockPackages.length,
+                    itemBuilder: (_, index) {
+                      return IAMPackageCard(packageOption: _mockPackages[index]);
+                    },
+                  ),
                 ],
               ),
             ),

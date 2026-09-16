@@ -27,6 +27,8 @@ class IAMImages {
       "assets/images/animations/highfive.png";
 
   // Category Icons
+  static const String iamPackages = "assets/images/categories/organic-product.png";
+  static const String iamPackages1 = "assets/images/categories/natural.png";
   static const String amazingBarley = "assets/images/categories/bio.png";
   static const String amazingBarley1 = "assets/images/categories/cat-barley.png";
   static const String amazingSkinCare = "assets/images/categories/glowing-skin (1).png";
