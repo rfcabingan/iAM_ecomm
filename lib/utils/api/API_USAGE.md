@@ -41,6 +41,7 @@ await ApiMiddleware.init();
 - `ApiMiddleware.auth.forgotPassword(emailAddress)` -> `ApiResponse<dynamic>` (POST `/Auth/ForgotPassword`, body `{ "emailAddress": "..." }`)
 - `ApiMiddleware.auth.validateResetCode(emailAddress: ..., resetCode: ...)` -> `ApiResponse<ValidateResetCodeResponse?>` (POST `/Auth/ValidateResetCode`, body `{ "emailAddress": "...", "resetCode": "..." }`; success `data.isValid` is `true` when the reset code is valid)
 - `ApiMiddleware.auth.resetPassword(emailAddress: ..., resetCode: ..., newPassword: ...)` -> `ApiResponse<dynamic>` (POST `/Auth/ResetPassword`, body `{ "emailAddress": "...", "resetCode": "...", "newPassword": "..." }`)
+
 ## Cart
 
 - `ApiMiddleware.cart.add(productCode: 'X', qty: 1)` → `ApiResponse<CartPayload?>`
@@ -79,6 +80,63 @@ await ApiMiddleware.init();
 - `ApiMiddleware.checkout.checkout(fullName: ..., mobileNo: ..., emailAddress: ..., paymentProviderCode: ..., country: ..., province: ..., city: ..., barangay: ..., streetAddress: ..., postalCode: ..., completeAddress: ..., notes: 'optional note', fulfillmentTypeId: 2, areaCode: '101')` → `ApiResponse<CheckoutData?>` (POST `/Checkout`) — latest API body includes `fulfillmentTypeId` and `areaCode`; use fulfillment type from `getFulfillmentTypes()` and branch `areaCode` from `getBranches()` for pickup flows.
 - `ApiMiddleware.checkout.computeFees(paymentProviderCode: 'IAMWALLET', country: 'PHILIPPINES', province: 'METRO-MANILA', city: 'QUEZON-CITY', fulfillmentTypeId: 2)` → `ApiResponse<ComputeFeesData?>` (POST `/Checkout/ComputeFees`) — latest API body includes `fulfillmentTypeId`; keep this value aligned with checkout request. Success `data` includes `cartRefno`, amounts, `totalBoxes`. On failure (e.g. no active cart), `success` is false, `data` is null, and `message` explains the error.
 
+## Packages
+
+All package endpoints require the bearer token managed by `ApiMiddleware.setToken()`.
+
+- `ApiMiddleware.packages.getPackages()` -> `ApiResponse<List<PackageItem?>>` (GET `/Packages`)
+  - Each item contains `packageCode`, `packageName`, and `description`.
+- `ApiMiddleware.packages.getOptions('A002')` -> `ApiResponse<List<PackageOptionItem?>>` (GET `/Packages/{packageCode}/Options`)
+  - Each option contains `optionId`, `optionName`, and `price`.
+- `ApiMiddleware.packages.getOptionItems(packageCode: 'A002', optionId: 10161)` -> `ApiResponse<List<PackageOptionItemDetail?>>` (GET `/Packages/{packageCode}/Options/{optionId}/Items`)
+  - Each item contains `itemId`, `itemName`, and `quantity`.
+
+### Package fee computation
+
+```dart
+final res = await ApiMiddleware.packages.computeFees(
+  packageCode: 'A002',
+  optionId: 209,
+  paymentMethodId: 1,
+  fulfillmentTypeId: 1,
+  country: 'Philippines',
+  province: 'Metro-Manila',
+  city: 'Quezon-City',
+  barangay: 'Batasan Hills',
+  areaCode: null,
+);
+```
+
+This sends a JSON body to `POST /Packages/ComputeFees`. The typed response is `PackageComputeFeesData?`, containing `packagePrice`, `shippingFee`, `tax`, and `totalAmount`.
+
+### Package registration
+
+```dart
+final res = await ApiMiddleware.packages.register(
+  firstName: 'Juan',
+  middleName: 'Santos',
+  lastName: 'Dela Cruz',
+  country: 'Philippines',
+  province: 'Metro-Manila',
+  city: 'Quezon-City',
+  barangay: 'Batasan Hills',
+  completeAddress: '123 Sample Street, Batasan Hills, Quezon City',
+  email: 'juan.delacruz@gmail.com',
+  mobileNo: '09171234567',
+  birthDate: '1990-05-20',
+  gender: 'Male',
+  packageCode: 'A002',
+  optionId: 10161,
+  sponsorIdno: '00000001',
+  paymentMethodId: 1,
+  fulfillmentTypeId: 1,
+  areaCode: '000',
+  termsAccepted: true,
+);
+```
+
+This sends a JSON body to `POST /Packages/Register`. `birthDate` must use `YYYY-MM-DD`, and `termsAccepted` must be `true`. The typed response is `PackageRegistrationData?`, containing `status`, `message`, and `registrationId`. On failure, inspect `res.success`, `res.status`, and `res.message`.
+
 ## Location
 
 - `ApiMiddleware.location.getCountries()` → `ApiResponse<List<CountryItem?>>`
@@ -105,7 +163,7 @@ await ApiMiddleware.init();
 - `ApiMiddleware.orders.getOrders()` → `ApiResponse<List<OrderItem?>>`
 - `ApiMiddleware.orders.getOrderDetail(refNo)` → `ApiResponse<OrderDetailItem?>`
 - `ApiMiddleware.orders.getOrderHistory(refNo)` → `ApiResponse<List<OrderStatusHistoryItem?>>` (GET `/Orders/{orderRefNo}/History`) — status timeline (e.g. `Delivered`, `In Transit`, with `trackingNo`, `remarks`, `userName`, `tranDate`)
- - `ApiMiddleware.orders.getReferralOrders(status: 'PENDING')` → `ApiResponse<List<ReferralOrderItem?>>` (GET `/Orders/ReferralOrders?status={status}`) — returns referral-linked orders with `buyerIdNo` and `referralId` in each item.
+- `ApiMiddleware.orders.getReferralOrders(status: 'PENDING')` → `ApiResponse<List<ReferralOrderItem?>>` (GET `/Orders/ReferralOrders?status={status}`) — returns referral-linked orders with `buyerIdNo` and `referralId` in each item.
 
 ## Product Review
 
@@ -150,7 +208,6 @@ await ApiMiddleware.init();
 
 - `ApiMiddleware.images.getImages(imageType: 'Products')` → `ApiResponse<List<ImageItem>>` (GET `/Images?imageType=Products`)
 - `ApiMiddleware.images.getImages(imageType: 'Banners')` → `ApiResponse<List<ImageItem>>` (GET `/Images?imageType=Banners`)
-
   - Returns a list of images by type. Each `ImageItem` has:
     - `autoId`, `imageType`, `imageName`, `description`, `filePath`, `isVisible`, `sortOrder`
   - Example:
@@ -190,4 +247,3 @@ Typed models for login and products live in `responses/response_prep.dart`.
 To follow to : some response mapping is left dynamic until some of thee API contracts are fixed.
 
 Endpoints are in `endpoints/api_endpoints.dart`. Base URL is set in `ApiClient` / `ApiEndpoints.baseUrl`-
-

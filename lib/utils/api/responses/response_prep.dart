@@ -29,6 +29,119 @@ int readIntValue(dynamic v) {
   return int.tryParse(v?.toString() ?? '') ?? 0;
 }
 
+class PackageItem {
+  final String packageCode;
+  final String packageName;
+  final String description;
+
+  PackageItem({
+    required this.packageCode,
+    required this.packageName,
+    required this.description,
+  });
+
+  static PackageItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PackageItem(
+      packageCode: m['packageCode'] as String? ?? '',
+      packageName: m['packageName'] as String? ?? '',
+      description: m['description'] as String? ?? '',
+    );
+  }
+}
+
+class PackageOptionItem {
+  final int optionId;
+  final String optionName;
+  final num price;
+
+  PackageOptionItem({
+    required this.optionId,
+    required this.optionName,
+    required this.price,
+  });
+
+  static PackageOptionItem? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PackageOptionItem(
+      optionId: readIntValue(m['optionId']),
+      optionName: m['optionName'] as String? ?? '',
+      price: (m['price'] as num?) ?? 0,
+    );
+  }
+}
+
+class PackageOptionItemDetail {
+  final String itemId;
+  final String itemName;
+  final int quantity;
+
+  PackageOptionItemDetail({
+    required this.itemId,
+    required this.itemName,
+    required this.quantity,
+  });
+
+  static PackageOptionItemDetail? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PackageOptionItemDetail(
+      itemId: m['itemId']?.toString() ?? '',
+      itemName: m['itemName'] as String? ?? '',
+      quantity: readIntValue(m['quantity']),
+    );
+  }
+}
+
+class PackageComputeFeesData {
+  final num packagePrice;
+  final num shippingFee;
+  final num tax;
+  final num totalAmount;
+
+  PackageComputeFeesData({
+    required this.packagePrice,
+    required this.shippingFee,
+    required this.tax,
+    required this.totalAmount,
+  });
+
+  static PackageComputeFeesData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PackageComputeFeesData(
+      packagePrice: (m['packagePrice'] as num?) ?? 0,
+      shippingFee: (m['shippingFee'] as num?) ?? 0,
+      tax: (m['tax'] as num?) ?? 0,
+      totalAmount: (m['totalAmount'] as num?) ?? 0,
+    );
+  }
+}
+
+class PackageRegistrationData {
+  final String status;
+  final String message;
+  final String registrationId;
+
+  PackageRegistrationData({
+    required this.status,
+    required this.message,
+    required this.registrationId,
+  });
+
+  static PackageRegistrationData? fromJson(dynamic json) {
+    final m = asMap(json);
+    if (m == null) return null;
+    return PackageRegistrationData(
+      status: m['status'] as String? ?? '',
+      message: m['message'] as String? ?? '',
+      registrationId: m['registrationId'] as String? ?? '',
+    );
+  }
+}
+
 class HelpTopicItem {
   final int helpTopicId;
   final String category;
@@ -401,7 +514,8 @@ class PointsHistoryItem {
       sourceApp: m['sourceApp']?.toString() ?? '',
       ptsRefNo: m['ptsRefNo']?.toString() ?? '',
       relatedTranNo:
-          asNonEmptyString(m['relatedTranno']) ?? asNonEmptyString(m['relatedTranNo']),
+          asNonEmptyString(m['relatedTranno']) ??
+          asNonEmptyString(m['relatedTranNo']),
       pts: readIntValue(m['pts']),
       amt: readIntValue(m['amt']),
       runningBalance: readIntValue(m['runningBalance']),
