@@ -9,7 +9,7 @@ class IAMHomeCategories extends StatelessWidget {
   const IAMHomeCategories({super.key});
 
   static const List<String> _categoryImages = [
-    IAMImages.iamPackages,
+    IAMImages.jade,
     IAMImages.amazingBarley1,
     //IAMImages.amazingSkinCare,
     IAMImages.deliciousJuiceDrinks1,

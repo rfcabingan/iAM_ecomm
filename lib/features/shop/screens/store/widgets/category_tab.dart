@@ -93,51 +93,55 @@ class _IAMCategoryTabState extends State<IAMCategoryTab> {
                     : Get.to(() => const AllProducts()),
               ),
               const SizedBox(height: IAMSizes.spaceBtwItems),
-              Obx(() {
-                // Special handling for packages category
-                if (categoryId == ProductCategories.iamPackages) {
-                  if (_loadingPackages) {
-                    return const IAMProductGridSkeleton(itemCount: 4);
-                  }
-                  if (_packagesError != null) {
-                    return Padding(
-                      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-                      child: Column(
-                        children: [
-                          Text(
-                            _packagesError!,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: IAMSizes.sm),
-                          ElevatedButton(
-                            onPressed: _loadPackages,
-                            child: const Text('Try Again'),
-                          ),
-                        ],
-                      ),
+              // Special handling for packages category (uses regular state, not Obx)
+              if (categoryId == ProductCategories.iamPackages)
+                Builder(
+                  builder: (context) {
+                    if (_loadingPackages) {
+                      return const IAMProductGridSkeleton(itemCount: 4);
+                    }
+                    if (_packagesError != null) {
+                      return Padding(
+                        padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                        child: Column(
+                          children: [
+                            Text(
+                              _packagesError!,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: IAMSizes.sm),
+                            ElevatedButton(
+                              onPressed: _loadPackages,
+                              child: const Text('Try Again'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    if (_packages.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                        child: Text(
+                          'No packages available at the moment. Please check back later.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      );
+                    }
+                    return IAMGridLayout(
+                      itemCount: _packages.length,
+                      itemBuilder: (_, index) {
+                        final package = _packages[index];
+                        if (package == null) return const SizedBox.shrink();
+                        return IAMPackageCard(package: package);
+                      },
                     );
-                  }
-                  if (_packages.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-                      child: Text(
-                        'No packages available at the moment. Please check back later.',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    );
-                  }
-                  return IAMGridLayout(
-                    itemCount: _packages.length,
-                    itemBuilder: (_, index) {
-                      final package = _packages[index];
-                      if (package == null) return const SizedBox.shrink();
-                      return IAMPackageCard(package: package);
-                    },
-                  );
-                }
+                  },
+                ),
 
-                // Regular product categories
+              // Regular product categories (uses Obx for controller observables)
+              if (categoryId != ProductCategories.iamPackages)
+                Obx(() {
                 if (controller.loadingByCategory[categoryId] == true) {
                   return const IAMProductGridSkeleton(itemCount: 4);
                 }

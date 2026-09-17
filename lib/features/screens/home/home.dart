@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -129,6 +130,33 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Get packages to display on home: Jade Package (A011) + 1 random package
+  List<PackageItem?> _getDisplayedPackages() {
+    final jadePackage = _packages.firstWhere(
+      (p) => p?.packageCode == 'A011',
+      orElse: () => null,
+    );
+
+    final otherPackages = _packages.where((p) => p?.packageCode != 'A011').toList();
+
+    if (jadePackage == null && otherPackages.isEmpty) {
+      return [];
+    }
+
+    final List<PackageItem?> displayed = [];
+    if (jadePackage != null) {
+      displayed.add(jadePackage);
+    }
+
+    if (otherPackages.isNotEmpty) {
+      final random = Random();
+      final randomPackage = otherPackages[random.nextInt(otherPackages.length)];
+      displayed.add(randomPackage);
+    }
+
+    return displayed;
+  }
+
   @override
   Widget build(BuildContext context) {
     void openSearchResults(String query) {
@@ -183,6 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            
             Padding(
               padding: const EdgeInsets.all(IAMSizes.defaultSpace),
               child: Column(
@@ -242,13 +271,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }),
                   const SizedBox(height: IAMSizes.spaceBtwSections),
+
+                  // Packages
                   IAMSectionHeading(
                     title: 'Packages',
                     onPressed: () => Get.to(() => const AllPackages()),
                   ),
                   const SizedBox(height: IAMSizes.spaceBtwItems),
                   if (_loadingPackages)
-                    const IAMProductGridSkeleton(itemCount: 3)
+                    const IAMProductGridSkeleton(itemCount: 2)
                   else if (_packagesError != null)
                     Padding(
                       padding: const EdgeInsets.all(IAMSizes.defaultSpace),
@@ -277,9 +308,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   else
                     IAMGridLayout(
-                      itemCount: _packages.length,
+                      itemCount: _getDisplayedPackages().length,
                       itemBuilder: (_, index) {
-                        final package = _packages[index];
+                        final package = _getDisplayedPackages()[index];
                         if (package == null) return const SizedBox.shrink();
                         return IAMPackageCard(package: package);
                       },
