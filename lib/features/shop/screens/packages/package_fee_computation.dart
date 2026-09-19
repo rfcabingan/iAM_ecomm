@@ -101,30 +101,33 @@ class _PackageFeeComputationScreenState extends State<PackageFeeComputationScree
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Package Summary
-              IAMRoundedContainer(
-                showBorder: true,
-                padding: const EdgeInsets.all(IAMSizes.md),
-                backgroundColor: dark ? IAMColors.black : IAMColors.white,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.package.packageName,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+              SizedBox(
+                width: double.infinity,
+                child: IAMRoundedContainer(
+                  showBorder: true,
+                  padding: const EdgeInsets.all(IAMSizes.md),
+                  backgroundColor: dark ? IAMColors.black : IAMColors.white,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _feesData?.packageName ?? widget.package.packageName,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: IAMSizes.sm),
-                    Text('Selected Option: ${widget.selectedOption.optionName}'),
-                    const SizedBox(height: IAMSizes.sm),
-                    Text(
-                      'Package Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: IAMColors.primary,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: IAMSizes.sm),
+                      Text('Selected Option: ${_feesData?.optionName ?? widget.selectedOption.optionName}'),
+                      const SizedBox(height: IAMSizes.sm),
+                      Text(
+                        'Package Amount: ₱${(_feesData?.packageAmount ?? (widget.selectedOption.price ?? widget.package.packageAmount)).toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: IAMColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
@@ -180,18 +183,23 @@ class _PackageFeeComputationScreenState extends State<PackageFeeComputationScree
                       ),
                       const SizedBox(height: IAMSizes.md),
                       _FeeRow(
-                        label: 'Package Price',
-                        value: _feesData!.packagePrice,
+                        label: 'Package Amount',
+                        value: _feesData!.packageAmount,
                       ),
                       const SizedBox(height: IAMSizes.sm),
                       _FeeRow(
-                        label: 'Shipping Fee',
-                        value: _feesData!.shippingFee,
+                        label: 'Shipping Amount',
+                        value: _feesData!.shippingAmount,
                       ),
                       const SizedBox(height: IAMSizes.sm),
                       _FeeRow(
-                        label: 'Tax',
-                        value: _feesData!.tax,
+                        label: 'Processing Fee',
+                        value: _feesData!.processingFee,
+                      ),
+                      const SizedBox(height: IAMSizes.sm),
+                      _FeeRow(
+                        label: 'Discount Amount',
+                        value: _feesData!.discountAmount,
                       ),
                       const Divider(height: IAMSizes.md),
                       _FeeRow(

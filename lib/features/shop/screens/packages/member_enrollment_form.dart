@@ -618,55 +618,47 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwItems),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _firstNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'First Name',
-                          prefixIcon: Icon(Iconsax.user),
-                        ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
-                        ],
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Required Field*';
-                          }
-                          final normalized = v.trim();
-                          final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
-                          if (!regex.hasMatch(normalized)) {
-                            return 'Only letters are allowed';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: IAMSizes.spaceBtwItems),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _middleNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Middle Name (Optional)',
-                          prefixIcon: Icon(Iconsax.user),
-                        ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
-                        ],
-                        validator: (v) {
-                          if (v != null && v.trim().isNotEmpty) {
-                            final normalized = v.trim();
-                            final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
-                            if (!regex.hasMatch(normalized)) {
-                              return 'Only letters are allowed';
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
+                TextFormField(
+                  controller: _firstNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'First Name',
+                    prefixIcon: Icon(Iconsax.user),
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
                   ],
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Required Field*';
+                    }
+                    final normalized = v.trim();
+                    final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
+                    if (!regex.hasMatch(normalized)) {
+                      return 'Only letters are allowed';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwItems),
+                TextFormField(
+                  controller: _middleNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Middle Name (Optional)',
+                    prefixIcon: Icon(Iconsax.user),
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
+                  ],
+                  validator: (v) {
+                    if (v != null && v.trim().isNotEmpty) {
+                      final normalized = v.trim();
+                      final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
+                      if (!regex.hasMatch(normalized)) {
+                        return 'Only letters are allowed';
+                      }
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
 
@@ -691,6 +683,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     return null;
                   },
                 ),
+
+                const SizedBox(height: IAMSizes.spaceBtwInputFields),
+                const Divider(),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
 
                 TextFormField(

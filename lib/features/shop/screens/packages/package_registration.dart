@@ -67,7 +67,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
       fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
       areaCode: widget.memberInfo.areaCode,
       termsAccepted: widget.memberInfo.termsAccepted,
-      // validId: widget.memberInfo.idImageBase64, // Temporarily disabled for testing
+      validId: widget.memberInfo.idImageBase64,
     );
 
     if (mounted) {
@@ -115,22 +115,25 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Package Summary
-              IAMRoundedContainer(
-                showBorder: true,
-                padding: const EdgeInsets.all(IAMSizes.md),
-                backgroundColor: dark ? IAMColors.black : IAMColors.white,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.package.packageName,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+              SizedBox(
+                width: double.infinity,
+                child: IAMRoundedContainer(
+                  showBorder: true,
+                  padding: const EdgeInsets.all(IAMSizes.md),
+                  backgroundColor: dark ? IAMColors.black : IAMColors.white,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.feesData.packageName,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: IAMSizes.sm),
-                    Text('Selected Option: ${widget.selectedOption.optionName}'),
-                  ],
+                      const SizedBox(height: IAMSizes.sm),
+                      Text('Selected Option: ${widget.feesData.optionName}'),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
@@ -152,18 +155,23 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
                     ),
                     const SizedBox(height: IAMSizes.md),
                     _FeeRow(
-                      label: 'Package Price',
-                      value: widget.feesData.packagePrice,
+                      label: 'Package Amount',
+                      value: widget.feesData.packageAmount,
                     ),
                     const SizedBox(height: IAMSizes.sm),
                     _FeeRow(
-                      label: 'Shipping Fee',
-                      value: widget.feesData.shippingFee,
+                      label: 'Shipping Amount',
+                      value: widget.feesData.shippingAmount,
                     ),
                     const SizedBox(height: IAMSizes.sm),
                     _FeeRow(
-                      label: 'Tax',
-                      value: widget.feesData.tax,
+                      label: 'Processing Fee',
+                      value: widget.feesData.processingFee,
+                    ),
+                    const SizedBox(height: IAMSizes.sm),
+                    _FeeRow(
+                      label: 'Discount Amount',
+                      value: widget.feesData.discountAmount,
                     ),
                     const Divider(height: IAMSizes.md),
                     _FeeRow(
@@ -214,30 +222,53 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
                 ),
 
               // Registration Info (for debugging/testing)
+              //
+              //
+              // REMOVE WHEN DONE TESTING/FOR PRODUCTION 
+              //
+              //
               if (!_isRegistering && _errorMessage == null)
-                IAMRoundedContainer(
-                  showBorder: true,
-                  padding: const EdgeInsets.all(IAMSizes.md),
-                  backgroundColor: dark ? IAMColors.darkGrey : Colors.grey[200]!,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Registration Details',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                SizedBox(
+                  width: double.infinity,
+                  child: IAMRoundedContainer(
+                    showBorder: true,
+                    padding: const EdgeInsets.all(IAMSizes.md),
+                    backgroundColor: dark ? IAMColors.darkGrey : Colors.grey[200]!,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Registration Details',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: IAMSizes.sm),
-                      Text('Sponsor ID: ${widget.memberInfo.sponsorIdno}'),
-                      Text('Payment Method ID: ${widget.memberInfo.paymentMethodId}'),
-                      Text('Fulfillment Type ID: ${widget.memberInfo.fulfillmentTypeId}'),
-                      if (widget.memberInfo.areaCode != null)
-                        Text('Area Code: ${widget.memberInfo.areaCode}'),
-                      Text('Terms Accepted: ${widget.memberInfo.termsAccepted}'),
-                      Text('Valid ID: ${widget.memberInfo.idImageBase64 != null ? "Uploaded (base64) - NOT SENT" : "Not uploaded"}'),
-                    ],
+                        const SizedBox(height: IAMSizes.sm),
+                        Text('Sponsor ID: ${widget.memberInfo.sponsorIdno}'),
+                        Text('Payment Method ID: ${widget.memberInfo.paymentMethodId}'),
+                        Text('Fulfillment Type ID: ${widget.memberInfo.fulfillmentTypeId}'),
+                        if (widget.memberInfo.areaCode != null)
+                          Text('Area Code: ${widget.memberInfo.areaCode}'),
+                        Text('Terms Accepted: ${widget.memberInfo.termsAccepted}'),
+                        Text('Valid ID: ${widget.memberInfo.idImageBase64 != null ? "Uploaded (base64)" : "Not uploaded"}'),
+                        const Divider(),
+                        const SizedBox(height: IAMSizes.sm),
+                        const Text(
+                          'Shipping Details',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: IAMSizes.sm),
+                        Text('Shipping Method: ${widget.feesData.shippingMethod}'),
+                        Text('Shipping Region: ${widget.feesData.shippingRegion}'),
+                        Text('Fulfillment Area Code: ${widget.feesData.fulfillmentAreaCode}'),
+                        Text('Total Boxes: ${widget.feesData.totalBoxes}'),
+                        Text('Total Weight: ${widget.feesData.totalWeight} kg'),
+                      ],
+                    ),
                   ),
                 ),
               const SizedBox(height: IAMSizes.spaceBtwSections),

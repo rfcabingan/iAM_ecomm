@@ -129,26 +129,56 @@ class PackageOptionItemDetail {
 }
 
 class PackageComputeFeesData {
-  final num packagePrice;
-  final num shippingFee;
-  final num tax;
+  final String packageCode;
+  final String packageName;
+  final int optionId;
+  final String optionName;
+  final num packageAmount;
+  final num shippingAmount;
+  final num processingFee;
+  final num discountAmount;
   final num totalAmount;
+  final int totalBoxes;
+  final num totalWeight;
+  final String shippingMethod;
+  final String shippingRegion;
+  final String fulfillmentAreaCode;
 
   PackageComputeFeesData({
-    required this.packagePrice,
-    required this.shippingFee,
-    required this.tax,
+    required this.packageCode,
+    required this.packageName,
+    required this.optionId,
+    required this.optionName,
+    required this.packageAmount,
+    required this.shippingAmount,
+    required this.processingFee,
+    required this.discountAmount,
     required this.totalAmount,
+    required this.totalBoxes,
+    required this.totalWeight,
+    required this.shippingMethod,
+    required this.shippingRegion,
+    required this.fulfillmentAreaCode,
   });
 
   static PackageComputeFeesData? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
     return PackageComputeFeesData(
-      packagePrice: (m['packagePrice'] as num?) ?? 0,
-      shippingFee: (m['shippingFee'] as num?) ?? 0,
-      tax: (m['tax'] as num?) ?? 0,
+      packageCode: m['packageCode'] as String? ?? '',
+      packageName: m['packageName'] as String? ?? '',
+      optionId: readIntValue(m['optionId']),
+      optionName: m['optionName'] as String? ?? '',
+      packageAmount: (m['packageAmount'] as num?) ?? 0,
+      shippingAmount: (m['shippingAmount'] as num?) ?? 0,
+      processingFee: (m['processingFee'] as num?) ?? 0,
+      discountAmount: (m['discountAmount'] as num?) ?? 0,
       totalAmount: (m['totalAmount'] as num?) ?? 0,
+      totalBoxes: readIntValue(m['totalBoxes']),
+      totalWeight: (m['totalWeight'] as num?) ?? 0,
+      shippingMethod: m['shippingMethod'] as String? ?? '',
+      shippingRegion: m['shippingRegion'] as String? ?? '',
+      fulfillmentAreaCode: m['fulfillmentAreaCode'] as String? ?? '',
     );
   }
 }
