@@ -2,6 +2,7 @@ import '../core/api_client.dart';
 import '../core/api_response.dart';
 import '../endpoints/api_endpoints.dart';
 import '../responses/response_prep.dart';
+import 'package:dio/dio.dart';
 
 class PackagesApi {
   PackagesApi(this._client);
@@ -82,13 +83,63 @@ class PackagesApi {
     required int fulfillmentTypeId,
     String? areaCode,
     required bool termsAccepted,
-    String? validId,
+    String? validIdPath,
   }) {
+    return _registerMultipart(
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
+      country: country,
+      province: province,
+      city: city,
+      barangay: barangay,
+      completeAddress: completeAddress,
+      email: email,
+      mobileNo: mobileNo,
+      birthDate: birthDate,
+      gender: gender,
+      packageCode: packageCode,
+      optionId: optionId,
+      sponsorIdno: sponsorIdno,
+      paymentMethodId: paymentMethodId,
+      fulfillmentTypeId: fulfillmentTypeId,
+      areaCode: areaCode,
+      termsAccepted: termsAccepted,
+      validIdPath: validIdPath,
+    );
+  }
+
+  Future<ApiResponse<PackageRegistrationData?>> _registerMultipart({
+    required String firstName,
+    String? middleName,
+    required String lastName,
+    required String country,
+    required String province,
+    required String city,
+    required String barangay,
+    required String completeAddress,
+    required String email,
+    required String mobileNo,
+    required String birthDate,
+    required String gender,
+    required String packageCode,
+    required int optionId,
+    required String sponsorIdno,
+    required int paymentMethodId,
+    required int fulfillmentTypeId,
+    String? areaCode,
+    required bool termsAccepted,
+    String? validIdPath,
+  }) async {
+    final validId = validIdPath == null || validIdPath.trim().isEmpty
+        ? ''
+        : await MultipartFile.fromFile(validIdPath);
+
     return _client.post<PackageRegistrationData?>(
       ApiEndpoints.packagesRegister,
-      body: {
+      body: FormData.fromMap({
         'firstName': firstName,
-        'middleName': middleName,
+        'middleName': middleName ?? '',
         'lastName': lastName,
         'country': country,
         'province': province,
@@ -104,10 +155,10 @@ class PackagesApi {
         'sponsorIdno': sponsorIdno,
         'paymentMethodId': paymentMethodId,
         'fulfillmentTypeId': fulfillmentTypeId,
-        'areaCode': areaCode,
+        'areaCode': areaCode ?? '',
         'termsAccepted': termsAccepted,
         'validId': validId,
-      },
+      }),
       fromJsonData: PackageRegistrationData.fromJson,
     );
   }

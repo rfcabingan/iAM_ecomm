@@ -13,7 +13,9 @@ class ApiInterceptor extends Interceptor {
     if (_token != null && _token!.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $_token';
     }
-    options.headers['Content-Type'] = 'application/json';
+    if (options.data is! FormData) {
+      options.headers['Content-Type'] = 'application/json';
+    }
     options.headers['Accept'] = 'application/json';
     handler.next(options);
   }
