@@ -67,7 +67,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
       fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
       areaCode: widget.memberInfo.areaCode,
       termsAccepted: widget.memberInfo.termsAccepted,
-      validId: widget.memberInfo.idImageBase64,
+      validIdPath: widget.memberInfo.idImagePath,
     );
 
     if (mounted) {
