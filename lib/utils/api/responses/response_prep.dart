@@ -184,23 +184,25 @@ class PackageComputeFeesData {
 }
 
 class PackageRegistrationData {
-  final String status;
   final String message;
-  final String registrationId;
+  final String orderRefno;
+  final String registrationRefno;
 
   PackageRegistrationData({
-    required this.status,
     required this.message,
-    required this.registrationId,
+    required this.orderRefno,
+    required this.registrationRefno,
   });
 
   static PackageRegistrationData? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
+    final data = asMap(m['data']);
+    if (data == null) return null;
     return PackageRegistrationData(
-      status: m['status'] as String? ?? '',
       message: m['message'] as String? ?? '',
-      registrationId: m['registrationId'] as String? ?? '',
+      orderRefno: data['orderRefno'] as String? ?? '',
+      registrationRefno: data['registrationRefno'] as String? ?? '',
     );
   }
 }

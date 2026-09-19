@@ -37,6 +37,7 @@ class PackageRegistrationScreen extends StatefulWidget {
 class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
   bool _isRegistering = false;
   String? _errorMessage;
+  PackageRegistrationData? _registrationData;
 
   Future<void> _registerPackage() async {
     setState(() {
@@ -74,6 +75,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
       setState(() {
         _isRegistering = false;
         if (res.success) {
+          _registrationData = res.data;
           _showSuccessScreen();
         } else {
           _errorMessage = res.message.isNotEmpty ? res.message : 'Registration failed. Please try again.';
@@ -86,7 +88,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
     Get.off(() => SuccessScreen(
       image: 'assets/images/animations/sammy-success.png',
       title: 'Registration Submitted!',
-      subTitle: 'Your package registration has been submitted successfully. You will be notified once it is processed.',
+      subTitle: 'Order Ref: ${_registrationData?.orderRefno ?? "N/A"}\nRegistration Ref: ${_registrationData?.registrationRefno ?? "N/A"}',
       onPressed: () => Get.offAll(() => const AllPackages()),
     ));
   }
@@ -251,7 +253,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
                         if (widget.memberInfo.areaCode != null)
                           Text('Area Code: ${widget.memberInfo.areaCode}'),
                         Text('Terms Accepted: ${widget.memberInfo.termsAccepted}'),
-                        Text('Valid ID: ${widget.memberInfo.idImageBase64 != null ? "Uploaded (base64)" : "Not uploaded"}'),
+                        Text('Valid ID: ${widget.memberInfo.idImagePath != null && widget.memberInfo.idImagePath!.isNotEmpty ? "Uploaded (file)" : "Not uploaded"}'),
                         const Divider(),
                         const SizedBox(height: IAMSizes.sm),
                         const Text(
