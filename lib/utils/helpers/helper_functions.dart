@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -153,5 +156,16 @@ class IAMHelperFunctions {
     }
 
     return wrappedList;
+  }
+
+  /// Converts a File to base64 string.
+  ///
+  /// Example:
+  /// ```dart
+  /// final base64String = await IAMHelperFunctions.fileToBase64(imageFile);
+  /// ```
+  static Future<String> fileToBase64(File file) async {
+    final bytes = await file.readAsBytes();
+    return base64Encode(bytes);
   }
 }

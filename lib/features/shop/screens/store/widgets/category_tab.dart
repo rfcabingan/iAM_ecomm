@@ -5,6 +5,7 @@ import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/package_card.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/shop/controllers/store_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/all_products/all_products.dart';
 import 'package:iam_ecomm/features/shop/screens/packages/all_packages.dart';
@@ -61,6 +62,12 @@ class _IAMCategoryTabState extends State<IAMCategoryTab> {
     }
   }
 
+  // Check if user is a logged-in member
+  bool get _isMember {
+    if (!Get.isRegistered<AuthController>()) return false;
+    return AuthController.instance.isMember;
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<StoreController>();
@@ -94,7 +101,8 @@ class _IAMCategoryTabState extends State<IAMCategoryTab> {
               ),
               const SizedBox(height: IAMSizes.spaceBtwItems),
               // Special handling for packages category (uses regular state, not Obx)
-              if (categoryId == ProductCategories.iamPackages)
+              // Only show packages if user is a logged-in member
+              if (categoryId == ProductCategories.iamPackages && _isMember)
                 Builder(
                   builder: (context) {
                     if (_loadingPackages) {
@@ -137,6 +145,32 @@ class _IAMCategoryTabState extends State<IAMCategoryTab> {
                       },
                     );
                   },
+                ),
+              // Show message if not a member
+              if (categoryId == ProductCategories.iamPackages && !_isMember)
+                Padding(
+                  padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.lock,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: IAMSizes.md),
+                      Text(
+                        'Packages are only available for members',
+                        style: Theme.of(context).textTheme.titleMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: IAMSizes.sm),
+                      Text(
+                        'Please log in as a member to view and purchase packages',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
 
               // Regular product categories (uses Obx for controller observables)

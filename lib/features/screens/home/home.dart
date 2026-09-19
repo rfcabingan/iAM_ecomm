@@ -10,6 +10,7 @@ import 'package:iam_ecomm/common/widgets/layouts/grid_layout.dart';
 import 'package:iam_ecomm/common/widgets/loaders/skeleton.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/package_card.dart';
 import 'package:iam_ecomm/common/widgets/products/product_cards/product_card_vertical.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_appbar.dart';
 import 'package:iam_ecomm/features/screens/home/widgets/home_categories.dart';
 import 'package:iam_ecomm/features/shop/controllers/home_controller.dart';
@@ -157,6 +158,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return displayed;
   }
 
+  // Check if user is a logged-in member
+  bool get _isMember {
+    if (!Get.isRegistered<AuthController>()) return false;
+    return AuthController.instance.isMember;
+  }
+
   @override
   Widget build(BuildContext context) {
     void openSearchResults(String query) {
@@ -272,48 +279,76 @@ class _HomeScreenState extends State<HomeScreen> {
                   }),
                   const SizedBox(height: IAMSizes.spaceBtwSections),
 
-                  // Packages
-                  IAMSectionHeading(
-                    title: 'Packages',
-                    onPressed: () => Get.to(() => const AllPackages()),
-                  ),
-                  const SizedBox(height: IAMSizes.spaceBtwItems),
-                  if (_loadingPackages)
-                    const IAMProductGridSkeleton(itemCount: 2)
-                  else if (_packagesError != null)
+                  // Packages - Only visible to logged-in members
+                  if (_isMember) ...[
+                    IAMSectionHeading(
+                      title: 'Packages',
+                      onPressed: () => Get.to(() => const AllPackages()),
+                    ),
+                    const SizedBox(height: IAMSizes.spaceBtwItems),
+                    if (_loadingPackages)
+                      const IAMProductGridSkeleton(itemCount: 2)
+                    else if (_packagesError != null)
+                      Padding(
+                        padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                        child: Column(
+                          children: [
+                            Text(
+                              _packagesError!,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: IAMSizes.sm),
+                            ElevatedButton(
+                              onPressed: _loadPackages,
+                              child: const Text('Try Again'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (_packages.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                        child: Text(
+                          'No packages available at the moment. Please check back later.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      )
+                    else
+                      IAMGridLayout(
+                        itemCount: _getDisplayedPackages().length,
+                        itemBuilder: (_, index) {
+                          final package = _getDisplayedPackages()[index];
+                          if (package == null) return const SizedBox.shrink();
+                          return IAMPackageCard(package: package);
+                        },
+                      ),
+                  ],
+                  // Show message if not a member
+                  if (!_isMember)
                     Padding(
                       padding: const EdgeInsets.all(IAMSizes.defaultSpace),
                       child: Column(
                         children: [
+                          const Icon(
+                            Icons.lock,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: IAMSizes.md),
                           Text(
-                            _packagesError!,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            'Packages are only available for members',
+                            style: Theme.of(context).textTheme.titleMedium,
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: IAMSizes.sm),
-                          ElevatedButton(
-                            onPressed: _loadPackages,
-                            child: const Text('Try Again'),
+                          Text(
+                            'Please log in as a member to view and purchase packages',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
-                    )
-                  else if (_packages.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-                      child: Text(
-                        'No packages available at the moment. Please check back later.',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    )
-                  else
-                    IAMGridLayout(
-                      itemCount: _getDisplayedPackages().length,
-                      itemBuilder: (_, index) {
-                        final package = _getDisplayedPackages()[index];
-                        if (package == null) return const SizedBox.shrink();
-                        return IAMPackageCard(package: package);
-                      },
                     ),
                 ],
               ),

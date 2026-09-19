@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
-import 'package:iam_ecomm/features/shop/screens/checkout/checkout.dart';
+import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
+import 'package:iam_ecomm/features/shop/screens/packages/package_fee_computation.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
@@ -61,16 +62,41 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
   bool _loadingProvinces = false;
   bool _loadingCities = false;
   bool _loadingBarangays = false;
-  final bool _submitting = false;
+  bool _loadingPaymentMethods = false;
+  bool _loadingFulfillmentTypes = false;
+  bool _loadingBranches = false;
 
   // ID Upload
   String? _idImagePath;
   File? _idImageFile;
+  String? _idImageBase64;
+
+  // Sponsor ID (auto-filled from logged-in user)
+  String? _sponsorIdno;
+
+  // Payment Method
+  List<PaymentMethodItem> _paymentMethods = [];
+  PaymentMethodItem? _selectedPaymentMethod;
+
+  // Fulfillment Type
+  List<FulfillmentTypeItem> _fulfillmentTypes = [];
+  FulfillmentTypeItem? _selectedFulfillmentType;
+
+  // Branch (for pickup)
+  List<BranchItem> _branches = [];
+  BranchItem? _selectedBranch;
+
+  // Terms Accepted
+  bool _termsAccepted = false;
 
   @override
   void initState() {
     super.initState();
     _loadCountries();
+    _loadPaymentMethods();
+    _loadFulfillmentTypes();
+    _loadBranches();
+    _setSponsorId();
   }
 
   @override
@@ -131,6 +157,56 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
         _loadingBarangays = false;
         if (res.success) {
           _barangays = res.data?.whereType<BarangayItem>().toList() ?? [];
+        }
+      });
+    }
+  }
+
+  void _setSponsorId() {
+    if (Get.isRegistered<AuthController>()) {
+      final user = AuthController.instance.user.value;
+      if (user != null && AuthController.instance.isMember) {
+        setState(() {
+          _sponsorIdno = user.idno;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadPaymentMethods() async {
+    setState(() => _loadingPaymentMethods = true);
+    final res = await ApiMiddleware.payment.getPaymentMethods();
+    if (mounted) {
+      setState(() {
+        _loadingPaymentMethods = false;
+        if (res.success) {
+          _paymentMethods = res.data?.whereType<PaymentMethodItem>().toList() ?? [];
+        }
+      });
+    }
+  }
+
+  Future<void> _loadFulfillmentTypes() async {
+    setState(() => _loadingFulfillmentTypes = true);
+    final res = await ApiMiddleware.fulfillment.getFulfillmentTypes();
+    if (mounted) {
+      setState(() {
+        _loadingFulfillmentTypes = false;
+        if (res.success) {
+          _fulfillmentTypes = res.data?.whereType<FulfillmentTypeItem>().toList() ?? [];
+        }
+      });
+    }
+  }
+
+  Future<void> _loadBranches() async {
+    setState(() => _loadingBranches = true);
+    final res = await ApiMiddleware.fulfillment.getBranches();
+    if (mounted) {
+      setState(() {
+        _loadingBranches = false;
+        if (res.success) {
+          _branches = res.data?.whereType<BranchItem>().toList() ?? [];
         }
       });
     }
@@ -207,9 +283,13 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
         // Convert XFile to File
         final file = File(image.path);
 
+        // Convert to base64 for API submission
+        final base64String = await IAMHelperFunctions.fileToBase64(file);
+
         setState(() {
           _idImagePath = image.path;
           _idImageFile = file;
+          _idImageBase64 = base64String;
         });
       }
     } catch (e) {
@@ -258,6 +338,17 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       return;
     }
 
+    // Validate sponsor ID
+    if (_sponsorIdno == null || _sponsorIdno!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You must be logged in as a member to sponsor a registration'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     // Validate required selections
     if (_selectedBirthdate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -302,6 +393,51 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       return;
     }
 
+    // Validate payment method
+    if (_selectedPaymentMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a payment method'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate fulfillment type
+    if (_selectedFulfillmentType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a fulfillment type'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate branch if pickup selected
+    if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP' &&
+        _selectedBranch == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a branch for pickup'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate terms acceptance
+    if (!_termsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the terms and conditions'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     // Show confirmation screen
     _showConfirmationScreen();
   }
@@ -336,6 +472,14 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
               Text('Province: ${_selectedProvince!.province}'),
               Text('Country: ${_selectedCountry!.country}'),
               const Divider(),
+              const Text('Payment & Fulfillment', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Sponsor ID: $_sponsorIdno'),
+              Text('Payment Method: ${_selectedPaymentMethod?.methodName}'),
+              Text('Fulfillment: ${_selectedFulfillmentType?.fulfillmentTypeName}'),
+              if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP')
+                Text('Branch: ${_selectedBranch?.areaName}'),
+              Text('Terms Accepted: ${_termsAccepted ? "Yes" : "No"}'),
+              const Divider(),
               const Text('Valid ID', style: TextStyle(fontWeight: FontWeight.bold)),
               if (_idImagePath != null)
                 Container(
@@ -364,16 +508,19 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              _proceedToCheckout();
+              _proceedToFeeComputation();
             },
-            child: const Text('Confirm & Checkout'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text('Proceed'),
           ),
         ],
       ),
     );
   }
 
-  void _proceedToCheckout() {
+  void _proceedToFeeComputation() {
     // Create member enrollment info from form data
     final memberInfo = MemberEnrollmentInfo(
       firstName: _firstNameController.text.trim(),
@@ -384,6 +531,12 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       birthdate: _selectedBirthdate!,
       gender: _selectedGender!,
       idImagePath: _idImagePath,
+      idImageBase64: _idImageBase64,
+      sponsorIdno: _sponsorIdno,
+      paymentMethodId: _selectedPaymentMethod?.paymentMethodId,
+      fulfillmentTypeId: _selectedFulfillmentType?.fulfillmentTypeId,
+      areaCode: _selectedBranch?.areaCode,
+      termsAccepted: _termsAccepted,
     );
 
     // Create address from enrollment form
@@ -405,8 +558,8 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       updatedAt: null,
     );
 
-    // Navigate to checkout with package data
-    Get.to(() => CheckoutScreen(
+    // Navigate to fee computation screen
+    Get.to(() => PackageFeeComputationScreen(
       package: widget.package,
       selectedOption: widget.selectedOption,
       memberInfo: memberInfo,
@@ -495,20 +648,19 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                       child: TextFormField(
                         controller: _middleNameController,
                         decoration: const InputDecoration(
-                          labelText: 'Middle Name',
+                          labelText: 'Middle Name (Optional)',
                           prefixIcon: Icon(Iconsax.user),
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
                         ],
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Required Field*';
-                          }
-                          final normalized = v.trim();
-                          final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
-                          if (!regex.hasMatch(normalized)) {
-                            return 'Only letters are allowed';
+                          if (v != null && v.trim().isNotEmpty) {
+                            final normalized = v.trim();
+                            final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
+                            if (!regex.hasMatch(normalized)) {
+                              return 'Only letters are allowed';
+                            }
                           }
                           return null;
                         },
@@ -774,6 +926,145 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwSections),
 
+                // Payment & Fulfillment Section
+                const IAMSectionHeading(
+                  title: 'Payment & Fulfillment',
+                  showActionButton: false,
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwItems),
+
+                // Sponsor ID (read-only)
+                TextFormField(
+                  initialValue: _sponsorIdno,
+                  decoration: const InputDecoration(
+                    labelText: 'Sponsor ID',
+                    prefixIcon: Icon(Iconsax.user),
+                    border: InputBorder.none,
+                    filled: true,
+                    fillColor: Colors.grey,
+                  ),
+                  readOnly: true,
+                  style: TextStyle(
+                    color: _sponsorIdno != null ? Colors.black : Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwInputFields),
+
+                // Payment Method Dropdown
+                DropdownButtonFormField<PaymentMethodItem>(
+                  initialValue: _selectedPaymentMethod,
+                  decoration: const InputDecoration(
+                    labelText: 'Payment Method',
+                    prefixIcon: Icon(Iconsax.wallet),
+                  ),
+                  items: _paymentMethods.map((method) {
+                    return DropdownMenuItem(
+                      value: method,
+                      child: Text(method.methodName),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null) return 'Payment method is required';
+                    return null;
+                  },
+                  onChanged: !_loadingPaymentMethods ? (value) {
+                    setState(() => _selectedPaymentMethod = value);
+                  } : null,
+                  hint: _loadingPaymentMethods
+                      ? const Text('Loading payment methods...')
+                      : const Text('Select Payment Method'),
+                  disabledHint: const Text('Loading payment methods...'),
+                  isExpanded: true,
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwInputFields),
+
+                // Fulfillment Type Dropdown
+                DropdownButtonFormField<FulfillmentTypeItem>(
+                  initialValue: _selectedFulfillmentType,
+                  decoration: const InputDecoration(
+                    labelText: 'Fulfillment Type',
+                    prefixIcon: Icon(Iconsax.truck),
+                  ),
+                  items: _fulfillmentTypes.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type.fulfillmentTypeName),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null) return 'Fulfillment type is required';
+                    return null;
+                  },
+                  onChanged: !_loadingFulfillmentTypes ? (value) {
+                    setState(() {
+                      _selectedFulfillmentType = value;
+                      _selectedBranch = null; // Reset branch when fulfillment changes
+                    });
+                  } : null,
+                  hint: _loadingFulfillmentTypes
+                      ? const Text('Loading fulfillment types...')
+                      : const Text('Select Fulfillment Type'),
+                  disabledHint: const Text('Loading fulfillment types...'),
+                  isExpanded: true,
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwInputFields),
+
+                // Branch Dropdown (only for pickup)
+                if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP')
+                  DropdownButtonFormField<BranchItem>(
+                    initialValue: _selectedBranch,
+                    decoration: const InputDecoration(
+                      labelText: 'Branch',
+                      prefixIcon: Icon(Iconsax.building),
+                    ),
+                    items: _branches.map((branch) {
+                      return DropdownMenuItem(
+                        value: branch,
+                        child: Text(branch.areaName),
+                      );
+                    }).toList(),
+                    validator: (value) {
+                      if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP' && value == null) {
+                        return 'Branch is required for pickup';
+                      }
+                      return null;
+                    },
+                    onChanged: !_loadingBranches ? (value) {
+                      setState(() => _selectedBranch = value);
+                    } : null,
+                    hint: _loadingBranches
+                        ? const Text('Loading branches...')
+                        : const Text('Select Branch'),
+                    disabledHint: const Text('Loading branches...'),
+                    isExpanded: true,
+                  ),
+                if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP')
+                  const SizedBox(height: IAMSizes.spaceBtwInputFields),
+
+                // Terms Acceptance Checkbox
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _termsAccepted,
+                      onChanged: (value) {
+                        setState(() => _termsAccepted = value ?? false);
+                      },
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() => _termsAccepted = !_termsAccepted);
+                        },
+                        child: const Text(
+                          'I accept the terms and conditions',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwSections),
+
                 // ID Upload Section
                 const IAMSectionHeading(
                   title: 'Valid ID Upload',
@@ -837,27 +1128,18 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _submitting ? null : _submitForm,
+                    onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: IAMColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
                     ),
-                    child: _submitting
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'Submit Enrollment',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                    child: const Text(
+                      'Submit Enrollment',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwSections),

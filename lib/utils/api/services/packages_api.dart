@@ -82,6 +82,7 @@ class PackagesApi {
     required int fulfillmentTypeId,
     String? areaCode,
     required bool termsAccepted,
+    String? validId,
   }) {
     return _client.post<PackageRegistrationData?>(
       ApiEndpoints.packagesRegister,
@@ -105,6 +106,7 @@ class PackagesApi {
         'fulfillmentTypeId': fulfillmentTypeId,
         'areaCode': areaCode,
         'termsAccepted': termsAccepted,
+        'validId': validId,
       },
       fromJsonData: PackageRegistrationData.fromJson,
     );
