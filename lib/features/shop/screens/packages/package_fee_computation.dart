@@ -48,27 +48,36 @@ class _PackageFeeComputationScreenState extends State<PackageFeeComputationScree
       _errorMessage = null;
     });
 
-    final res = await ApiMiddleware.packages.computeFees(
-      packageCode: widget.package.packageCode,
-      optionId: widget.selectedOption.optionId,
-      paymentMethodId: widget.memberInfo.paymentMethodId ?? 1,
-      fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
-      country: widget.enrollmentAddress.country,
-      province: widget.enrollmentAddress.province,
-      city: widget.enrollmentAddress.city,
-      barangay: widget.enrollmentAddress.barangay,
-      areaCode: widget.memberInfo.areaCode,
-    );
+    try {
+      final res = await ApiMiddleware.packages.computeFees(
+        packageCode: widget.package.packageCode,
+        optionId: widget.selectedOption.optionId,
+        paymentMethodId: widget.memberInfo.paymentMethodId ?? 1,
+        fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
+        country: widget.enrollmentAddress.country,
+        province: widget.enrollmentAddress.province,
+        city: widget.enrollmentAddress.city,
+        barangay: widget.enrollmentAddress.barangay,
+        areaCode: widget.memberInfo.areaCode,
+      );
 
-    if (mounted) {
-      setState(() {
-        _isComputing = false;
-        if (res.success) {
-          _feesData = res.data;
-        } else {
-          _errorMessage = res.message.isNotEmpty ? res.message : 'Failed to compute fees. Please try again.';
-        }
-      });
+      if (mounted) {
+        setState(() {
+          _isComputing = false;
+          if (res.success) {
+            _feesData = res.data;
+          } else {
+            _errorMessage = res.message.isNotEmpty ? res.message : 'Failed to compute fees. Please try again.';
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isComputing = false;
+          _errorMessage = 'An error occurred: ${e.toString()}';
+        });
+      }
     }
   }
 

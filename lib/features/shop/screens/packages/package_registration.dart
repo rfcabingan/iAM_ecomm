@@ -45,42 +45,58 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
       _errorMessage = null;
     });
 
-    // Format birthdate as ISO date string (YYYY-MM-DD)
-    final birthDate = widget.memberInfo.birthdate.toIso8601String().split('T')[0];
+    try {
+      // Format birthdate as ISO date string (YYYY-MM-DD)
+      final birthDate = widget.memberInfo.birthdate.toIso8601String().split('T')[0];
 
-    final res = await ApiMiddleware.packages.register(
-      firstName: widget.memberInfo.firstName,
-      middleName: widget.memberInfo.middleName,
-      lastName: widget.memberInfo.lastName,
-      country: widget.enrollmentAddress.country,
-      province: widget.enrollmentAddress.province,
-      city: widget.enrollmentAddress.city,
-      barangay: widget.enrollmentAddress.barangay,
-      completeAddress: widget.enrollmentAddress.completeAddress,
-      email: widget.memberInfo.email,
-      mobileNo: widget.memberInfo.phone,
-      birthDate: birthDate,
-      gender: widget.memberInfo.gender,
-      packageCode: widget.package.packageCode,
-      optionId: widget.selectedOption.optionId,
-      sponsorIdno: widget.memberInfo.sponsorIdno ?? '',
-      paymentMethodId: widget.memberInfo.paymentMethodId ?? 1,
-      fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
-      areaCode: widget.memberInfo.areaCode,
-      termsAccepted: widget.memberInfo.termsAccepted,
-      validIdPath: widget.memberInfo.idImagePath,
-    );
+      // Log the file path for debugging
+      print('Valid ID Path: ${widget.memberInfo.idImagePath}');
 
-    if (mounted) {
-      setState(() {
-        _isRegistering = false;
-        if (res.success) {
-          _registrationData = res.data;
-          _showSuccessScreen();
-        } else {
-          _errorMessage = res.message.isNotEmpty ? res.message : 'Registration failed. Please try again.';
-        }
-      });
+      // TEMPORARY: Submit without file to test if file upload causes crash
+      print('Submitting registration WITHOUT file for testing...');
+      final res = await ApiMiddleware.packages.register(
+        firstName: widget.memberInfo.firstName,
+        middleName: widget.memberInfo.middleName,
+        lastName: widget.memberInfo.lastName,
+        country: widget.enrollmentAddress.country,
+        province: widget.enrollmentAddress.province,
+        city: widget.enrollmentAddress.city,
+        barangay: widget.enrollmentAddress.barangay,
+        completeAddress: widget.enrollmentAddress.completeAddress,
+        email: widget.memberInfo.email,
+        mobileNo: widget.memberInfo.phone,
+        birthDate: birthDate,
+        gender: widget.memberInfo.gender,
+        packageCode: widget.package.packageCode,
+        optionId: widget.selectedOption.optionId,
+        sponsorIdno: widget.memberInfo.sponsorIdno ?? '',
+        paymentMethodId: widget.memberInfo.paymentMethodId ?? 1,
+        fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
+        areaCode: widget.memberInfo.areaCode,
+        termsAccepted: widget.memberInfo.termsAccepted,
+        validIdPath: null, // TEMPORARY: Disable file upload to test
+      );
+
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+          if (res.success) {
+            _registrationData = res.data;
+            _showSuccessScreen();
+          } else {
+            _errorMessage = res.message.isNotEmpty ? res.message : 'Registration failed. Please try again.';
+          }
+        });
+      }
+    } catch (e, stackTrace) {
+      print('Registration error: $e');
+      print('Stack trace: $stackTrace');
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+          _errorMessage = 'An error occurred: ${e.toString()}';
+        });
+      }
     }
   }
 
