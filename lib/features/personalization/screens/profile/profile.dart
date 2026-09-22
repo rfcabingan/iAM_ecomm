@@ -370,24 +370,25 @@ class _ProfileHeroCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: IAMSizes.md),
-                SizedBox(
-                  height: 44,
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Iconsax.edit, size: 17),
-                    label: const Text('Edit Profile'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: IAMColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 4,
-                      shadowColor: IAMColors.primary.withOpacity(0.34),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 22),
-                    ),
-                  ),
-                ),
+                // Edit Profile button - commented out until higher-ups decide users can edit their ecom profile
+                // SizedBox(
+                //   height: 44,
+                //   child: ElevatedButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Iconsax.edit, size: 17),
+                //     label: const Text('Edit Profile'),
+                //     style: ElevatedButton.styleFrom(
+                //       backgroundColor: IAMColors.primary,
+                //       foregroundColor: Colors.white,
+                //       elevation: 4,
+                //       shadowColor: IAMColors.primary.withOpacity(0.34),
+                //       shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(24),
+                //       ),
+                //       padding: const EdgeInsets.symmetric(horizontal: 22),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -480,14 +481,14 @@ class _ProfileInfoRow extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.value,
-    this.trailingIcon = Iconsax.arrow_right_3,
+    this.trailingIcon,
     this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String value;
-  final IconData trailingIcon;
+  final IconData? trailingIcon;
   final VoidCallback? onTap;
 
   @override
@@ -529,12 +530,14 @@ class _ProfileInfoRow extends StatelessWidget {
                     ),
               ),
             ),
-            const SizedBox(width: IAMSizes.sm),
-            Icon(
-              trailingIcon,
-              size: 18,
-              color: darkMode ? Colors.white60 : IAMColors.darkerGrey,
-            ),
+            if (trailingIcon != null) ...[
+              const SizedBox(width: IAMSizes.sm),
+              Icon(
+                trailingIcon,
+                size: 18,
+                color: darkMode ? Colors.white60 : IAMColors.darkerGrey,
+              ),
+            ],
           ],
         ),
       ),

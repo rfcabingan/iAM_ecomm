@@ -49,11 +49,6 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
       // Format birthdate as ISO date string (YYYY-MM-DD)
       final birthDate = widget.memberInfo.birthdate.toIso8601String().split('T')[0];
 
-      // Log the file path for debugging
-      print('Valid ID Path: ${widget.memberInfo.idImagePath}');
-
-      // TEMPORARY: Submit without file to test if file upload causes crash
-      print('Submitting registration WITHOUT file for testing...');
       final res = await ApiMiddleware.packages.register(
         firstName: widget.memberInfo.firstName,
         middleName: widget.memberInfo.middleName,
@@ -74,7 +69,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
         fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
         areaCode: widget.memberInfo.areaCode,
         termsAccepted: widget.memberInfo.termsAccepted,
-        validIdPath: null, // TEMPORARY: Disable file upload to test
+        validIdPath: widget.memberInfo.idImagePath,
       );
 
       if (mounted) {
@@ -88,9 +83,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
           }
         });
       }
-    } catch (e, stackTrace) {
-      print('Registration error: $e');
-      print('Stack trace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isRegistering = false;
@@ -104,7 +97,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
     Get.off(() => SuccessScreen(
       image: 'assets/images/animations/sammy-success.png',
       title: 'Registration Submitted!',
-      subTitle: 'Order Ref: ${_registrationData?.orderRefno ?? "N/A"}\nRegistration Ref: ${_registrationData?.registrationRefno ?? "N/A"}',
+      subTitle: 'Order Ref: ${_registrationData?.orderRefno ?? "N/A"}',
       onPressed: () => Get.offAll(() => const AllPackages()),
     ));
   }
