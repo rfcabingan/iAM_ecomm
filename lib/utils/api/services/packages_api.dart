@@ -131,34 +131,36 @@ class PackagesApi {
     required bool termsAccepted,
     String? validIdPath,
   }) async {
-    final validId = validIdPath == null || validIdPath.trim().isEmpty
-        ? ''
-        : await MultipartFile.fromFile(validIdPath);
+    final body = {
+      'firstName': firstName,
+      'middleName': middleName ?? '',
+      'lastName': lastName,
+      'country': country,
+      'province': province,
+      'city': city,
+      'barangay': barangay,
+      'completeAddress': completeAddress,
+      'email': email,
+      'mobileNo': mobileNo,
+      'birthDate': birthDate,
+      'gender': gender,
+      'packageCode': packageCode,
+      'optionId': optionId,
+      'sponsorIdno': sponsorIdno,
+      'paymentMethodId': paymentMethodId,
+      'fulfillmentTypeId': fulfillmentTypeId,
+      'areaCode': areaCode ?? '',
+      'termsAccepted': termsAccepted,
+    };
+
+    // Only include validId if there's a file to upload
+    if (validIdPath != null && validIdPath.trim().isNotEmpty) {
+      body['validId'] = await MultipartFile.fromFile(validIdPath);
+    }
 
     return _client.post<PackageRegistrationData?>(
       ApiEndpoints.packagesRegister,
-      body: FormData.fromMap({
-        'firstName': firstName,
-        'middleName': middleName ?? '',
-        'lastName': lastName,
-        'country': country,
-        'province': province,
-        'city': city,
-        'barangay': barangay,
-        'completeAddress': completeAddress,
-        'email': email,
-        'mobileNo': mobileNo,
-        'birthDate': birthDate,
-        'gender': gender,
-        'packageCode': packageCode,
-        'optionId': optionId,
-        'sponsorIdno': sponsorIdno,
-        'paymentMethodId': paymentMethodId,
-        'fulfillmentTypeId': fulfillmentTypeId,
-        'areaCode': areaCode ?? '',
-        'termsAccepted': termsAccepted,
-        'validId': validId,
-      }),
+      body: FormData.fromMap(body),
       fromJsonData: PackageRegistrationData.fromJson,
     );
   }

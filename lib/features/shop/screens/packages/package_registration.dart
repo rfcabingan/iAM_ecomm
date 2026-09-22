@@ -37,6 +37,7 @@ class PackageRegistrationScreen extends StatefulWidget {
 class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
   bool _isRegistering = false;
   String? _errorMessage;
+  PackageRegistrationData? _registrationData;
 
   Future<void> _registerPackage() async {
     setState(() {
@@ -44,41 +45,51 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
       _errorMessage = null;
     });
 
-    // Format birthdate as ISO date string (YYYY-MM-DD)
-    final birthDate = widget.memberInfo.birthdate.toIso8601String().split('T')[0];
+    try {
+      // Format birthdate as ISO date string (YYYY-MM-DD)
+      final birthDate = widget.memberInfo.birthdate.toIso8601String().split('T')[0];
 
-    final res = await ApiMiddleware.packages.register(
-      firstName: widget.memberInfo.firstName,
-      middleName: widget.memberInfo.middleName,
-      lastName: widget.memberInfo.lastName,
-      country: widget.enrollmentAddress.country,
-      province: widget.enrollmentAddress.province,
-      city: widget.enrollmentAddress.city,
-      barangay: widget.enrollmentAddress.barangay,
-      completeAddress: widget.enrollmentAddress.completeAddress,
-      email: widget.memberInfo.email,
-      mobileNo: widget.memberInfo.phone,
-      birthDate: birthDate,
-      gender: widget.memberInfo.gender,
-      packageCode: widget.package.packageCode,
-      optionId: widget.selectedOption.optionId,
-      sponsorIdno: widget.memberInfo.sponsorIdno ?? '',
-      paymentMethodId: widget.memberInfo.paymentMethodId ?? 1,
-      fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
-      areaCode: widget.memberInfo.areaCode,
-      termsAccepted: widget.memberInfo.termsAccepted,
-      validIdPath: widget.memberInfo.idImagePath,
-    );
+      final res = await ApiMiddleware.packages.register(
+        firstName: widget.memberInfo.firstName,
+        middleName: widget.memberInfo.middleName,
+        lastName: widget.memberInfo.lastName,
+        country: widget.enrollmentAddress.country,
+        province: widget.enrollmentAddress.province,
+        city: widget.enrollmentAddress.city,
+        barangay: widget.enrollmentAddress.barangay,
+        completeAddress: widget.enrollmentAddress.completeAddress,
+        email: widget.memberInfo.email,
+        mobileNo: widget.memberInfo.phone,
+        birthDate: birthDate,
+        gender: widget.memberInfo.gender,
+        packageCode: widget.package.packageCode,
+        optionId: widget.selectedOption.optionId,
+        sponsorIdno: widget.memberInfo.sponsorIdno ?? '',
+        paymentMethodId: widget.memberInfo.paymentMethodId ?? 1,
+        fulfillmentTypeId: widget.memberInfo.fulfillmentTypeId ?? 1,
+        areaCode: widget.memberInfo.areaCode,
+        termsAccepted: widget.memberInfo.termsAccepted,
+        validIdPath: widget.memberInfo.idImagePath,
+      );
 
-    if (mounted) {
-      setState(() {
-        _isRegistering = false;
-        if (res.success) {
-          _showSuccessScreen();
-        } else {
-          _errorMessage = res.message.isNotEmpty ? res.message : 'Registration failed. Please try again.';
-        }
-      });
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+          if (res.success) {
+            _registrationData = res.data;
+            _showSuccessScreen();
+          } else {
+            _errorMessage = res.message.isNotEmpty ? res.message : 'Registration failed. Please try again.';
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+          _errorMessage = 'An error occurred: ${e.toString()}';
+        });
+      }
     }
   }
 
@@ -86,7 +97,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
     Get.off(() => SuccessScreen(
       image: 'assets/images/animations/sammy-success.png',
       title: 'Registration Submitted!',
-      subTitle: 'Your package registration has been submitted successfully. You will be notified once it is processed.',
+      subTitle: 'Order Ref: ${_registrationData?.orderRefno ?? "N/A"}',
       onPressed: () => Get.offAll(() => const AllPackages()),
     ));
   }
@@ -251,7 +262,7 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
                         if (widget.memberInfo.areaCode != null)
                           Text('Area Code: ${widget.memberInfo.areaCode}'),
                         Text('Terms Accepted: ${widget.memberInfo.termsAccepted}'),
-                        Text('Valid ID: ${widget.memberInfo.idImageBase64 != null ? "Uploaded (base64)" : "Not uploaded"}'),
+                        Text('Valid ID: ${widget.memberInfo.idImagePath != null && widget.memberInfo.idImagePath!.isNotEmpty ? "Uploaded (file)" : "Not uploaded"}'),
                         const Divider(),
                         const SizedBox(height: IAMSizes.sm),
                         const Text(
