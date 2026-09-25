@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class MemberEnrollmentInfo {
   final String firstName;
   final String middleName;
@@ -8,6 +10,8 @@ class MemberEnrollmentInfo {
   final String gender;
   final String? idImagePath;
   final String? idImageBase64;
+  final Uint8List? idImageBytes;
+  final String? idImageFileName;
   final String? sponsorIdno;
   final int? paymentMethodId;
   final int? fulfillmentTypeId;
@@ -24,6 +28,8 @@ class MemberEnrollmentInfo {
     required this.gender,
     this.idImagePath,
     this.idImageBase64,
+    this.idImageBytes,
+    this.idImageFileName,
     this.sponsorIdno,
     this.paymentMethodId,
     this.fulfillmentTypeId,
