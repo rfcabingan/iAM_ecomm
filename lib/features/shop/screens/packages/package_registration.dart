@@ -70,6 +70,8 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
         areaCode: widget.memberInfo.areaCode,
         termsAccepted: widget.memberInfo.termsAccepted,
         validIdPath: widget.memberInfo.idImagePath,
+        validIdBytes: widget.memberInfo.idImageBytes,
+        validIdFileName: widget.memberInfo.idImageFileName,
       );
 
       if (mounted) {

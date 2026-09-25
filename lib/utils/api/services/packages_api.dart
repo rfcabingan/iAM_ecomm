@@ -84,6 +84,8 @@ class PackagesApi {
     String? areaCode,
     required bool termsAccepted,
     String? validIdPath,
+    List<int>? validIdBytes,
+    String? validIdFileName,
   }) {
     return _registerMultipart(
       firstName: firstName,
@@ -106,6 +108,8 @@ class PackagesApi {
       areaCode: areaCode,
       termsAccepted: termsAccepted,
       validIdPath: validIdPath,
+      validIdBytes: validIdBytes,
+      validIdFileName: validIdFileName,
     );
   }
 
@@ -130,6 +134,8 @@ class PackagesApi {
     String? areaCode,
     required bool termsAccepted,
     String? validIdPath,
+    List<int>? validIdBytes,
+    String? validIdFileName,
   }) async {
     final body = {
       'firstName': firstName,
@@ -154,7 +160,12 @@ class PackagesApi {
     };
 
     // Only include validId if there's a file to upload
-    if (validIdPath != null && validIdPath.trim().isNotEmpty) {
+    if (validIdBytes != null && validIdBytes.isNotEmpty) {
+      body['validId'] = MultipartFile.fromBytes(
+        validIdBytes,
+        filename: validIdFileName ?? 'valid_id.jpg',
+      );
+    } else if (validIdPath != null && validIdPath.trim().isNotEmpty) {
       body['validId'] = await MultipartFile.fromFile(validIdPath);
     }
 
