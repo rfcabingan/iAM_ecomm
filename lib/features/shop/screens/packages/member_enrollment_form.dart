@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:typed_data';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
@@ -69,6 +71,8 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
   // ID Upload
   String? _idImagePath;
   File? _idImageFile;
+  Uint8List? _idImageBytes;
+  String? _idImageFileName;
   String? _idImageBase64;
 
   // Sponsor ID (auto-filled from logged-in user)
@@ -280,15 +284,14 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
           return;
         }
 
-        // Convert XFile to File
-        final file = File(image.path);
-
-        // Convert to base64 for API submission
-        final base64String = await IAMHelperFunctions.fileToBase64(file);
+        final bytes = await image.readAsBytes();
+        final base64String = IAMHelperFunctions.bytesToBase64(bytes);
 
         setState(() {
-          _idImagePath = image.path;
-          _idImageFile = file;
+          _idImagePath = kIsWeb ? null : image.path;
+          _idImageFile = !kIsWeb ? File(image.path) : null;
+          _idImageBytes = bytes;
+          _idImageFileName = image.name;
           _idImageBase64 = base64String;
         });
       }
@@ -383,7 +386,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       return;
     }
 
-    if (_idImagePath == null) {
+    if (_idImagePath == null && _idImageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please upload your valid ID'),
@@ -481,7 +484,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
               Text('Terms Accepted: ${_termsAccepted ? "Yes" : "No"}'),
               const Divider(),
               const Text('Valid ID', style: TextStyle(fontWeight: FontWeight.bold)),
-              if (_idImagePath != null)
+              if (_idImagePath != null || _idImageBytes != null)
                 Container(
                   height: 150,
                   width: double.infinity,
@@ -491,10 +494,15 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      _idImageFile!,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _idImageBytes != null
+                        ? Image.memory(
+                            _idImageBytes!,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            _idImageFile!,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                 ),
             ],
@@ -532,6 +540,8 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       gender: _selectedGender!,
       idImagePath: _idImagePath,
       idImageBase64: _idImageBase64,
+      idImageBytes: _idImageBytes,
+      idImageFileName: _idImageFileName,
       sponsorIdno: _sponsorIdno,
       paymentMethodId: _selectedPaymentMethod?.paymentMethodId,
       fulfillmentTypeId: _selectedFulfillmentType?.fulfillmentTypeId,
@@ -1082,13 +1092,18 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                         width: _idImagePath != null ? 2 : 1,
                       ),
                     ),
-                    child: _idImagePath != null
+                    child: _idImagePath != null || _idImageBytes != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
-                            child: Image.file(
-                              _idImageFile!,
-                              fit: BoxFit.cover,
-                            ),
+                            child: _idImageBytes != null
+                                ? Image.memory(
+                                    _idImageBytes!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.file(
+                                    _idImageFile!,
+                                    fit: BoxFit.cover,
+                                  ),
                           )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
