@@ -187,22 +187,63 @@ class PackageRegistrationData {
   final String message;
   final String orderRefno;
   final String registrationRefno;
+  final String packageCode;
+  final String packageName;
+  final String optionName;
+  final num packageAmount;
+  final num shippingAmount;
+  final num processingFee;
+  final num discountAmount;
+  final num totalAmount;
+  final String shippingMethod;
+  final String shippingRegion;
+  final String fulfillmentAreaCode;
 
   PackageRegistrationData({
     required this.message,
     required this.orderRefno,
     required this.registrationRefno,
+    required this.packageCode,
+    required this.packageName,
+    required this.optionName,
+    required this.packageAmount,
+    required this.shippingAmount,
+    required this.processingFee,
+    required this.discountAmount,
+    required this.totalAmount,
+    required this.shippingMethod,
+    required this.shippingRegion,
+    required this.fulfillmentAreaCode,
   });
 
   static PackageRegistrationData? fromJson(dynamic json) {
     final m = asMap(json);
     if (m == null) return null;
+
+    // Check if the response has a wrapper structure (with 'data' field)
+    // or if it's the data object directly (for multipart responses)
     final data = asMap(m['data']);
-    if (data == null) return null;
+    final isDirectData = data == null && m.containsKey('orderRefno');
+
+    final sourceData = isDirectData ? m : data;
+
+    if (sourceData == null) return null;
+
     return PackageRegistrationData(
-      message: m['message'] as String? ?? '',
-      orderRefno: data['orderRefno'] as String? ?? '',
-      registrationRefno: data['registrationRefno'] as String? ?? '',
+      message: m['message'] as String? ?? (isDirectData ? 'Registration successful' : ''),
+      orderRefno: sourceData['orderRefno'] as String? ?? '',
+      registrationRefno: sourceData['registrationRefno'] as String? ?? '',
+      packageCode: sourceData['packageCode'] as String? ?? '',
+      packageName: sourceData['packageName'] as String? ?? '',
+      optionName: sourceData['optionName'] as String? ?? '',
+      packageAmount: (sourceData['packageAmount'] as num?) ?? 0,
+      shippingAmount: (sourceData['shippingAmount'] as num?) ?? 0,
+      processingFee: (sourceData['processingFee'] as num?) ?? 0,
+      discountAmount: (sourceData['discountAmount'] as num?) ?? 0,
+      totalAmount: (sourceData['totalAmount'] as num?) ?? 0,
+      shippingMethod: sourceData['shippingMethod'] as String? ?? '',
+      shippingRegion: sourceData['shippingRegion'] as String? ?? '',
+      fulfillmentAreaCode: sourceData['fulfillmentAreaCode'] as String? ?? '',
     );
   }
 }

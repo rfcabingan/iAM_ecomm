@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
-import 'package:iam_ecomm/common/widgets/success_screen/success_screen.dart';
-import 'package:iam_ecomm/features/shop/screens/packages/all_packages.dart';
+import 'package:iam_ecomm/features/shop/screens/packages/package_registration_success.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
@@ -78,8 +77,12 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
         setState(() {
           _isRegistering = false;
           if (res.success) {
-            _registrationData = res.data;
-            _showSuccessScreen();
+            if (res.data != null) {
+              _registrationData = res.data;
+              _showSuccessScreen();
+            } else {
+              _errorMessage = 'Registration succeeded but no data received. Status: ${res.status}, Message: ${res.message}';
+            }
           } else {
             _errorMessage = res.message.isNotEmpty ? res.message : 'Registration failed. Please try again.';
           }
@@ -96,11 +99,9 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
   }
 
   void _showSuccessScreen() {
-    Get.off(() => SuccessScreen(
-      image: 'assets/images/animations/sammy-success.png',
-      title: 'Registration Submitted!',
-      subTitle: 'Order Ref: ${_registrationData?.orderRefno ?? "N/A"}',
-      onPressed: () => Get.offAll(() => const AllPackages()),
+    Get.off(() => PackageRegistrationSuccessScreen(
+      registrationData: _registrationData!,
+      packageImage: widget.package.imageUrl,
     ));
   }
 
