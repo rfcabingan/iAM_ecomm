@@ -67,6 +67,7 @@ flutter:
     - assets/images/products/
     - assets/images/products_whitebg/
     - assets/images/packages/
+    - assets/images/bg/
     - assets/images/payments/
     - assets/images/users/
     # - assets/images/homescreen (example: add yung mga folder ng mga nasa assets)

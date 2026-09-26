@@ -1,13 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:typed_data';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
-import 'package:iam_ecomm/features/shop/screens/packages/package_fee_computation.dart';
+import 'package:iam_ecomm/features/shop/screens/packages/member_enrollment_payment.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
@@ -15,7 +12,6 @@ import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/models/member_enrollment_info.dart';
 import 'package:iconsax/iconsax.dart';
-import 'dart:io';
 
 class MemberEnrollmentForm extends StatefulWidget {
   const MemberEnrollmentForm({
@@ -35,9 +31,7 @@ class MemberEnrollmentForm extends StatefulWidget {
 
 class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
   final _formKey = GlobalKey<FormState>();
-  final ImagePicker _imagePicker = ImagePicker();
 
-  // Personal Information Controllers
   final _firstNameController = TextEditingController();
   final _middleNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -45,7 +39,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
   final _phoneController = TextEditingController();
   final _addressLineController = TextEditingController();
 
-  // Dropdown selections
   DateTime? _selectedBirthdate;
   String? _selectedGender;
   CountryItem? _selectedCountry;
@@ -53,53 +46,22 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
   CityItem? _selectedCity;
   BarangayItem? _selectedBarangay;
 
-  // Location data
   List<CountryItem> _countries = [];
   List<ProvinceItem> _provinces = [];
   List<CityItem> _cities = [];
   List<BarangayItem> _barangays = [];
 
-  // Loading states
   bool _loadingCountries = false;
   bool _loadingProvinces = false;
   bool _loadingCities = false;
   bool _loadingBarangays = false;
-  bool _loadingPaymentMethods = false;
-  bool _loadingFulfillmentTypes = false;
-  bool _loadingBranches = false;
 
-  // ID Upload
-  String? _idImagePath;
-  File? _idImageFile;
-  Uint8List? _idImageBytes;
-  String? _idImageFileName;
-  String? _idImageBase64;
-
-  // Sponsor ID (auto-filled from logged-in user)
   String? _sponsorIdno;
-
-  // Payment Method
-  List<PaymentMethodItem> _paymentMethods = [];
-  PaymentMethodItem? _selectedPaymentMethod;
-
-  // Fulfillment Type
-  List<FulfillmentTypeItem> _fulfillmentTypes = [];
-  FulfillmentTypeItem? _selectedFulfillmentType;
-
-  // Branch (for pickup)
-  List<BranchItem> _branches = [];
-  BranchItem? _selectedBranch;
-
-  // Terms Accepted
-  bool _termsAccepted = false;
 
   @override
   void initState() {
     super.initState();
     _loadCountries();
-    _loadPaymentMethods();
-    _loadFulfillmentTypes();
-    _loadBranches();
     _setSponsorId();
   }
 
@@ -177,45 +139,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
     }
   }
 
-  Future<void> _loadPaymentMethods() async {
-    setState(() => _loadingPaymentMethods = true);
-    final res = await ApiMiddleware.payment.getPaymentMethods();
-    if (mounted) {
-      setState(() {
-        _loadingPaymentMethods = false;
-        if (res.success) {
-          _paymentMethods = res.data?.whereType<PaymentMethodItem>().toList() ?? [];
-        }
-      });
-    }
-  }
-
-  Future<void> _loadFulfillmentTypes() async {
-    setState(() => _loadingFulfillmentTypes = true);
-    final res = await ApiMiddleware.fulfillment.getFulfillmentTypes();
-    if (mounted) {
-      setState(() {
-        _loadingFulfillmentTypes = false;
-        if (res.success) {
-          _fulfillmentTypes = res.data?.whereType<FulfillmentTypeItem>().toList() ?? [];
-        }
-      });
-    }
-  }
-
-  Future<void> _loadBranches() async {
-    setState(() => _loadingBranches = true);
-    final res = await ApiMiddleware.fulfillment.getBranches();
-    if (mounted) {
-      setState(() {
-        _loadingBranches = false;
-        if (res.success) {
-          _branches = res.data?.whereType<BranchItem>().toList() ?? [];
-        }
-      });
-    }
-  }
-
   void _onCountryChanged(CountryItem? country) {
     setState(() {
       _selectedCountry = country;
@@ -259,89 +182,11 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
     setState(() => _selectedBarangay = barangay);
   }
 
-  Future<void> _pickIDImage(ImageSource source) async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: source,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        // Basic validation: check file size (5MB limit)
-        final fileSize = await image.length();
-        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-
-        if (fileSize > maxSize) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Image size must be less than 5MB'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-
-        final bytes = await image.readAsBytes();
-        final base64String = IAMHelperFunctions.bytesToBase64(bytes);
-
-        setState(() {
-          _idImagePath = kIsWeb ? null : image.path;
-          _idImageFile = !kIsWeb ? File(image.path) : null;
-          _idImageBytes = bytes;
-          _idImageFileName = image.name;
-          _idImageBase64 = base64String;
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error picking image: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _showImagePickerDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Valid ID'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickIDImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickIDImage(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _submitForm() async {
+  void _continueToPayment() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Validate sponsor ID
     if (_sponsorIdno == null || _sponsorIdno!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -352,7 +197,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       return;
     }
 
-    // Validate required selections
     if (_selectedBirthdate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -386,150 +230,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       return;
     }
 
-    if (_idImagePath == null && _idImageBytes == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please upload your valid ID'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Validate payment method
-    if (_selectedPaymentMethod == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a payment method'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Validate fulfillment type
-    if (_selectedFulfillmentType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a fulfillment type'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Validate branch if pickup selected
-    if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP' &&
-        _selectedBranch == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a branch for pickup'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Validate terms acceptance
-    if (!_termsAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the terms and conditions'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Show confirmation screen
-    _showConfirmationScreen();
-  }
-
-  void _showConfirmationScreen() {
-    final dark = IAMHelperFunctions.isDarkMode(context);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Member Enrollment'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Package: ${widget.package.packageName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('Option: ${widget.selectedOption.optionName}'),
-              Text('Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}'),
-              const Divider(),
-              const Text('Personal Information', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Name: ${_firstNameController.text} ${_middleNameController.text} ${_lastNameController.text}'),
-              Text('Email: ${_emailController.text}'),
-              Text('Phone: ${_phoneController.text}'),
-              Text('Birthdate: ${_selectedBirthdate!.toString().split(' ')[0]}'),
-              Text('Gender: $_selectedGender'),
-              const Divider(),
-              const Text('Address', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Address Line: ${_addressLineController.text}'),
-              Text('Barangay: ${_selectedBarangay!.barangay}'),
-              Text('City: ${_selectedCity!.city}'),
-              Text('Province: ${_selectedProvince!.province}'),
-              Text('Country: ${_selectedCountry!.country}'),
-              const Divider(),
-              const Text('Payment & Fulfillment', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Sponsor ID: $_sponsorIdno'),
-              Text('Payment Method: ${_selectedPaymentMethod?.methodName}'),
-              Text('Fulfillment: ${_selectedFulfillmentType?.fulfillmentTypeName}'),
-              if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP')
-                Text('Branch: ${_selectedBranch?.areaName}'),
-              Text('Terms Accepted: ${_termsAccepted ? "Yes" : "No"}'),
-              const Divider(),
-              const Text('Valid ID', style: TextStyle(fontWeight: FontWeight.bold)),
-              if (_idImagePath != null || _idImageBytes != null)
-                Container(
-                  height: 150,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: dark ? Colors.grey : Colors.grey),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: _idImageBytes != null
-                        ? Image.memory(
-                            _idImageBytes!,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            _idImageFile!,
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Edit'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _proceedToFeeComputation();
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text('Proceed'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _proceedToFeeComputation() {
-    // Create member enrollment info from form data
     final memberInfo = MemberEnrollmentInfo(
       firstName: _firstNameController.text.trim(),
       middleName: _middleNameController.text.trim(),
@@ -538,21 +238,12 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       phone: _phoneController.text.trim(),
       birthdate: _selectedBirthdate!,
       gender: _selectedGender!,
-      idImagePath: _idImagePath,
-      idImageBase64: _idImageBase64,
-      idImageBytes: _idImageBytes,
-      idImageFileName: _idImageFileName,
       sponsorIdno: _sponsorIdno,
-      paymentMethodId: _selectedPaymentMethod?.paymentMethodId,
-      fulfillmentTypeId: _selectedFulfillmentType?.fulfillmentTypeId,
-      areaCode: _selectedBranch?.areaCode,
-      termsAccepted: _termsAccepted,
     );
 
-    // Create address from enrollment form
     final enrollmentAddress = AddressItem(
-      autoId: 0, // Temporary ID for enrollment address
-      idNo: '', // Will be filled by user ID after registration
+      autoId: 0,
+      idNo: '',
       recipientName: memberInfo.fullName,
       mobileNo: memberInfo.phone,
       country: _selectedCountry?.country ?? '',
@@ -560,16 +251,16 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       city: _selectedCity?.city ?? '',
       barangay: _selectedBarangay?.barangay ?? '',
       streetAddress: _addressLineController.text.trim(),
-      postalCode: '', // Not collected in enrollment form
-      completeAddress: '${_addressLineController.text.trim()}, ${_selectedBarangay?.barangay ?? ''}, ${_selectedCity?.city ?? ''}, ${_selectedProvince?.province ?? ''}, ${_selectedCountry?.country ?? ''}',
+      postalCode: '',
+      completeAddress:
+          '${_addressLineController.text.trim()}, ${_selectedBarangay?.barangay ?? ''}, ${_selectedCity?.city ?? ''}, ${_selectedProvince?.province ?? ''}, ${_selectedCountry?.country ?? ''}',
       isDefault: true,
       isActive: true,
       createdAt: DateTime.now().toIso8601String(),
       updatedAt: null,
     );
 
-    // Navigate to fee computation screen
-    Get.to(() => PackageFeeComputationScreen(
+    Get.to(() => MemberEnrollmentPaymentScreen(
       package: widget.package,
       selectedOption: widget.selectedOption,
       memberInfo: memberInfo,
@@ -596,7 +287,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Package Summary
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(IAMSizes.md),
@@ -615,19 +305,18 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                       ),
                       const SizedBox(height: IAMSizes.sm),
                       Text('Selected: ${widget.selectedOption.optionName}'),
-                      Text('Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}'),
+                      Text(
+                        'Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}',
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwSections),
-
-                // Personal Information Section
                 const IAMSectionHeading(
                   title: 'Personal Information',
                   showActionButton: false,
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwItems),
-
                 TextFormField(
                   controller: _firstNameController,
                   decoration: const InputDecoration(
@@ -671,7 +360,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   },
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
                 TextFormField(
                   controller: _lastNameController,
                   decoration: const InputDecoration(
@@ -693,11 +381,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
                 const Divider(),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -712,7 +398,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   },
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
                 TextFormField(
                   controller: _phoneController,
                   decoration: const InputDecoration(
@@ -730,8 +415,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   },
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Birthdate Picker
                 InkWell(
                   onTap: () async {
                     final DateTime? picked = await showDatePicker(
@@ -762,9 +445,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                               ? 'Select Birthdate'
                               : _selectedBirthdate.toString().split(' ')[0],
                           style: TextStyle(
-                            color: _selectedBirthdate == null
-                                ? Colors.grey
-                                : null,
+                            color: _selectedBirthdate == null ? Colors.grey : null,
                           ),
                         ),
                       ],
@@ -772,8 +453,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   ),
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Gender Dropdown
                 DropdownButtonFormField<String>(
                   initialValue: _selectedGender,
                   decoration: const InputDecoration(
@@ -791,15 +470,11 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   validator: (v) => v == null ? 'Required Field*' : null,
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwSections),
-
-                // Address Section
                 const IAMSectionHeading(
                   title: 'Address Information',
                   showActionButton: false,
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwItems),
-
-                // Country Dropdown
                 DropdownButtonFormField<CountryItem>(
                   initialValue: _selectedCountry,
                   decoration: const InputDecoration(
@@ -824,8 +499,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   isExpanded: true,
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Province Dropdown
                 DropdownButtonFormField<ProvinceItem>(
                   initialValue: _selectedProvince,
                   decoration: const InputDecoration(
@@ -854,8 +527,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   isExpanded: true,
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // City Dropdown
                 DropdownButtonFormField<CityItem>(
                   initialValue: _selectedCity,
                   decoration: const InputDecoration(
@@ -884,8 +555,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   isExpanded: true,
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Barangay Dropdown
                 DropdownButtonFormField<BarangayItem>(
                   initialValue: _selectedBarangay,
                   decoration: const InputDecoration(
@@ -914,8 +583,6 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   isExpanded: true,
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Address Line
                 TextFormField(
                   controller: _addressLineController,
                   decoration: const InputDecoration(
@@ -930,221 +597,16 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   },
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwSections),
-
-                // Payment & Fulfillment Section
-                const IAMSectionHeading(
-                  title: 'Payment & Fulfillment',
-                  showActionButton: false,
-                ),
-                const SizedBox(height: IAMSizes.spaceBtwItems),
-
-                // Sponsor ID (read-only)
-                TextFormField(
-                  initialValue: _sponsorIdno,
-                  decoration: const InputDecoration(
-                    labelText: 'Sponsor ID',
-                    prefixIcon: Icon(Iconsax.user),
-                    border: InputBorder.none,
-                    filled: true,
-                    fillColor: Colors.grey,
-                  ),
-                  readOnly: true,
-                  style: TextStyle(
-                    color: _sponsorIdno != null ? Colors.black : Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Payment Method Dropdown
-                DropdownButtonFormField<PaymentMethodItem>(
-                  initialValue: _selectedPaymentMethod,
-                  decoration: const InputDecoration(
-                    labelText: 'Payment Method',
-                    prefixIcon: Icon(Iconsax.wallet),
-                  ),
-                  items: _paymentMethods.map((method) {
-                    return DropdownMenuItem(
-                      value: method,
-                      child: Text(method.methodName),
-                    );
-                  }).toList(),
-                  validator: (value) {
-                    if (value == null) return 'Payment method is required';
-                    return null;
-                  },
-                  onChanged: !_loadingPaymentMethods ? (value) {
-                    setState(() => _selectedPaymentMethod = value);
-                  } : null,
-                  hint: _loadingPaymentMethods
-                      ? const Text('Loading payment methods...')
-                      : const Text('Select Payment Method'),
-                  disabledHint: const Text('Loading payment methods...'),
-                  isExpanded: true,
-                ),
-                const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Fulfillment Type Dropdown
-                DropdownButtonFormField<FulfillmentTypeItem>(
-                  initialValue: _selectedFulfillmentType,
-                  decoration: const InputDecoration(
-                    labelText: 'Fulfillment Type',
-                    prefixIcon: Icon(Iconsax.truck),
-                  ),
-                  items: _fulfillmentTypes.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type.fulfillmentTypeName),
-                    );
-                  }).toList(),
-                  validator: (value) {
-                    if (value == null) return 'Fulfillment type is required';
-                    return null;
-                  },
-                  onChanged: !_loadingFulfillmentTypes ? (value) {
-                    setState(() {
-                      _selectedFulfillmentType = value;
-                      _selectedBranch = null; // Reset branch when fulfillment changes
-                    });
-                  } : null,
-                  hint: _loadingFulfillmentTypes
-                      ? const Text('Loading fulfillment types...')
-                      : const Text('Select Fulfillment Type'),
-                  disabledHint: const Text('Loading fulfillment types...'),
-                  isExpanded: true,
-                ),
-                const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Branch Dropdown (only for pickup)
-                if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP')
-                  DropdownButtonFormField<BranchItem>(
-                    initialValue: _selectedBranch,
-                    decoration: const InputDecoration(
-                      labelText: 'Branch',
-                      prefixIcon: Icon(Iconsax.building),
-                    ),
-                    items: _branches.map((branch) {
-                      return DropdownMenuItem(
-                        value: branch,
-                        child: Text(branch.areaName),
-                      );
-                    }).toList(),
-                    validator: (value) {
-                      if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP' && value == null) {
-                        return 'Branch is required for pickup';
-                      }
-                      return null;
-                    },
-                    onChanged: !_loadingBranches ? (value) {
-                      setState(() => _selectedBranch = value);
-                    } : null,
-                    hint: _loadingBranches
-                        ? const Text('Loading branches...')
-                        : const Text('Select Branch'),
-                    disabledHint: const Text('Loading branches...'),
-                    isExpanded: true,
-                  ),
-                if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP')
-                  const SizedBox(height: IAMSizes.spaceBtwInputFields),
-
-                // Terms Acceptance Checkbox
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _termsAccepted,
-                      onChanged: (value) {
-                        setState(() => _termsAccepted = value ?? false);
-                      },
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() => _termsAccepted = !_termsAccepted);
-                        },
-                        child: const Text(
-                          'I accept the terms and conditions',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: IAMSizes.spaceBtwSections),
-
-                // ID Upload Section
-                const IAMSectionHeading(
-                  title: 'Valid ID Upload',
-                  showActionButton: false,
-                ),
-                const SizedBox(height: IAMSizes.spaceBtwItems),
-
-                GestureDetector(
-                  onTap: _showImagePickerDialog,
-                  child: Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: dark ? IAMColors.dark : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
-                      border: Border.all(
-                        color: _idImagePath != null
-                            ? IAMColors.primary
-                            : (dark ? Colors.grey : Colors.grey),
-                        width: _idImagePath != null ? 2 : 1,
-                      ),
-                    ),
-                    child: _idImagePath != null || _idImageBytes != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
-                            child: _idImageBytes != null
-                                ? Image.memory(
-                                    _idImageBytes!,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.file(
-                                    _idImageFile!,
-                                    fit: BoxFit.cover,
-                                  ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Iconsax.camera,
-                                size: 48,
-                                color: dark ? Colors.grey : Colors.grey[600],
-                              ),
-                              const SizedBox(height: IAMSizes.sm),
-                              Text(
-                                'Tap to upload Valid ID',
-                                style: TextStyle(
-                                  color: dark ? Colors.grey : Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: IAMSizes.xs),
-                              Text(
-                                'Camera or Gallery',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: dark ? Colors.grey : Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
-                const SizedBox(height: IAMSizes.spaceBtwSections),
-
-                // Submit Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _submitForm,
+                    onPressed: _continueToPayment,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: IAMColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
                     ),
                     child: const Text(
-                      'Submit Enrollment',
+                      'Continue to Payment',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

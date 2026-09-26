@@ -100,6 +100,7 @@ class PackageOptionItemDetail {
   final String productName;
   final int qty;
   final int displayOrder;
+  final String imageUrl;
 
   PackageOptionItemDetail({
     required this.packageCode,
@@ -110,6 +111,7 @@ class PackageOptionItemDetail {
     required this.productName,
     required this.qty,
     required this.displayOrder,
+    this.imageUrl = '',
   });
 
   static PackageOptionItemDetail? fromJson(dynamic json) {
@@ -124,6 +126,7 @@ class PackageOptionItemDetail {
       productName: m['productName'] as String? ?? '',
       qty: readIntValue(m['qty']),
       displayOrder: readIntValue(m['displayOrder']),
+      imageUrl: m['imageUrl'] as String? ?? '',
     );
   }
 }
