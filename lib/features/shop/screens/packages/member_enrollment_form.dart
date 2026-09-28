@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
@@ -16,6 +17,8 @@ import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/models/member_enrollment_info.dart';
 import 'package:iconsax/iconsax.dart';
 import 'dart:io';
+
+import 'package:intl/intl.dart';
 
 class MemberEnrollmentForm extends StatefulWidget {
   const MemberEnrollmentForm({
@@ -153,9 +156,17 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
     }
   }
 
-  Future<void> _loadBarangays(String country, String province, String city) async {
+  Future<void> _loadBarangays(
+    String country,
+    String province,
+    String city,
+  ) async {
     setState(() => _loadingBarangays = true);
-    final res = await ApiMiddleware.location.getBarangays(country, province, city);
+    final res = await ApiMiddleware.location.getBarangays(
+      country,
+      province,
+      city,
+    );
     if (mounted) {
       setState(() {
         _loadingBarangays = false;
@@ -184,7 +195,8 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       setState(() {
         _loadingPaymentMethods = false;
         if (res.success) {
-          _paymentMethods = res.data?.whereType<PaymentMethodItem>().toList() ?? [];
+          _paymentMethods =
+              res.data?.whereType<PaymentMethodItem>().toList() ?? [];
         }
       });
     }
@@ -197,7 +209,8 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       setState(() {
         _loadingFulfillmentTypes = false;
         if (res.success) {
-          _fulfillmentTypes = res.data?.whereType<FulfillmentTypeItem>().toList() ?? [];
+          _fulfillmentTypes =
+              res.data?.whereType<FulfillmentTypeItem>().toList() ?? [];
         }
       });
     }
@@ -251,7 +264,11 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       _barangays.clear();
     });
     if (city != null && _selectedCountry != null && _selectedProvince != null) {
-      _loadBarangays(_selectedCountry!.country, _selectedProvince!.province, city.city);
+      _loadBarangays(
+        _selectedCountry!.country,
+        _selectedProvince!.province,
+        city.city,
+      );
     }
   }
 
@@ -345,7 +362,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
     if (_sponsorIdno == null || _sponsorIdno!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('You must be logged in as a member to sponsor a registration'),
+          content: Text(
+            'You must be logged in as a member to sponsor a registration',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -451,39 +470,184 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Member Enrollment'),
+        title: Row(
+          children: [
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Review order',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Confirm your details before proceeding',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Package: ${widget.package.packageName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('Option: ${widget.selectedOption.optionName}'),
-              Text('Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}'),
+              Container(
+                height: 100,
+                width: double.infinity,
+                padding: EdgeInsets.only(
+                  left: MediaQuery.of(context).size.width * 0.04,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+                  image: DecorationImage(
+                    image: NetworkImage(IAMImages.goldbgcontainer),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      const Color.fromARGB(
+                        255,
+                        209,
+                        207,
+                        207,
+                      ).withOpacity(0.45),
+                      BlendMode.darken,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Package Image
+                    SizedBox(
+                      width: 70,
+                      height: 70,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          IAMSizes.cardRadiusMd,
+                        ),
+                        child: Image.network(
+                          widget.package.imageUrl,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: IAMSizes.sm),
+
+                    // Package Info
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: IAMSizes.md),
+
+                          // Package Price
+                          Text(
+                            widget.package.packageName
+                                .toLowerCase()
+                                .split(' ')
+                                .map(
+                                  (word) => word.isEmpty
+                                      ? word
+                                      : '${word[0].toUpperCase()}${word.substring(1)}',
+                                )
+                                .join(' '),
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                          ),
+                          Text(
+                            widget.selectedOption.optionName.replaceFirst(
+                              ' to Copper',
+                              '',
+                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                          Text(
+                            '₱${NumberFormat('#,##0.00').format(widget.selectedOption.price ?? widget.package.packageAmount)}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+
+                          const SizedBox(height: IAMSizes.xs),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               const Divider(),
-              const Text('Personal Information', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('Name: ${_firstNameController.text} ${_middleNameController.text} ${_lastNameController.text}'),
+              const Text(
+                'Personal Information',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Name: ${_firstNameController.text} ${_middleNameController.text} ${_lastNameController.text}',
+              ),
               Text('Email: ${_emailController.text}'),
               Text('Phone: ${_phoneController.text}'),
-              Text('Birthdate: ${_selectedBirthdate!.toString().split(' ')[0]}'),
+              Text(
+                'Birthdate: ${_selectedBirthdate!.toString().split(' ')[0]}',
+              ),
               Text('Gender: $_selectedGender'),
               const Divider(),
-              const Text('Address', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Address',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               Text('Address Line: ${_addressLineController.text}'),
               Text('Barangay: ${_selectedBarangay!.barangay}'),
               Text('City: ${_selectedCity!.city}'),
               Text('Province: ${_selectedProvince!.province}'),
               Text('Country: ${_selectedCountry!.country}'),
               const Divider(),
-              const Text('Payment & Fulfillment', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Payment & Fulfillment',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               Text('Sponsor ID: $_sponsorIdno'),
               Text('Payment Method: ${_selectedPaymentMethod?.methodName}'),
-              Text('Fulfillment: ${_selectedFulfillmentType?.fulfillmentTypeName}'),
+              Text(
+                'Fulfillment: ${_selectedFulfillmentType?.fulfillmentTypeName}',
+              ),
               if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP')
                 Text('Branch: ${_selectedBranch?.areaName}'),
               Text('Terms Accepted: ${_termsAccepted ? "Yes" : "No"}'),
               const Divider(),
-              const Text('Valid ID', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Valid ID',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               if (_idImagePath != null || _idImageBytes != null)
                 Container(
                   height: 150,
@@ -495,14 +659,8 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: _idImageBytes != null
-                        ? Image.memory(
-                            _idImageBytes!,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            _idImageFile!,
-                            fit: BoxFit.cover,
-                          ),
+                        ? Image.memory(_idImageBytes!, fit: BoxFit.cover)
+                        : Image.file(_idImageFile!, fit: BoxFit.cover),
                   ),
                 ),
             ],
@@ -561,7 +719,8 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       barangay: _selectedBarangay?.barangay ?? '',
       streetAddress: _addressLineController.text.trim(),
       postalCode: '', // Not collected in enrollment form
-      completeAddress: '${_addressLineController.text.trim()}, ${_selectedBarangay?.barangay ?? ''}, ${_selectedCity?.city ?? ''}, ${_selectedProvince?.province ?? ''}, ${_selectedCountry?.country ?? ''}',
+      completeAddress:
+          '${_addressLineController.text.trim()}, ${_selectedBarangay?.barangay ?? ''}, ${_selectedCity?.city ?? ''}, ${_selectedProvince?.province ?? ''}, ${_selectedCountry?.country ?? ''}',
       isDefault: true,
       isActive: true,
       createdAt: DateTime.now().toIso8601String(),
@@ -569,13 +728,15 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
     );
 
     // Navigate to fee computation screen
-    Get.to(() => PackageFeeComputationScreen(
-      package: widget.package,
-      selectedOption: widget.selectedOption,
-      memberInfo: memberInfo,
-      enrollmentAddress: enrollmentAddress,
-      optionItems: widget.optionItems,
-    ));
+    Get.to(
+      () => PackageFeeComputationScreen(
+        package: widget.package,
+        selectedOption: widget.selectedOption,
+        memberInfo: memberInfo,
+        enrollmentAddress: enrollmentAddress,
+        optionItems: widget.optionItems,
+      ),
+    );
   }
 
   @override
@@ -615,7 +776,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                       ),
                       const SizedBox(height: IAMSizes.sm),
                       Text('Selected: ${widget.selectedOption.optionName}'),
-                      Text('Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}'),
+                      Text(
+                        'Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}',
+                      ),
                     ],
                   ),
                 ),
@@ -720,9 +883,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     prefixIcon: Icon(Iconsax.call),
                   ),
                   keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Required Field*';
                     if (v.length < 7) return 'Phone number looks too short';
@@ -736,7 +897,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   onTap: () async {
                     final DateTime? picked = await showDatePicker(
                       context: context,
-                      initialDate: DateTime.now().subtract(const Duration(days: 18 * 365)),
+                      initialDate: DateTime.now().subtract(
+                        const Duration(days: 18 * 365),
+                      ),
                       firstDate: DateTime(1900),
                       lastDate: DateTime.now(),
                     );
@@ -750,7 +913,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: dark ? Colors.grey : Colors.grey),
+                      border: Border.all(
+                        color: dark ? Colors.grey : Colors.grey,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -972,9 +1137,11 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     if (value == null) return 'Payment method is required';
                     return null;
                   },
-                  onChanged: !_loadingPaymentMethods ? (value) {
-                    setState(() => _selectedPaymentMethod = value);
-                  } : null,
+                  onChanged: !_loadingPaymentMethods
+                      ? (value) {
+                          setState(() => _selectedPaymentMethod = value);
+                        }
+                      : null,
                   hint: _loadingPaymentMethods
                       ? const Text('Loading payment methods...')
                       : const Text('Select Payment Method'),
@@ -1000,12 +1167,15 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     if (value == null) return 'Fulfillment type is required';
                     return null;
                   },
-                  onChanged: !_loadingFulfillmentTypes ? (value) {
-                    setState(() {
-                      _selectedFulfillmentType = value;
-                      _selectedBranch = null; // Reset branch when fulfillment changes
-                    });
-                  } : null,
+                  onChanged: !_loadingFulfillmentTypes
+                      ? (value) {
+                          setState(() {
+                            _selectedFulfillmentType = value;
+                            _selectedBranch =
+                                null; // Reset branch when fulfillment changes
+                          });
+                        }
+                      : null,
                   hint: _loadingFulfillmentTypes
                       ? const Text('Loading fulfillment types...')
                       : const Text('Select Fulfillment Type'),
@@ -1029,14 +1199,18 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                       );
                     }).toList(),
                     validator: (value) {
-                      if (_selectedFulfillmentType?.fulfillmentTypeCode == 'PICKUP' && value == null) {
+                      if (_selectedFulfillmentType?.fulfillmentTypeCode ==
+                              'PICKUP' &&
+                          value == null) {
                         return 'Branch is required for pickup';
                       }
                       return null;
                     },
-                    onChanged: !_loadingBranches ? (value) {
-                      setState(() => _selectedBranch = value);
-                    } : null,
+                    onChanged: !_loadingBranches
+                        ? (value) {
+                            setState(() => _selectedBranch = value);
+                          }
+                        : null,
                     hint: _loadingBranches
                         ? const Text('Loading branches...')
                         : const Text('Select Branch'),
@@ -1084,7 +1258,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: dark ? IAMColors.dark : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
+                      borderRadius: BorderRadius.circular(
+                        IAMSizes.cardRadiusMd,
+                      ),
                       border: Border.all(
                         color: _idImagePath != null
                             ? IAMColors.primary
@@ -1094,16 +1270,15 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     ),
                     child: _idImagePath != null || _idImageBytes != null
                         ? ClipRRect(
-                            borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
+                            borderRadius: BorderRadius.circular(
+                              IAMSizes.cardRadiusMd,
+                            ),
                             child: _idImageBytes != null
                                 ? Image.memory(
                                     _idImageBytes!,
                                     fit: BoxFit.cover,
                                   )
-                                : Image.file(
-                                    _idImageFile!,
-                                    fit: BoxFit.cover,
-                                  ),
+                                : Image.file(_idImageFile!, fit: BoxFit.cover),
                           )
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -1141,7 +1316,9 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                     onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: IAMColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: IAMSizes.md,
+                      ),
                     ),
                     child: const Text(
                       'Submit Enrollment',
