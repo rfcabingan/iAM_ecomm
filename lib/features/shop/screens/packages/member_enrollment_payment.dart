@@ -80,6 +80,7 @@ class _MemberEnrollmentPaymentScreenState
   String? _paymentError;
 
   AddressItem? _selectedAddress;
+  bool _useSavedAddress = true; // Default to saved address
 
   String? _idImagePath;
   File? _idImageFile;
@@ -118,8 +119,13 @@ class _MemberEnrollmentPaymentScreenState
   }
 
   AddressItem get _addressForFees {
-    if (_isHomeDeliverySelected && _selectedAddress != null) {
-      return _selectedAddress!;
+    if (_isHomeDeliverySelected) {
+      if (_useSavedAddress && _selectedAddress != null) {
+        return _selectedAddress!;
+      }
+      if (!_useSavedAddress) {
+        return widget.enrollmentAddress;
+      }
     }
     return widget.enrollmentAddress;
   }
@@ -619,17 +625,44 @@ class _MemberEnrollmentPaymentScreenState
                     ),
                     if (_isHomeDeliverySelected) ...[
                       const SizedBox(height: IAMSizes.spaceBtwItems),
+                      // Address toggle: Saved vs Manual
+                      Row(
+                        children: [
+                          const Text('Use saved address'),
+                          const Spacer(),
+                          Switch(
+                            value: _useSavedAddress,
+                            onChanged: (value) {
+                              setState(() {
+                                _useSavedAddress = value;
+                                if (_useSavedAddress) {
+                                  _selectedAddress = null; // Clear manual address
+                                } else {
+                                  _selectedAddress = widget.enrollmentAddress; // Use manual address
+                                }
+                                _refreshComputedFees();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: IAMSizes.spaceBtwItems),
                       const IAMDeliveryTimelineNote(),
                       const SizedBox(height: IAMSizes.spaceBtwItems),
-                      IAMBillingAddressSection(
-                        fallbackAddress: widget.enrollmentAddress,
-                        onAddressSelected: (addr) {
-                          setState(() {
-                            _selectedAddress = addr ?? widget.enrollmentAddress;
-                          });
-                          _refreshComputedFees();
-                        },
-                      ),
+                      if (_useSavedAddress)
+                        IAMBillingAddressSection(
+                          fallbackAddress: widget.enrollmentAddress,
+                          onAddressSelected: (addr) {
+                            setState(() {
+                              _selectedAddress = addr ?? widget.enrollmentAddress;
+                            });
+                            _refreshComputedFees();
+                          },
+                        )
+                      else
+                        _ManualAddressSection(
+                          address: widget.enrollmentAddress,
+                        ),
                     ],
                     const SizedBox(height: IAMSizes.spaceBtwItems),
                     _EnrollmentPaymentMethodSection(
@@ -992,6 +1025,83 @@ class _FeeRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ManualAddressSection extends StatelessWidget {
+  const _ManualAddressSection({
+    required this.address,
+  });
+
+  final AddressItem address;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = IAMHelperFunctions.isDarkMode(context);
+
+    return IAMRoundedContainer(
+      showBorder: true,
+      padding: const EdgeInsets.all(IAMSizes.md),
+      backgroundColor: dark ? IAMColors.black : Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Delivery Address',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: IAMSizes.md),
+          _AddressField(label: 'Country', value: address.country),
+          _AddressField(label: 'Province', value: address.province),
+          _AddressField(label: 'City', value: address.city),
+          _AddressField(label: 'Barangay', value: address.barangay),
+          _AddressField(label: 'Address Line', value: address.completeAddress),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddressField extends StatelessWidget {
+  const _AddressField({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: IAMSizes.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
-import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/login.dart';
 import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
-import 'package:iam_ecomm/features/shop/controllers/product_cache_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/packages/member_enrollment_form.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
@@ -14,7 +12,6 @@ import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
-import 'package:intl/intl.dart';
 
 class PackageDetailScreen extends StatefulWidget {
   const PackageDetailScreen({super.key, required this.package});
@@ -33,31 +30,19 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
   bool _loadingItems = false;
   String? _optionsError;
   String? _itemsError;
-  Worker? _productsWorker;
-
-  ProductCacheController get _productCache =>
-      Get.isRegistered<ProductCacheController>()
-      ? ProductCacheController.instance
-      : Get.put(ProductCacheController(), permanent: true);
-
-  static String _formatPrice(num value) {
-    return NumberFormat('#,##0.00', 'en_PH').format(value);
-  }
 
   @override
   void initState() {
     super.initState();
-    _productsWorker = ever(_productCache.productsVersion, (_) {
-      if (mounted) setState(() {});
-    });
     _loadOptions();
-    _productCache.ensureProducts();
   }
 
-  @override
-  void dispose() {
-    _productsWorker?.dispose();
-    super.dispose();
+  String _formatPrice(num price) {
+    final priceString = price.toStringAsFixed(2);
+    return priceString.replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => ',',
+    );
   }
 
   Future<void> _loadOptions() async {
@@ -108,25 +93,6 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
 
   num _getOptionPrice(PackageOptionItem option) {
     return option.price ?? widget.package.packageAmount;
-  }
-
-  num get _displayedPrice {
-    final option = _selectedOption;
-    if (option == null) return widget.package.packageAmount;
-    return _getOptionPrice(option);
-  }
-
-  bool get _samePriceForEveryOption {
-    final prices = _options
-        .whereType<PackageOptionItem>()
-        .map(_getOptionPrice)
-        .toSet();
-    return prices.length <= 1;
-  }
-
-  String _imageUrlFor(PackageOptionItemDetail item) {
-    if (item.imageUrl.isNotEmpty) return item.imageUrl;
-    return _productCache.productByCode(item.productCode)?.imageUrl ?? '';
   }
 
   Future<void> _checkoutPackage(BuildContext context) async {
@@ -193,29 +159,113 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
       appBar: IAMAppBar(showBackArrow: true, title: Text(package.packageName)),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            IAMSizes.defaultSpace,
-            IAMSizes.defaultSpace,
-            IAMSizes.defaultSpace,
-            IAMSizes.defaultSpace * 2,
-          ),
+          padding: const EdgeInsets.all(IAMSizes.defaultSpace),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _PackageHeroCard(
-                package: package,
-                price: _displayedPrice,
-                samePriceForEveryOption: _samePriceForEveryOption,
-                formatPrice: _formatPrice,
+              // Package Image and Info
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(
+                  IAMSizes.md,
+                  IAMSizes.md,
+                  IAMSizes.md,
+                  IAMSizes.md,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+                  image: DecorationImage(
+                    image: const AssetImage(IAMImages.goldBg),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      const Color.fromARGB(
+                        255,
+                        209,
+                        207,
+                        207,
+                      ).withOpacity(0.45),
+                      BlendMode.darken,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Package Image
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          IAMSizes.cardRadiusMd,
+                        ),
+                        image: DecorationImage(
+                          image: NetworkImage(package.imageUrl),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: IAMSizes.sm),
+
+                    // Package Info
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Package Name
+                          Text(
+                            package.packageName,
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  height: 1.1,
+                                ),
+                          ),
+
+                          const SizedBox(height: IAMSizes.md),
+
+                          // Package Price
+                          Text(
+                            '₱${_formatPrice(package.packageAmount)}',
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22,
+                                ),
+                          ),
+
+                          const SizedBox(height: IAMSizes.xs),
+
+                          // Same price for every option
+                          Text(
+                            'Same price for every option',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
+              const SizedBox(height: 20),
+
+              // Package Description
               Text(
                 'Choose inclusions',
                 style: Theme.of(
                   context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 18),
               ),
+
               const SizedBox(height: IAMSizes.spaceBtwItems),
+
+              // Package Options Dropdown
               if (_loadingOptions)
                 const Center(child: CircularProgressIndicator())
               else if (_optionsError != null)
@@ -241,13 +291,15 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
                 ),
                 const SizedBox(height: IAMSizes.sm),
                 Text(
-                  '${_options.whereType<PackageOptionItem>().length} options available · ₱${_formatPrice(_displayedPrice)} each',
+                  '${_options.whereType<PackageOptionItem>().length} options available · ₱${_formatPrice(_selectedOption != null ? _getOptionPrice(_selectedOption!) : widget.package.packageAmount)} each',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: dark ? IAMColors.grey : IAMColors.textSecondary,
                   ),
                 ),
               ],
               const SizedBox(height: IAMSizes.spaceBtwSections),
+
+              // Products Table
               if (_selectedOption != null) ...[
                 Row(
                   children: [
@@ -279,9 +331,22 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
                 if (_loadingItems)
                   const Center(child: CircularProgressIndicator())
                 else if (_itemsError != null)
-                  _RetryMessage(
-                    message: _itemsError!,
-                    onRetry: () => _loadOptionItems(_selectedOption!),
+                  Padding(
+                    padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                    child: Column(
+                      children: [
+                        Text(
+                          _itemsError!,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: IAMSizes.sm),
+                        ElevatedButton(
+                          onPressed: () => _loadOptionItems(_selectedOption!),
+                          child: const Text('Try Again'),
+                        ),
+                      ],
+                    ),
                   )
                 else if (_optionItems
                     .whereType<PackageOptionItemDetail>()
@@ -301,111 +366,159 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
                               dark: dark,
                               name: item.productName,
                               qty: item.qty,
-                              imageUrl: _imageUrlFor(item),
+                              imageUrl: item.imageUrl,
                             ),
                           ),
                         )
                         .toList(),
                   ),
+                const SizedBox(height: IAMSizes.spaceBtwSections),
               ],
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _PackageCheckoutBar(
-        dark: dark,
-        priceLabel: '₱${_formatPrice(_displayedPrice)}',
-        enabled: _selectedOption != null,
-        onContinue: () => _checkoutPackage(context),
+
+      // Fixed package price and registration button
+      bottomNavigationBar: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          border: Border(
+            top: BorderSide(
+              color: dark ? IAMColors.darkGrey : Colors.grey.shade300,
+              width: 1,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              IAMSizes.defaultSpace,
+              IAMSizes.md,
+              IAMSizes.defaultSpace,
+              IAMSizes.md,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.inventory_2_outlined,
+                            size: 18,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: IAMSizes.sm),
+                        Text(
+                          'Package Price:',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      _selectedOption != null
+                          ? _formatPrice(_getOptionPrice(_selectedOption!))
+                          : _formatPrice(widget.package.packageAmount),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: IAMSizes.md),
+
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 6,
+                        spreadRadius: 0,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 2 * 24,
+                    child: ElevatedButton(
+                      onPressed: _selectedOption != null
+                          ? () => _checkoutPackage(context)
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: IAMColors.primary,
+                        disabledBackgroundColor: Colors.grey,
+                        padding: EdgeInsets.zero,
+                        elevation: 0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Continue to Registration',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _PackageHeroCard extends StatelessWidget {
-  const _PackageHeroCard({
-    required this.package,
-    required this.price,
-    required this.samePriceForEveryOption,
-    required this.formatPrice,
-  });
+class _RetryMessage extends StatelessWidget {
+  const _RetryMessage({required this.message, required this.onRetry});
 
-  final PackageItem package;
-  final num price;
-  final bool samePriceForEveryOption;
-  final String Function(num) formatPrice;
+  final String message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(IAMSizes.md),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
-        image: const DecorationImage(
-          image: AssetImage(IAMImages.goldBg),
-          fit: BoxFit.cover,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+      child: Column(
         children: [
-          Container(
-            width: 92,
-            height: 92,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-            padding: const EdgeInsets.all(IAMSizes.sm),
-            child: ClipOval(
-              child: package.imageUrl.isNotEmpty
-                  ? IAMRoundedImage(
-                      imageUrl: package.imageUrl,
-                      width: 76,
-                      height: 76,
-                      applyImageRadius: true,
-                      borderRadius: 38,
-                      isNetworkImage: true,
-                      fit: BoxFit.cover,
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    )
-                  : const Icon(Iconsax.box, color: Colors.white, size: 40),
-            ),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(width: IAMSizes.spaceBtwItems),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  package.packageName.toUpperCase(),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-                const SizedBox(height: IAMSizes.xs),
-                Text(
-                  '₱${formatPrice(price)}',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (samePriceForEveryOption) ...[
-                  const SizedBox(height: IAMSizes.xs),
-                  Text(
-                    'Same price for every option',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          const SizedBox(height: IAMSizes.sm),
+          ElevatedButton(onPressed: onRetry, child: const Text('Try Again')),
         ],
       ),
     );
@@ -494,16 +607,18 @@ class _IncludedProductCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
             ),
             child: imageUrl.isNotEmpty
-                ? IAMRoundedImage(
-                    imageUrl: imageUrl,
-                    width: 72,
-                    height: 72,
-                    applyImageRadius: true,
-                    isNetworkImage: true,
-                    fit: BoxFit.cover,
-                    backgroundColor: dark
-                        ? IAMColors.darkerGrey
-                        : IAMColors.light,
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Iconsax.box,
+                          color: dark ? IAMColors.grey : IAMColors.darkGrey,
+                        );
+                      },
+                    ),
                   )
                 : Icon(
                     Iconsax.box,
@@ -538,116 +653,6 @@ class _IncludedProductCard extends StatelessWidget {
             ],
           ),
           const SizedBox(width: IAMSizes.sm),
-        ],
-      ),
-    );
-  }
-}
-
-class _PackageCheckoutBar extends StatelessWidget {
-  const _PackageCheckoutBar({
-    required this.dark,
-    required this.priceLabel,
-    required this.enabled,
-    required this.onContinue,
-  });
-
-  final bool dark;
-  final String priceLabel;
-  final bool enabled;
-  final VoidCallback onContinue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(
-        IAMSizes.defaultSpace,
-        IAMSizes.md,
-        IAMSizes.defaultSpace,
-        IAMSizes.md,
-      ),
-      decoration: BoxDecoration(
-        color: dark ? IAMColors.dark : IAMColors.white,
-        border: Border(
-          top: BorderSide(
-            color: dark ? IAMColors.darkGrey : IAMColors.borderSecondary,
-          ),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'Package price',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: dark ? IAMColors.grey : IAMColors.textSecondary,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  priceLabel,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: IAMSizes.sm),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: enabled ? onContinue : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: IAMColors.primary,
-                  disabledBackgroundColor: Colors.grey,
-                  padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Continue to Registration',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: IAMSizes.sm),
-                    Icon(Iconsax.arrow_right_3, size: 18),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RetryMessage extends StatelessWidget {
-  const _RetryMessage({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-      child: Column(
-        children: [
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: IAMSizes.sm),
-          ElevatedButton(onPressed: onRetry, child: const Text('Try Again')),
         ],
       ),
     );

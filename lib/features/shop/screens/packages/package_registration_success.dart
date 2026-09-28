@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
@@ -22,8 +21,8 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
     final dark = IAMHelperFunctions.isDarkMode(context);
 
     return Scaffold(
-      appBar: IAMAppBar(
-        showBackArrow: false,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             onPressed: () => Get.offAllNamed('/'),
@@ -39,50 +38,42 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
               // Success Icon
               const CircleAvatar(
                 radius: 50,
-                backgroundColor: IAMColors.primary,
+                backgroundColor: Color(0xFFD4AF37), // Gold color
                 child: Icon(
                   Icons.check_circle,
                   size: 60,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
+              const SizedBox(height: IAMSizes.spaceBtwItems),
 
-              // Title
-              Text(
-                'Registration Successful!',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+              // Payment Pending Status
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.access_time,
+                    color: Colors.orange,
+                    size: 24,
+                  ),
+                  const SizedBox(width: IAMSizes.sm),
+                  Text(
+                    'Payment pending',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: IAMSizes.sm),
               Text(
-                registrationData.message,
-                style: Theme.of(context).textTheme.bodyMedium,
+                'Complete your payment via PayMaya',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: dark ? Colors.white70 : Colors.grey[600],
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
-
-              // Package Image
-              if (packageImage.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
-                  child: Image.network(
-                    packageImage,
-                    height: 150,
-                    width: double.infinity,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 150,
-                        width: double.infinity,
-                        color: dark ? IAMColors.dark : Colors.grey[300],
-                        child: const Icon(Icons.image, size: 60),
-                      );
-                    },
-                  ),
-                ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
 
               // Package Details
@@ -99,39 +90,54 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: IAMSizes.sm),
-                    Text('Option: ${registrationData.optionName}'),
+                    const SizedBox(height: IAMSizes.xs),
+                    Text(
+                      registrationData.optionName,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: dark ? Colors.white70 : Colors.grey[600],
+                      ),
+                    ),
                     const Divider(height: IAMSizes.md),
                     _DetailRow(
-                      label: 'Order Reference',
+                      label: 'Order reference',
                       value: registrationData.orderRefno,
                     ),
                     _DetailRow(
-                      label: 'Registration Reference',
+                      label: 'Registration reference',
                       value: registrationData.registrationRefno,
                     ),
-                    const Divider(height: IAMSizes.md),
+                  ],
+                ),
+              ),
+              const SizedBox(height: IAMSizes.spaceBtwItems),
+
+              // Amount Breakdown
+              IAMRoundedContainer(
+                showBorder: true,
+                padding: const EdgeInsets.all(IAMSizes.md),
+                backgroundColor: dark ? IAMColors.black : Colors.white,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Amount Breakdown',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: IAMSizes.md),
                     _DetailRow(
-                      label: 'Package Amount',
+                      label: 'Package',
                       value: '₱${registrationData.packageAmount.toStringAsFixed(2)}',
                     ),
                     _DetailRow(
-                      label: 'Shipping Amount',
+                      label: 'Shipping',
                       value: '₱${registrationData.shippingAmount.toStringAsFixed(2)}',
                     ),
-                    if (registrationData.processingFee > 0)
-                      _DetailRow(
-                        label: 'Processing Fee',
-                        value: '₱${registrationData.processingFee.toStringAsFixed(2)}',
-                      ),
-                    if (registrationData.discountAmount > 0)
-                      _DetailRow(
-                        label: 'Discount',
-                        value: '₱${registrationData.discountAmount.toStringAsFixed(2)}',
-                      ),
                     const Divider(height: IAMSizes.md),
                     _DetailRow(
-                      label: 'Total Amount',
+                      label: 'Total due',
                       value: '₱${registrationData.totalAmount.toStringAsFixed(2)}',
                       isBold: true,
                       color: IAMColors.primary,
@@ -141,49 +147,26 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
 
-              // Shipping Info
-              IAMRoundedContainer(
-                showBorder: true,
-                padding: const EdgeInsets.all(IAMSizes.md),
-                backgroundColor: dark ? IAMColors.dark : Colors.grey[200]!,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Shipping Details',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: IAMSizes.sm),
-                    _DetailRow(
-                      label: 'Shipping Method',
-                      value: registrationData.shippingMethod,
-                    ),
-                    _DetailRow(
-                      label: 'Shipping Region',
-                      value: registrationData.shippingRegion,
-                    ),
-                    _DetailRow(
-                      label: 'Fulfillment Area',
-                      value: registrationData.fulfillmentAreaCode,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
-
-              // Continue Button
+              // Continue to PayMaya Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => Get.offAllNamed('/'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: IAMColors.primary,
+                    backgroundColor: const Color(0xFF0085CA), // PayMaya blue
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text('Continue'),
+                  child: const Text(
+                    'Continue to PayMaya',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
