@@ -149,7 +149,6 @@ class _IAMBillingPaymentSectionState extends State<IAMBillingPaymentSection> {
         children: [
           IAMSectionHeading(
             title: 'Payment Method',
-            buttonTitle: hasSelection ? 'Change' : 'Select',
             onPressed: providerSelected ? () => _showSelector(context) : null,
           ),
           const SizedBox(height: IAMSizes.spaceBtwItems / 2),
@@ -194,6 +193,8 @@ class _IAMBillingPaymentSectionState extends State<IAMBillingPaymentSection> {
         methods.whereType<PaymentMethodItem>().where((m) => m.isActive).toList()
           ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     if (methodList.isEmpty) return;
+
+    if (!context.mounted) return;
 
     final selected = await showModalBottomSheet<PaymentMethodItem>(
       context: context,

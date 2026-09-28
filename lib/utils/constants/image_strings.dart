@@ -2,6 +2,7 @@ class IAMImages {
   //App Logos
   static const String darkAppLogo = "assets/images/iamlogo1080p.png";
   static const String lightAppLogo = "assets/images/iamlogo1080p.png";
+  static const String goldbgcontainer = "assets/images/gold bg.jpg";
 
   // static const String darkAppLogo = "assets/logos/iamlogo.png";
 
@@ -27,17 +28,28 @@ class IAMImages {
       "assets/images/animations/highfive.png";
 
   // Category Icons
+  static const String iamPackages =
+      "assets/images/categories/organic-product.png";
+  static const String iamPackages1 = "assets/images/categories/natural.png";
   static const String amazingBarley = "assets/images/categories/bio.png";
-  static const String amazingBarley1 = "assets/images/categories/cat-barley.png";
-  static const String amazingSkinCare = "assets/images/categories/glowing-skin (1).png";
-  static const String deliciousJuiceDrinks = "assets/images/categories/orange-juice.png";
-  static const String deliciousJuiceDrinks1 = "assets/images/categories/cat-juice.png";
+  static const String amazingBarley1 =
+      "assets/images/categories/cat-barley.png";
+  static const String amazingSkinCare =
+      "assets/images/categories/glowing-skin (1).png";
+  static const String deliciousJuiceDrinks =
+      "assets/images/categories/orange-juice.png";
+  static const String deliciousJuiceDrinks1 =
+      "assets/images/categories/cat-juice.png";
   static const String foodSupplements = "assets/images/categories/vitamins.png";
-  static const String foodSupplements1 = "assets/images/categories/cat-supplements.png";
+  static const String foodSupplements1 =
+      "assets/images/categories/cat-supplements.png";
   static const String healthyCoffee = "assets/images/categories/coffee-cup.png";
-  static const String healthyCoffee1 = "assets/images/categories/cat-coffee.png";
-  static const String protectiveAccessories = "assets/images/categories/sunglasses.png";
-  static const String sjkProducts = "assets/images/categories/organic-product.png";
+  static const String healthyCoffee1 =
+      "assets/images/categories/cat-coffee.png";
+  static const String protectiveAccessories =
+      "assets/images/categories/sunglasses.png";
+  static const String sjkProducts =
+      "assets/images/categories/organic-product.png";
   static const String prod1 = "assets/images/categories/organic-product.png";
   static const String prod2 = "assets/images/categories/organic-product.png";
 

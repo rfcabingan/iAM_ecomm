@@ -28,10 +28,8 @@ class StoreScreen extends StatelessWidget {
     }
 
     final controller = Get.find<StoreController>();
-    if (controller.featuredProducts.isEmpty &&
-        !controller.featuredLoading.value) {
-      controller.fetchFeaturedProducts();
-    }
+    // Fetch featured products - the method handles duplicate request prevention internally
+    controller.fetchFeaturedProducts();
 
     // Dedicated desktop-web storefront; mobile apps keep NestedScrollView UI.
     if (IAMPlatformLayout.isWebDesktop(context)) {
@@ -83,8 +81,6 @@ class StoreScreen extends StatelessWidget {
                       SizedBox(
                         height: 130,
                         child: Obx(() {
-                          final controller = Get.find<StoreController>();
-
                           if (controller.featuredLoading.value) {
                             return ListView.separated(
                               scrollDirection: Axis.horizontal,

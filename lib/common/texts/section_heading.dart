@@ -6,13 +6,14 @@ class IAMSectionHeading extends StatelessWidget {
     this.onPressed,
     this.textColor,
     required this.title,
-    this.buttonTitle = 'View All',
+    //this.buttonTitle = 'View All',
     this.showActionButton = true,
   });
 
   final Color? textColor;
   final bool showActionButton;
-  final String title, buttonTitle;
+  final String title;
+  //final String buttonTitle;
   final void Function()? onPressed;
 
   @override
@@ -28,8 +29,8 @@ class IAMSectionHeading extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        if (showActionButton)
-          TextButton(onPressed: onPressed, child: Text(buttonTitle)),
+        /*if (showActionButton)
+          TextButton(onPressed: onPressed, child: Text(buttonTitle)),*/
       ],
     );
   }

@@ -4,9 +4,9 @@ class ApiEndpoints {
   static const String images = '/Images';
   ApiEndpoints._();
 
-  static const String baseUrl = 'https://ecom-api.iam-ww.com/v1';
-  static const String rootUrl = 'https://ecom-api.iam-ww.com';
-  // beta : 'https://ecom-api-staging.iam-ww
+  static const String baseUrl = 'https://ecom-api-staging.iam-ww.com/v1';
+  static const String rootUrl = 'https://ecom-api-staging.iam-ww.com';
+  // production: 'https://ecom-api.iam-ww.com/v1'
   // internal beta: 'https://ecom-api.iam-ww.com';
   static const String authLogin = '/Auth/Login';
   static const String authSignup = '/Auth/Signup';
@@ -35,6 +35,15 @@ class ApiEndpoints {
 
   static const String checkout = '/Checkout';
   static const String checkoutComputeFees = '/Checkout/ComputeFees';
+
+  // Packages APIs
+  static const String packages = '/Packages';
+  static String packageOptions(String packageCode) =>
+      '/Packages/$packageCode/Options';
+  static String packageOptionItems(String packageCode, int optionId) =>
+      '/Packages/$packageCode/Options/$optionId/Items';
+  static const String packagesComputeFees = '/Packages/ComputeFees';
+  static const String packagesRegister = '/Packages/Register';
 
   static const String paymentCreate = '/Payment/CreatePayment';
   static const String paymentCallback = '/Payment/Callback';

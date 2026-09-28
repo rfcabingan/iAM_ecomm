@@ -376,7 +376,7 @@ class _PointsBalanceCard extends StatelessWidget {
                   const SizedBox(width: IAMSizes.sm),
                   Expanded(
                     child: Text(
-                      'Total Points',
+                      'Total Cashback',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: onSurface,
                         fontWeight: FontWeight.w700,
@@ -385,8 +385,8 @@ class _PointsBalanceCard extends StatelessWidget {
                   ),
                   Text(
                     total == null
-                        ? '-- pts'
-                        : '${IAMFormatter.formatAccountingAmount(total.toDouble())} pts',
+                        ? '-- ₱'
+                        : '₱${IAMFormatter.formatAccountingAmount(total.toDouble())}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: IAMColors.primary,
                       fontWeight: FontWeight.w800,
@@ -405,7 +405,7 @@ class _PointsBalanceCard extends StatelessWidget {
               if (tappable) ...[
                 const SizedBox(height: IAMSizes.xs),
                 Text(
-                  'Tap to view points history',
+                  'Tap to view cashback history',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: muted,
                   ),
@@ -485,7 +485,7 @@ class _PointStat extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            '${IAMFormatter.formatAccountingAmount(value.toDouble())} pts',
+            '₱${IAMFormatter.formatAccountingAmount(value.toDouble())}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(

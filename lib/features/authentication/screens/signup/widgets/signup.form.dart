@@ -171,99 +171,96 @@ class _IAMSignupFormState extends State<IAMSignupForm> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _firstNameController,
-                  expands: false,
-                  decoration: const InputDecoration(
-                    labelText: IAMTexts.firstName,
-                    prefixIcon: Icon(Iconsax.user),
-                  ),
-                  inputFormatters: [
-                    // Letters only (no numbers/special characters).
-                    // Allow spaces to support multi-part names like "Mary Jane".
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'[A-Za-z ]'),
-                    ),
-                  ],
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Required Field*';
-                    }
-
-                    final normalized = v.trim();
-                    final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
-                    if (!regex.hasMatch(normalized)) {
-                      return 'Only letters are allowed';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(width: IAMSizes.spaceBtwInputFields),
-              Expanded(
-                child: TextFormField(
-                  controller: _middleNameController,
-                  expands: false,
-                  decoration: const InputDecoration(
-                    labelText: IAMTexts.middleName,
-                    prefixIcon: Icon(Iconsax.user),
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'[A-Za-z ]'),
-                    ),
-                  ],
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Required Field*';
-                    }
-
-                    final normalized = v.trim();
-                    final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
-                    if (!regex.hasMatch(normalized)) {
-                      return 'Only letters are allowed';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(width: IAMSizes.spaceBtwInputFields),
-              Expanded(
-                child: TextFormField(
-                  controller: _lastNameController,
-                  expands: false,
-                  decoration: const InputDecoration(
-                    labelText: IAMTexts.lastName,
-                    prefixIcon: Icon(Iconsax.user),
-                  ),
-                  inputFormatters: [
-                    // Letters only (no numbers/special characters).
-                    // Allow spaces to support multi-part names like "Dela Cruz".
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'[A-Za-z ]'),
-                    ),
-                  ],
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Required Field*';
-                    }
-
-                    final normalized = v.trim();
-                    final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
-                    if (!regex.hasMatch(normalized)) {
-                      return 'Only letters are allowed';
-                    }
-                    return null;
-                  },
-                ),
+          TextFormField(
+            controller: _firstNameController,
+            expands: false,
+            decoration: const InputDecoration(
+              labelText: IAMTexts.firstName,
+              prefixIcon: Icon(Iconsax.user),
+            ),
+            inputFormatters: [
+              // Letters only (no numbers/special characters).
+              // Allow spaces to support multi-part names like "Mary Jane".
+              FilteringTextInputFormatter.allow(
+                RegExp(r'[A-Za-z ]'),
               ),
             ],
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) {
+                return 'Required Field*';
+              }
+
+              final normalized = v.trim();
+              final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
+              if (!regex.hasMatch(normalized)) {
+                return 'Only letters are allowed';
+              }
+              return null;
+            },
           ),
 
           const SizedBox(height: IAMSizes.spaceBtwInputFields),
+
+          TextFormField(
+            controller: _middleNameController,
+            expands: false,
+            decoration: const InputDecoration(
+              labelText: IAMTexts.middleName,
+              prefixIcon: Icon(Iconsax.user),
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(
+                RegExp(r'[A-Za-z ]'),
+              ),
+            ],
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) {
+                return 'Required Field*';
+              }
+
+              final normalized = v.trim();
+              final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
+              if (!regex.hasMatch(normalized)) {
+                return 'Only letters are allowed';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: IAMSizes.spaceBtwInputFields),
+
+          TextFormField(
+            controller: _lastNameController,
+            expands: false,
+            decoration: const InputDecoration(
+              labelText: IAMTexts.lastName,
+              prefixIcon: Icon(Iconsax.user),
+            ),
+            inputFormatters: [
+              // Letters only (no numbers/special characters).
+              // Allow spaces to support multi-part names like "Dela Cruz".
+              FilteringTextInputFormatter.allow(
+                RegExp(r'[A-Za-z ]'),
+              ),
+            ],
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) {
+                return 'Required Field*';
+              }
+
+              final normalized = v.trim();
+              final regex = RegExp(r'^[A-Za-z]+(?: [A-Za-z]+)*$');
+              if (!regex.hasMatch(normalized)) {
+                return 'Only letters are allowed';
+              }
+              return null;
+            },
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: IAMSizes.spaceBtwSections),
+            child: Divider(height: 1),
+          ),
 
           TextFormField(
             controller: _emailController,
