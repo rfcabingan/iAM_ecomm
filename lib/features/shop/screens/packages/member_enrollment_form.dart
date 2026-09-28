@@ -322,6 +322,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     labelText: 'First Name',
                     prefixIcon: Icon(Iconsax.user),
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
@@ -344,6 +345,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     labelText: 'Middle Name (Optional)',
                     prefixIcon: Icon(Iconsax.user),
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
@@ -365,6 +367,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     labelText: 'Last Name',
                     prefixIcon: Icon(Iconsax.user),
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z ]')),
@@ -389,6 +392,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Iconsax.direct),
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Required Field*';
@@ -403,6 +407,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     labelText: 'Mobile/Contact#',
                     prefixIcon: Icon(Iconsax.call),
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   keyboardType: TextInputType.phone,
                   inputFormatters: [
@@ -458,6 +463,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     labelText: 'Gender',
                     prefixIcon: Icon(Iconsax.user),
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   items: const [
                     DropdownMenuItem(value: 'Male', child: Text('Male')),
@@ -480,6 +486,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Iconsax.global),
                     labelText: 'Country',
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   items: _countries.map((country) {
                     return DropdownMenuItem(
@@ -504,6 +511,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Iconsax.map),
                     labelText: 'Province',
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   items: _provinces.map((province) {
                     return DropdownMenuItem(
@@ -532,6 +540,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Iconsax.building),
                     labelText: 'City',
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   items: _cities.map((city) {
                     return DropdownMenuItem(
@@ -560,6 +569,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Iconsax.location),
                     labelText: 'Barangay',
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   items: _barangays.map((barangay) {
                     return DropdownMenuItem(
@@ -588,6 +598,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   decoration: const InputDecoration(
                     labelText: 'Address Line',
                     prefixIcon: Icon(Iconsax.building_3),
+                    labelStyle: TextStyle(color: Colors.grey),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {

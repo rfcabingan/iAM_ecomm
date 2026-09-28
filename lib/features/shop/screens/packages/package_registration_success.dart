@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
-import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
+import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
@@ -81,6 +81,7 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: labelColor,
                   height: 1.4,
+                  fontSize: 12,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -92,7 +93,7 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: dark
-                      ? IAMColors.primary.withOpacity(0.15)
+                      ? IAMColors.primary.withValues(alpha: 0.15)
                       : IAMColors.accent,
                   borderRadius: BorderRadius.circular(IAMSizes.buttonRadius * 3),
                 ),
@@ -123,6 +124,7 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: labelColor,
                   height: 1.4,
+                  fontSize: 12,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -247,32 +249,37 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
 class _SuccessIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 96,
-      height: 96,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            Color(0xFFF0D878),
-            Color(0xFFD4AF37),
-            Color(0xFFB8941F),
-          ],
-          stops: [0.2, 0.55, 1.0],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x33D4AF37),
-            blurRadius: 16,
-            offset: Offset(0, 6),
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Container(
+        width: 96,
+        height: 96,
+        padding: const EdgeInsets.all(IAMSizes.md),
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 221, 171, 57),
+              Color.fromARGB(255, 201, 147, 40),
+              Color.fromARGB(255, 221, 171, 57),
+            ],
+            stops: [0.2, 0.55, 1.0],
           ),
-        ],
-      ),
-      child: const Icon(
-        Icons.check_rounded,
-        size: 52,
-        color: Colors.white,
-        weight: 700,
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromARGB(128, 255, 206, 43),
+              blurRadius: 10,
+              spreadRadius: 5,
+              offset: Offset(0, 0),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.check_circle_rounded,
+          size: 65,
+          color: Colors.white,
+          weight: 700,
+        ),
       ),
     );
   }
@@ -293,50 +300,75 @@ class _PackageBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(IAMSizes.md),
+      height: 120, // Fixed height to make it smaller
+      padding: const EdgeInsets.fromLTRB(
+        IAMSizes.md,
+        IAMSizes.md,
+        IAMSizes.md,
+        IAMSizes.md,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFE8C96A),
-            Color(0xFFD4AF37),
-            Color(0xFFC49A2A),
-            Color(0xFFB8860B),
-          ],
+        image: DecorationImage(
+          image: const AssetImage(IAMImages.goldBg),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(
+            const Color.fromARGB(
+              255,
+              209,
+              207,
+              207,
+            ).withValues(alpha: 0.45),
+            BlendMode.darken,
+          ),
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          IAMRoundedImage(
-            imageUrl: packageImage,
-            isNetworkImage: packageImage.isNotEmpty,
-            width: 72,
-            height: 72,
-            fit: BoxFit.contain,
-            backgroundColor: Colors.transparent,
+          // Package Image
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(
+                IAMSizes.cardRadiusMd,
+              ),
+              image: DecorationImage(
+                image: NetworkImage(packageImage),
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-          const SizedBox(width: IAMSizes.md),
+          const SizedBox(width: IAMSizes.sm),
+          // Package Info
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  packageName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: IAMColors.white,
+            child: Padding(
+              padding: const EdgeInsets.only(left: IAMSizes.md),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Package Name
+                  Text(
+                    packageName,
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          height: 1.1,
+                        ),
                   ),
-                ),
-                const SizedBox(height: IAMSizes.xs),
-                Text(
-                  optionName,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: IAMColors.white.withOpacity(0.92),
+                  const SizedBox(height: IAMSizes.xs),
+                  // Option Name
+                  Text(
+                    optionName,
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: Colors.white, fontSize: 14),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

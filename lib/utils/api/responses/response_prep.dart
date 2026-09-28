@@ -36,6 +36,7 @@ class PackageItem {
   final String packageDescription;
   final num packageAmount;
   final String imageUrl;
+  final int displayOrder;
 
   PackageItem({
     required this.packageId,
@@ -44,6 +45,7 @@ class PackageItem {
     required this.packageDescription,
     required this.packageAmount,
     required this.imageUrl,
+    required this.displayOrder,
   });
 
   static PackageItem? fromJson(dynamic json) {
@@ -56,6 +58,7 @@ class PackageItem {
       packageDescription: m['packageDescription'] as String? ?? '',
       packageAmount: (m['packageAmount'] as num?) ?? 0,
       imageUrl: m['imageUrl'] as String? ?? '',
+      displayOrder: readIntValue(m['displayOrder']),
     );
   }
 }
