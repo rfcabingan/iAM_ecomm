@@ -478,7 +478,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            'Continue to Registration',
+                            'Continue',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
