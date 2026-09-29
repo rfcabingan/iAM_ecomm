@@ -38,6 +38,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressLineController = TextEditingController();
+  final _postalCodeController = TextEditingController();
 
   DateTime? _selectedBirthdate;
   String? _selectedGender;
@@ -73,6 +74,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
     _emailController.dispose();
     _phoneController.dispose();
     _addressLineController.dispose();
+    _postalCodeController.dispose();
     super.dispose();
   }
 
@@ -251,7 +253,7 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
       city: _selectedCity?.city ?? '',
       barangay: _selectedBarangay?.barangay ?? '',
       streetAddress: _addressLineController.text.trim(),
-      postalCode: '',
+      postalCode: _postalCodeController.text.trim(),
       completeAddress:
           '${_addressLineController.text.trim()}, ${_selectedBarangay?.barangay ?? ''}, ${_selectedCity?.city ?? ''}, ${_selectedProvince?.province ?? ''}, ${_selectedCountry?.country ?? ''}',
       isDefault: true,
@@ -603,6 +605,22 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
                       return 'Address line is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: IAMSizes.spaceBtwInputFields),
+                TextFormField(
+                  controller: _postalCodeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Postal Code',
+                    prefixIcon: Icon(Iconsax.document),
+                    labelStyle: TextStyle(color: Colors.grey),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Postal code is required';
                     }
                     return null;
                   },

@@ -140,6 +140,8 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
     bool dark,
   ) {
     final isUnpaid =
+        order.paymentStatusId == PaymentStatusIds.pending ||
+        order.paymentStatusId == PaymentStatusIds.failed ||
         order.paymentStatusId == 0 ||
         order.paymentStatusName.toLowerCase() == 'not paid';
     return GestureDetector(
@@ -541,10 +543,10 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
       if (_statusTextLooksPaid(text)) return true;
 
       final statusId = value['paymentStatusId'] ?? value['statusId'];
-      if (statusId is num && statusId != 0) return true;
+      if (statusId is num && statusId == PaymentStatusIds.paid) return true;
       if (statusId is String) {
         final parsedStatusId = int.tryParse(statusId);
-        if (parsedStatusId != null && parsedStatusId != 0) return true;
+        if (parsedStatusId != null && parsedStatusId == PaymentStatusIds.paid) return true;
       }
 
       return value.entries

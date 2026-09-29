@@ -20,6 +20,8 @@ class PackageRegistrationScreen extends StatefulWidget {
     required this.enrollmentAddress,
     this.optionItems,
     required this.feesData,
+    this.shippingAddressId,
+    this.temporaryAddressId,
   });
 
   final PackageItem package;
@@ -28,6 +30,8 @@ class PackageRegistrationScreen extends StatefulWidget {
   final AddressItem enrollmentAddress;
   final List<PackageOptionItemDetail?>? optionItems;
   final PackageComputeFeesData feesData;
+  final int? shippingAddressId;
+  final int? temporaryAddressId;
 
   @override
   State<PackageRegistrationScreen> createState() => _PackageRegistrationScreenState();
@@ -71,7 +75,11 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
         validIdPath: widget.memberInfo.idImagePath,
         validIdBytes: widget.memberInfo.idImageBytes,
         validIdFileName: widget.memberInfo.idImageFileName,
+        shippingAddressId: widget.shippingAddressId,
       );
+
+      // Cleanup temporary address after registration (success or failure)
+      await _cleanupTemporaryAddress();
 
       if (mounted) {
         setState(() {
@@ -89,12 +97,25 @@ class _PackageRegistrationScreenState extends State<PackageRegistrationScreen> {
         });
       }
     } catch (e) {
+      // Cleanup temporary address on error
+      await _cleanupTemporaryAddress();
+      
       if (mounted) {
         setState(() {
           _isRegistering = false;
           _errorMessage = 'An error occurred: ${e.toString()}';
         });
       }
+    }
+  }
+
+  Future<void> _cleanupTemporaryAddress() async {
+    if (widget.temporaryAddressId == null) return;
+
+    try {
+      await ApiMiddleware.address.deleteAddress(widget.temporaryAddressId!);
+    } catch (e) {
+      // Silently fail on cleanup
     }
   }
 

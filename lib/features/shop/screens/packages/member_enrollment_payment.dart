@@ -81,6 +81,8 @@ class _MemberEnrollmentPaymentScreenState
 
   AddressItem? _selectedAddress;
   bool _useSavedAddress = true; // Default to saved address
+  int? _temporaryAddressId; // Track temporary address ID for cleanup
+  String? _addressSaveError;
 
   String? _idImagePath;
   File? _idImageFile;
@@ -145,6 +147,58 @@ class _MemberEnrollmentPaymentScreenState
     return true;
   }
 
+  Future<void> _saveManualAddressIfNeeded() async {
+    if (_useSavedAddress) return; // Only save if using manual address
+    
+    final address = widget.enrollmentAddress;
+    if (_temporaryAddressId != null) return; // Already saved
+
+    try {
+      final res = await ApiMiddleware.address.addAddress(
+        recipientName: address.recipientName,
+        mobileNo: address.mobileNo,
+        country: address.country,
+        province: address.province,
+        city: address.city,
+        barangay: address.barangay,
+        streetAddress: address.streetAddress,
+        postalCode: address.postalCode,
+        completeAddress: address.completeAddress,
+        isDefault: false,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (res.success && res.data != null) {
+            _temporaryAddressId = res.data!.autoId;
+            _addressSaveError = null;
+          } else {
+            _addressSaveError = res.message.isNotEmpty
+                ? res.message
+                : 'Failed to save address. Please try again.';
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _addressSaveError = 'An error occurred while saving address: ${e.toString()}';
+        });
+      }
+    }
+  }
+
+  Future<void> _cleanupTemporaryAddress() async {
+    if (_temporaryAddressId == null) return;
+
+    try {
+      await ApiMiddleware.address.deleteAddress(_temporaryAddressId!);
+      _temporaryAddressId = null;
+    } catch (e) {
+      // Silently fail on cleanup
+    }
+  }
+
   Future<void> _refreshComputedFees() async {
     if (!_canComputeFees) {
       setState(() {
@@ -155,6 +209,18 @@ class _MemberEnrollmentPaymentScreenState
       return;
     }
 
+    // Save manual address if needed before computing fees
+    if (!_useSavedAddress && _temporaryAddressId == null) {
+      await _saveManualAddressIfNeeded();
+      if (_addressSaveError != null) {
+        setState(() {
+          _feesError = _addressSaveError;
+          _isComputingFees = false;
+        });
+        return;
+      }
+    }
+
     final requestId = ++_feeRequestId;
     setState(() {
       _isComputingFees = true;
@@ -163,6 +229,10 @@ class _MemberEnrollmentPaymentScreenState
 
     try {
       final address = _addressForFees;
+      final shippingAddressId = _useSavedAddress
+          ? _selectedAddress?.autoId
+          : _temporaryAddressId;
+      
       final res = await ApiMiddleware.packages.computeFees(
         packageCode: widget.package.packageCode,
         optionId: widget.selectedOption.optionId,
@@ -173,6 +243,7 @@ class _MemberEnrollmentPaymentScreenState
         city: address.city,
         barangay: address.barangay,
         areaCode: _isPickupSelected ? _selectedBranchAreaCode : null,
+        shippingAddressId: shippingAddressId,
       );
       if (!mounted || requestId != _feeRequestId) return;
 
@@ -499,6 +570,10 @@ class _MemberEnrollmentPaymentScreenState
           Get.back();
         },
         onProceed: _proceedToRegistration,
+        shippingAddressId: _useSavedAddress
+            ? _selectedAddress?.autoId
+            : _temporaryAddressId,
+        temporaryAddressId: _temporaryAddressId,
       ),
     );
   }
@@ -532,6 +607,10 @@ class _MemberEnrollmentPaymentScreenState
       enrollmentAddress: _addressForFees,
       optionItems: widget.optionItems,
       feesData: _feesData!,
+      shippingAddressId: _useSavedAddress
+          ? _selectedAddress?.autoId
+          : _temporaryAddressId,
+      temporaryAddressId: _temporaryAddressId,
     ));
   }
 
@@ -632,7 +711,12 @@ class _MemberEnrollmentPaymentScreenState
                           const Spacer(),
                           Switch(
                             value: _useSavedAddress,
-                            onChanged: (value) {
+                            onChanged: (value) async {
+                              // Cleanup temporary address when switching to saved
+                              if (value && _temporaryAddressId != null) {
+                                await _cleanupTemporaryAddress();
+                              }
+                              
                               setState(() {
                                 _useSavedAddress = value;
                                 if (_useSavedAddress) {
@@ -850,6 +934,12 @@ class _MemberEnrollmentPaymentScreenState
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _cleanupTemporaryAddress();
+    super.dispose();
   }
 }
 

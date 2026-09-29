@@ -10,6 +10,9 @@ import 'package:intl/intl.dart';
 
 /// Payment status values from the Orders API.
 abstract final class PaymentStatusIds {
+  static const int pending = 1;
+  static const int paid = 2;
+  static const int failed = 3;
   static const int expired = 4;
 }
 

@@ -28,6 +28,8 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
     required this.onEditDetails,
     required this.onEditMemberDetails,
     required this.onProceed,
+    this.shippingAddressId,
+    this.temporaryAddressId,
   });
 
   final PackageItem package;
@@ -42,6 +44,8 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
   final VoidCallback onEditDetails;
   final VoidCallback onEditMemberDetails;
   final VoidCallback onProceed;
+  final int? shippingAddressId;
+  final int? temporaryAddressId;
 
   static String _formatPrice(num value) {
     return NumberFormat('#,##0.00', 'en_PH').format(value);

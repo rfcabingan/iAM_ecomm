@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
+import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/constants/image_strings.dart';
@@ -10,7 +11,7 @@ import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
-class PackageRegistrationSuccessScreen extends StatelessWidget {
+class PackageRegistrationSuccessScreen extends StatefulWidget {
   const PackageRegistrationSuccessScreen({
     super.key,
     required this.registrationData,
@@ -19,6 +20,40 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
 
   final PackageRegistrationData registrationData;
   final String packageImage;
+
+  @override
+  State<PackageRegistrationSuccessScreen> createState() =>
+      _PackageRegistrationSuccessScreenState();
+}
+
+class _PackageRegistrationSuccessScreenState extends State<PackageRegistrationSuccessScreen> {
+  OrderDetailItem? _orderData;
+  bool _isLoadingOrder = true;
+  String? _orderError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrderDetails();
+  }
+
+  Future<void> _loadOrderDetails() async {
+    final res = await ApiMiddleware.orders.getOrderDetail(widget.registrationData.orderRefno);
+    
+    if (mounted) {
+      setState(() {
+        _isLoadingOrder = false;
+        if (res.success && res.data != null) {
+          _orderData = res.data;
+          _orderError = null;
+        } else {
+          _orderError = res.message.isNotEmpty
+              ? res.message
+              : 'Failed to load order details';
+        }
+      });
+    }
+  }
 
   static final _currencyFormat = NumberFormat.currency(
     locale: 'en_PH',
@@ -38,6 +73,51 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  IconData _getStatusIcon() {
+    if (_orderData == null) return Icons.access_time_rounded;
+    
+    switch (_orderData!.paymentStatusId) {
+      case 1: // Pending / Awaiting Payment
+        return Icons.access_time_rounded;
+      case 2: // Paid
+        return Icons.check_circle_rounded;
+      case 3: // Failed
+        return Icons.error_rounded;
+      default:
+        return Icons.access_time_rounded;
+    }
+  }
+
+  String _getStatusMessage() {
+    if (_orderData == null) return 'Complete your PayMaya payment to process this order.';
+    
+    switch (_orderData!.paymentStatusId) {
+      case 1: // Pending / Awaiting Payment
+        return 'Complete your PayMaya payment to process this order.';
+      case 2: // Paid
+        return 'Payment received. Your order is being processed.';
+      case 3: // Failed
+        return 'Payment failed. Please try again or contact support.';
+      default:
+        return 'Complete your PayMaya payment to process this order.';
+    }
+  }
+
+  String _getButtonText() {
+    if (_orderData == null) return 'Continue to PayMaya';
+    
+    switch (_orderData!.paymentStatusId) {
+      case 1: // Pending / Awaiting Payment
+        return 'Continue to PayMaya';
+      case 2: // Paid
+        return 'View Order';
+      case 3: // Failed
+        return 'Try Again';
+      default:
+        return 'Continue to PayMaya';
+    }
   }
 
   @override
@@ -77,7 +157,7 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: IAMSizes.sm),
               Text(
-                'Your ${registrationData.packageName} registration has been created.',
+                'Your ${widget.registrationData.packageName} registration has been created.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: labelColor,
                   height: 1.4,
@@ -86,41 +166,56 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: IAMSizes.md),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: IAMSizes.md,
-                  vertical: IAMSizes.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: dark
-                      ? IAMColors.primary.withValues(alpha: 0.15)
-                      : IAMColors.accent,
-                  borderRadius: BorderRadius.circular(IAMSizes.buttonRadius * 3),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              if (_isLoadingOrder)
+                const CircularProgressIndicator()
+              else if (_orderError != null)
+                Column(
                   children: [
-                    Icon(
-                      Icons.access_time_rounded,
-                      size: 18,
-                      color: dark ? IAMColors.primary : const Color(0xFF9A7B2E),
-                    ),
-                    const SizedBox(width: IAMSizes.xs),
+                    Icon(Icons.error_outline, size: 32, color: Colors.red),
+                    const SizedBox(height: IAMSizes.sm),
                     Text(
-                      'Payment pending',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: dark
-                            ? IAMColors.primary
-                            : const Color(0xFF9A7B2E),
-                      ),
+                      _orderError!,
+                      style: TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
                     ),
                   ],
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: IAMSizes.md,
+                    vertical: IAMSizes.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: dark
+                        ? IAMColors.primary.withValues(alpha: 0.15)
+                        : IAMColors.accent,
+                    borderRadius: BorderRadius.circular(IAMSizes.buttonRadius * 3),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getStatusIcon(),
+                        size: 18,
+                        color: dark ? IAMColors.primary : const Color(0xFF9A7B2E),
+                      ),
+                      const SizedBox(width: IAMSizes.xs),
+                      Text(
+                        _orderData?.paymentStatusName ?? 'Payment pending',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: dark
+                              ? IAMColors.primary
+                              : const Color(0xFF9A7B2E),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               const SizedBox(height: IAMSizes.sm),
               Text(
-                'Complete your PayMaya payment to process this order.',
+                _getStatusMessage(),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: labelColor,
                   height: 1.4,
@@ -130,9 +225,9 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
               _PackageBanner(
-                packageImage: packageImage,
-                packageName: registrationData.packageName,
-                optionName: registrationData.optionName,
+                packageImage: widget.packageImage,
+                packageName: widget.registrationData.packageName,
+                optionName: widget.registrationData.optionName,
               ),
               const SizedBox(height: IAMSizes.spaceBtwItems),
               IAMRoundedContainer(
@@ -150,23 +245,23 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                     const SizedBox(height: IAMSizes.md),
                     _CopyableDetailRow(
                       label: 'Order reference',
-                      value: registrationData.orderRefno,
+                      value: widget.registrationData.orderRefno,
                       labelColor: labelColor,
                       valueColor: valueColor,
                       onCopy: () => _copyToClipboard(
                         context,
-                        registrationData.orderRefno,
+                        widget.registrationData.orderRefno,
                         'Order reference',
                       ),
                     ),
                     _CopyableDetailRow(
                       label: 'Registration reference',
-                      value: registrationData.registrationRefno,
+                      value: widget.registrationData.registrationRefno,
                       labelColor: labelColor,
                       valueColor: valueColor,
                       onCopy: () => _copyToClipboard(
                         context,
-                        registrationData.registrationRefno,
+                        widget.registrationData.registrationRefno,
                         'Registration reference',
                       ),
                     ),
@@ -187,20 +282,20 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                     const SizedBox(height: IAMSizes.md),
                     _DetailRow(
                       label: 'Package',
-                      value: _currencyFormat.format(registrationData.packageAmount),
+                      value: _currencyFormat.format(widget.registrationData.packageAmount),
                       labelColor: labelColor,
                       valueColor: valueColor,
                     ),
                     _DetailRow(
                       label: 'Shipping',
-                      value: _currencyFormat.format(registrationData.shippingAmount),
+                      value: _currencyFormat.format(widget.registrationData.shippingAmount),
                       labelColor: labelColor,
                       valueColor: valueColor,
                     ),
                     const SizedBox(height: IAMSizes.sm),
                     _DetailRow(
                       label: 'Total due',
-                      value: _currencyFormat.format(registrationData.totalAmount),
+                      value: _currencyFormat.format(widget.registrationData.totalAmount),
                       labelColor: headingColor,
                       valueColor: IAMColors.primary,
                       isBold: true,
@@ -221,11 +316,11 @@ class PackageRegistrationSuccessScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(IAMSizes.buttonRadius),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Continue to PayMaya',
+                        _getButtonText(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
