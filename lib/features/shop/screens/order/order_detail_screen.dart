@@ -996,8 +996,7 @@ class _PaymentCardModel {
     final expired = OrderFilters.isPaymentExpiredDetail(order);
     final paid = !expired &&
         (order.paymentStatusName.toUpperCase() == 'PAID' ||
-            (order.paymentStatusId != 0 &&
-                order.paymentStatusId != PaymentStatusIds.expired));
+            order.paymentStatusId == PaymentStatusIds.paid);
 
     if (expired) {
       return _PaymentCardModel(

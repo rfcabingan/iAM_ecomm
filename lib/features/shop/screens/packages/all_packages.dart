@@ -19,7 +19,7 @@ class AllPackages extends StatefulWidget {
 }
 
 class _AllPackagesState extends State<AllPackages> {
-  String _selectedSort = 'Name';
+  String _selectedSort = 'Default';
   late final TextEditingController _searchController;
   late String _searchQuery;
 
@@ -50,8 +50,8 @@ class _AllPackagesState extends State<AllPackages> {
         _loadingPackages = false;
         if (res.success) {
           _packages = res.data ?? [];
-          // Sort by packageId for consistent ordering
-          _packages.sort((a, b) => a?.packageId.compareTo(b?.packageId ?? 0) ?? 0);
+          // Sort by displayOrder for consistent ordering
+          _packages.sort((a, b) => a?.displayOrder.compareTo(b?.displayOrder ?? 0) ?? 0);
         } else {
           _packagesError = 'Unable to load packages. Please check your internet connection and try again.';
         }
@@ -63,6 +63,9 @@ class _AllPackagesState extends State<AllPackages> {
     final list = List<PackageItem?>.from(source);
 
     switch (_selectedSort) {
+      case 'Default':
+        list.sort((a, b) => a?.displayOrder.compareTo(b?.displayOrder ?? 0) ?? 0);
+        break;
       case 'Higher Price':
         list.sort((a, b) => (b?.packageAmount ?? 0).compareTo(a?.packageAmount ?? 0));
         break;
@@ -147,6 +150,7 @@ class _AllPackagesState extends State<AllPackages> {
                 },
                 items:
                     [
+                          'Default',
                           'Name',
                           'Higher Price',
                           'Lower Price',

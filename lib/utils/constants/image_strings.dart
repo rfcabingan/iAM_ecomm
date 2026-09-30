@@ -82,6 +82,9 @@ class IAMImages {
   static const String picafema = "assets/images/products/CAFEMA.jpg";
   static const String pibarpow = "assets/images/products/BARPOW.jpg";
 
+  // backgrounds
+  static const String goldBg = "assets/images/bg/gold-bg.png";
+
   //iam packages
   static const String copper = "assets/images/packages/copper.png";
   static const String bronze = "assets/images/packages/bronze.png";

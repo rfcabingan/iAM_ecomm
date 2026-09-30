@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iam_ecomm/common/texts/section_heading.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/authentication/screens/login/login.dart';
@@ -8,10 +8,10 @@ import 'package:iam_ecomm/features/authentication/screens/signup/signup.dart';
 import 'package:iam_ecomm/features/shop/screens/packages/member_enrollment_form.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
+import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
-import 'package:readmore/readmore.dart';
 
 class PackageDetailScreen extends StatefulWidget {
   const PackageDetailScreen({super.key, required this.package});
@@ -37,23 +37,34 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
     _loadOptions();
   }
 
+  String _formatPrice(num price) {
+    final priceString = price.toStringAsFixed(2);
+    return priceString.replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => ',',
+    );
+  }
+
   Future<void> _loadOptions() async {
     setState(() => _loadingOptions = true);
-    final res = await ApiMiddleware.packages.getOptions(widget.package.packageCode);
+    final res = await ApiMiddleware.packages.getOptions(
+      widget.package.packageCode,
+    );
     if (mounted) {
       setState(() {
         _loadingOptions = false;
         if (res.success) {
           _options = res.data ?? [];
-          // Sort by displayOrder
-          _options.sort((a, b) => (a?.displayOrder ?? 0).compareTo(b?.displayOrder ?? 0));
-          // Select first option by default
+          _options.sort(
+            (a, b) => (a?.displayOrder ?? 0).compareTo(b?.displayOrder ?? 0),
+          );
           if (_options.isNotEmpty && _options.first != null) {
             _selectedOption = _options.first;
             _loadOptionItems(_selectedOption!);
           }
         } else {
-          _optionsError = 'Unable to load package options. Please try again later.';
+          _optionsError =
+              'Unable to load package options. Please try again later.';
         }
       });
     }
@@ -70,8 +81,9 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
         _loadingItems = false;
         if (res.success) {
           _optionItems = res.data ?? [];
-          // Sort by displayOrder
-          _optionItems.sort((a, b) => (a?.displayOrder ?? 0).compareTo(b?.displayOrder ?? 0));
+          _optionItems.sort(
+            (a, b) => (a?.displayOrder ?? 0).compareTo(b?.displayOrder ?? 0),
+          );
         } else {
           _itemsError = 'Unable to load package items. Please try again later.';
         }
@@ -80,7 +92,6 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
   }
 
   num _getOptionPrice(PackageOptionItem option) {
-    // Use option price if available, otherwise use package amount
     return option.price ?? widget.package.packageAmount;
   }
 
@@ -129,13 +140,14 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
       return;
     }
 
-    // Navigate to member enrollment form
     if (!context.mounted) return;
-    Get.to(() => MemberEnrollmentForm(
-      package: widget.package,
-      selectedOption: _selectedOption!,
-      optionItems: _optionItems,
-    ));
+    Get.to(
+      () => MemberEnrollmentForm(
+        package: widget.package,
+        selectedOption: _selectedOption!,
+        optionItems: _optionItems,
+      ),
+    );
   }
 
   @override
@@ -144,10 +156,7 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
     final package = widget.package;
 
     return Scaffold(
-      appBar: IAMAppBar(
-        showBackArrow: true,
-        title: Text(package.packageName),
-      ),
+      appBar: IAMAppBar(showBackArrow: true, title: Text(package.packageName)),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(IAMSizes.defaultSpace),
@@ -157,49 +166,86 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
               // Package Image and Info
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+                padding: const EdgeInsets.fromLTRB(
+                  IAMSizes.md,
+                  IAMSizes.md,
+                  IAMSizes.md,
+                  IAMSizes.md,
+                ),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: dark
-                        ? [IAMColors.dark, IAMColors.darkerGrey]
-                        : [IAMColors.primary, IAMColors.primary.withOpacity(0.8)],
-                  ),
                   borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+                  image: DecorationImage(
+                    image: const AssetImage(IAMImages.goldBg),
+                    fit: BoxFit.cover,
+                    colorFilter: ColorFilter.mode(
+                      const Color.fromARGB(
+                        255,
+                        209,
+                        207,
+                        207,
+                      ).withOpacity(0.45),
+                      BlendMode.darken,
+                    ),
+                  ),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Package Icon
+                    // Package Image
                     Container(
-                      width: 100,
-                      height: 100,
+                      width: 140,
+                      height: 140,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
+                        borderRadius: BorderRadius.circular(
+                          IAMSizes.cardRadiusMd,
+                        ),
                         image: DecorationImage(
                           image: NetworkImage(package.imageUrl),
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
-                    const SizedBox(width: IAMSizes.spaceBtwItems),
-                    
+
+                    const SizedBox(width: IAMSizes.sm),
+
                     // Package Info
                     Expanded(
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Package Name
                           Text(
                             package.packageName,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  height: 1.1,
+                                ),
                           ),
-                          const SizedBox(height: IAMSizes.sm),
+
+                          const SizedBox(height: IAMSizes.md),
+
+                          // Package Price
                           Text(
-                            'Starting from ₱${package.packageAmount.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
-                            ),
+                            '₱${_formatPrice(package.packageAmount)}',
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22,
+                                ),
+                          ),
+
+                          const SizedBox(height: IAMSizes.xs),
+
+                          // Same price for every option
+                          Text(
+                            'Same price for every option',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Colors.white, fontSize: 12),
                           ),
                         ],
                       ),
@@ -207,217 +253,407 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
+              const SizedBox(height: 20),
 
               // Package Description
-              const IAMSectionHeading(
-                title: 'Package Description',
-                showActionButton: false,
+              Text(
+                'Choose inclusions',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 18),
               ),
+
               const SizedBox(height: IAMSizes.spaceBtwItems),
-              ReadMoreText(
-                package.packageDescription,
-                trimLines: 3,
-                trimMode: TrimMode.Line,
-                trimCollapsedText: ' Show more',
-                trimExpandedText: ' less',
-                moreStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                ),
-                lessStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
 
               // Package Options Dropdown
-              const IAMSectionHeading(
-                title: 'Select Package Option',
-                showActionButton: false,
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwItems),
-              
               if (_loadingOptions)
                 const Center(child: CircularProgressIndicator())
               else if (_optionsError != null)
-                Padding(
-                  padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-                  child: Column(
-                    children: [
-                      Text(
-                        _optionsError!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: IAMSizes.sm),
-                      ElevatedButton(
-                        onPressed: _loadOptions,
-                        child: const Text('Try Again'),
-                      ),
-                    ],
-                  ),
-                )
+                _RetryMessage(message: _optionsError!, onRetry: _loadOptions)
               else if (_options.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-                  child: Text(
-                    'No options available for this package.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                Text(
+                  'No options available for this package.',
+                  style: Theme.of(context).textTheme.bodyMedium,
                 )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: IAMSizes.md),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: dark ? IAMColors.darkGrey : Colors.grey),
-                    borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<PackageOptionItem>(
-                      value: _selectedOption,
-                      isExpanded: true,
-                      hint: const Text('Select an option'),
-                      items: _options
-                          .where((option) => option != null)
-                          .map((option) => DropdownMenuItem<PackageOptionItem>(
-                                value: option,
-                                child: Text('${option!.optionName} - ₱${_getOptionPrice(option).toStringAsFixed(2)}'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedOption = value;
-                            _loadOptionItems(value);
-                          });
-                        }
-                      },
-                    ),
+              else ...[
+                _OptionsDropdown(
+                  dark: dark,
+                  options: _options.whereType<PackageOptionItem>().toList(),
+                  selected: _selectedOption,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _selectedOption = value;
+                      _itemsError = null;
+                    });
+                    _loadOptionItems(value);
+                  },
+                ),
+                const SizedBox(height: IAMSizes.sm),
+                Text(
+                  '${_options.whereType<PackageOptionItem>().length} options available · ₱${_formatPrice(_selectedOption != null ? _getOptionPrice(_selectedOption!) : widget.package.packageAmount)} each',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: dark ? IAMColors.grey : IAMColors.textSecondary,
                   ),
                 ),
+              ],
               const SizedBox(height: IAMSizes.spaceBtwSections),
 
               // Products Table
               if (_selectedOption != null) ...[
-                const IAMSectionHeading(
-                  title: 'Included Products',
-                  showActionButton: false,
+                Row(
+                  children: [
+                    Text(
+                      'Included products',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: IAMSizes.xs),
+                    Tooltip(
+                      message: 'Items update when you change options.',
+                      child: Icon(
+                        Iconsax.info_circle,
+                        size: IAMSizes.iconSm,
+                        color: dark ? IAMColors.grey : IAMColors.darkGrey,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: IAMSizes.xs),
+                Text(
+                  'Items update when you change options.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: dark ? IAMColors.grey : IAMColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwItems),
-                
                 if (_loadingItems)
                   const Center(child: CircularProgressIndicator())
                 else if (_itemsError != null)
                   Padding(
                     padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-                      child: Column(
-                        children: [
-                          Text(
-                            _itemsError!,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: IAMSizes.sm),
-                          ElevatedButton(
-                            onPressed: () => _loadOptionItems(_selectedOption!),
-                            child: const Text('Try Again'),
-                          ),
-                        ],
-                      ),
-                  )
-                else if (_optionItems.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(IAMSizes.defaultSpace),
-                    child: Text(
-                      'No items available for this option.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  )
-                else
-                  Container(
-                    decoration: BoxDecoration(
-                      color: dark ? IAMColors.dark : Colors.white,
-                      borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
-                      border: Border.all(color: dark ? IAMColors.darkGrey : Colors.grey),
-                    ),
                     child: Column(
                       children: [
-                        // Table Header
-                        Container(
-                          padding: const EdgeInsets.all(IAMSizes.md),
-                          decoration: BoxDecoration(
-                            color: dark ? IAMColors.darkerGrey : Colors.grey[100],
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(IAMSizes.cardRadiusMd),
-                              topRight: Radius.circular(IAMSizes.cardRadiusMd),
-                            ),
-                          ),
-                          child: const Row(
-                            children: [
-                              Expanded(flex: 3, child: Text('Product', style: TextStyle(fontWeight: FontWeight.bold))),
-                              Expanded(flex: 2, child: Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold))),
-                            ],
-                          ),
+                        Text(
+                          _itemsError!,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
                         ),
-                        
-                        // Table Rows
-                        ..._optionItems.where((item) => item != null).map((item) {
-                          return Container(
-                            padding: const EdgeInsets.all(IAMSizes.md),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(color: dark ? IAMColors.darkGrey : Colors.grey),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(item!.productName),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text('${item.qty}x'),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
+                        const SizedBox(height: IAMSizes.sm),
+                        ElevatedButton(
+                          onPressed: () => _loadOptionItems(_selectedOption!),
+                          child: const Text('Try Again'),
+                        ),
                       ],
                     ),
+                  )
+                else if (_optionItems
+                    .whereType<PackageOptionItemDetail>()
+                    .isEmpty)
+                  Text(
+                    'No items available for this option.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  )
+                else
+                  Column(
+                    children: _optionItems
+                        .whereType<PackageOptionItemDetail>()
+                        .map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(bottom: IAMSizes.sm),
+                            child: _IncludedProductCard(
+                              dark: dark,
+                              name: item.productName,
+                              qty: item.qty,
+                              imageUrl: item.imageUrl,
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                 const SizedBox(height: IAMSizes.spaceBtwSections),
               ],
-
-              // Checkout Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _selectedOption != null
-                      ? () => _checkoutPackage(context)
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: IAMColors.primary,
-                    disabledBackgroundColor: Colors.grey,
-                    padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
-                  ),
-                  child: Text(
-                    _selectedOption != null
-                        ? 'Checkout ${_selectedOption!.optionName}'
-                        : 'Select an Option',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: IAMSizes.spaceBtwSections),
             ],
           ),
         ),
+      ),
+
+      // Fixed package price and registration button
+      bottomNavigationBar: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          border: Border(
+            top: BorderSide(
+              color: dark ? IAMColors.darkGrey : Colors.grey.shade300,
+              width: 1,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              IAMSizes.defaultSpace,
+              IAMSizes.md,
+              IAMSizes.defaultSpace,
+              IAMSizes.md,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.inventory_2_outlined,
+                            size: 18,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: IAMSizes.sm),
+                        Text(
+                          'Package Price:',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      _selectedOption != null
+                          ? _formatPrice(_getOptionPrice(_selectedOption!))
+                          : _formatPrice(widget.package.packageAmount),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: IAMSizes.md),
+
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 6,
+                        spreadRadius: 0,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 2 * 24,
+                    child: ElevatedButton(
+                      onPressed: _selectedOption != null
+                          ? () => _checkoutPackage(context)
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: IAMColors.primary,
+                        disabledBackgroundColor: Colors.grey,
+                        padding: EdgeInsets.zero,
+                        elevation: 0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Continue',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RetryMessage extends StatelessWidget {
+  const _RetryMessage({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(IAMSizes.defaultSpace),
+      child: Column(
+        children: [
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: IAMSizes.sm),
+          ElevatedButton(onPressed: onRetry, child: const Text('Try Again')),
+        ],
+      ),
+    );
+  }
+}
+
+class _OptionsDropdown extends StatelessWidget {
+  const _OptionsDropdown({
+    required this.dark,
+    required this.options,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final bool dark;
+  final List<PackageOptionItem> options;
+  final PackageOptionItem? selected;
+  final ValueChanged<PackageOptionItem?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: IAMSizes.md),
+      decoration: BoxDecoration(
+        color: dark ? IAMColors.dark : IAMColors.white,
+        border: Border.all(
+          color: dark ? IAMColors.darkGrey : IAMColors.borderPrimary,
+        ),
+        borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<PackageOptionItem>(
+          value: selected,
+          isExpanded: true,
+          hint: const Text('Select an option'),
+          icon: const Icon(Iconsax.arrow_down_1, size: 18),
+          items: options
+              .map(
+                (option) => DropdownMenuItem<PackageOptionItem>(
+                  value: option,
+                  child: Text(
+                    option.optionName,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+class _IncludedProductCard extends StatelessWidget {
+  const _IncludedProductCard({
+    required this.dark,
+    required this.name,
+    required this.qty,
+    required this.imageUrl,
+  });
+
+  final bool dark;
+  final String name;
+  final int qty;
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(IAMSizes.sm),
+      decoration: BoxDecoration(
+        color: dark ? IAMColors.dark : IAMColors.white,
+        borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+        border: Border.all(
+          color: dark ? IAMColors.darkGrey : IAMColors.borderPrimary,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: dark ? IAMColors.darkerGrey : IAMColors.light,
+              borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
+            ),
+            child: imageUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Iconsax.box,
+                          color: dark ? IAMColors.grey : IAMColors.darkGrey,
+                        );
+                      },
+                    ),
+                  )
+                : Icon(
+                    Iconsax.box,
+                    color: dark ? IAMColors.grey : IAMColors.darkGrey,
+                  ),
+          ),
+          const SizedBox(width: IAMSizes.md),
+          Expanded(
+            child: Text(
+              name,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: IAMSizes.sm),
+          Column(
+            children: [
+              Text(
+                'Qty',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: dark ? IAMColors.grey : IAMColors.textSecondary,
+                ),
+              ),
+              Text(
+                '${qty}x',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(width: IAMSizes.sm),
+        ],
       ),
     );
   }

@@ -142,14 +142,14 @@ class HomeWebScreen extends StatelessWidget {
                           child: _AnimatedUnderline(dark: dark),
                         ),
                         const SizedBox(width: 12),
-                        TextButton.icon(
+                        /*TextButton.icon(
                           onPressed: () => Get.to(() => const AllProducts()),
                           icon: const Icon(Icons.arrow_right_alt_rounded, size: 18),
                           label: const Text('View all'),
                           style: TextButton.styleFrom(
                             foregroundColor: IAMColors.primary,
                           ),
-                        ),
+                        ),*/
                       ],
                     ),
                   ),

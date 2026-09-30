@@ -54,7 +54,7 @@ class _IAMCategoryTabState extends State<IAMCategoryTab> {
         if (res.success) {
           _packages = res.data ?? [];
           // Sort by packageId for consistent ordering
-          _packages.sort((a, b) => a?.packageId.compareTo(b?.packageId ?? 0) ?? 0);
+          _packages.sort((a, b) => a?.displayOrder.compareTo(b?.displayOrder ?? 0) ?? 0);
         } else {
           _packagesError = 'Unable to load packages. Please check your internet connection and try again.';
         }
@@ -95,6 +95,7 @@ class _IAMCategoryTabState extends State<IAMCategoryTab> {
               const SizedBox(height: IAMSizes.spaceBtwItems),
               IAMSectionHeading(
                 title: categoryName,
+                showActionButton: false,
                 onPressed: () => categoryId == ProductCategories.iamPackages
                     ? Get.to(() => const AllPackages())
                     : Get.to(() => const AllProducts()),
