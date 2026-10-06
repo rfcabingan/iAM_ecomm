@@ -13,7 +13,7 @@ import 'package:iam_ecomm/utils/models/member_enrollment_info.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
-class MemberEnrollmentReviewScreen extends StatelessWidget {
+class MemberEnrollmentReviewScreen extends StatefulWidget {
   const MemberEnrollmentReviewScreen({
     super.key,
     required this.package,
@@ -28,8 +28,6 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
     required this.onEditDetails,
     required this.onEditMemberDetails,
     required this.onProceed,
-    this.shippingAddressId,
-    this.temporaryAddressId,
   });
 
   final PackageItem package;
@@ -43,9 +41,26 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
   final ImageProvider? idImageFile;
   final VoidCallback onEditDetails;
   final VoidCallback onEditMemberDetails;
-  final VoidCallback onProceed;
-  final int? shippingAddressId;
-  final int? temporaryAddressId;
+  final Future<void> Function(BuildContext context) onProceed;
+
+  @override
+  State<MemberEnrollmentReviewScreen> createState() =>
+      _MemberEnrollmentReviewScreenState();
+}
+
+class _MemberEnrollmentReviewScreenState
+    extends State<MemberEnrollmentReviewScreen> {
+  bool _isProcessing = false;
+
+  Future<void> _handleProceed() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      await widget.onProceed(context);
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
 
   static String _formatPrice(num value) {
     return NumberFormat('#,##0.00', 'en_PH').format(value);
@@ -58,7 +73,7 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = IAMHelperFunctions.isDarkMode(context);
-    final packagePrice = selectedOption.price ?? package.packageAmount;
+    final packagePrice = widget.selectedOption.price ?? widget.package.packageAmount;
 
     return Scaffold(
       appBar: IAMAppBar(
@@ -87,25 +102,25 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
               ),
             ),
             _ReviewHeroCard(
-              package: package,
-              optionName: selectedOption.optionName,
+              package: widget.package,
+              optionName: widget.selectedOption.optionName,
               priceLabel: '₱${_formatPrice(packagePrice)}',
             ),
             const SizedBox(height: IAMSizes.spaceBtwItems),
             _ReviewSectionCard(
               icon: Iconsax.user,
               title: 'Member details',
-              onEdit: onEditMemberDetails,
+              onEdit: widget.onEditMemberDetails,
               child: Column(
                 children: [
-                  _LabeledValue(label: 'Name:', value: memberInfo.fullName),
-                  _LabeledValue(label: 'Email:', value: memberInfo.email),
-                  _LabeledValue(label: 'Phone:', value: memberInfo.phone),
+                  _LabeledValue(label: 'Name:', value: widget.memberInfo.fullName),
+                  _LabeledValue(label: 'Email:', value: widget.memberInfo.email),
+                  _LabeledValue(label: 'Phone:', value: widget.memberInfo.phone),
                   _LabeledValue(
                     label: 'Birthdate:',
-                    value: _formatBirthdate(memberInfo.birthdate),
+                    value: _formatBirthdate(widget.memberInfo.birthdate),
                   ),
-                  _LabeledValue(label: 'Gender:', value: memberInfo.gender),
+                  _LabeledValue(label: 'Gender:', value: widget.memberInfo.gender),
                 ],
               ),
             ),
@@ -113,26 +128,26 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
             _ReviewSectionCard(
               icon: Iconsax.location,
               title: 'Delivery address',
-              onEdit: onEditDetails,
+              onEdit: widget.onEditDetails,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (address.streetAddress.trim().isNotEmpty)
+                  if (widget.address.streetAddress.trim().isNotEmpty)
                     Text(
-                      address.streetAddress,
+                      widget.address.streetAddress,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   Text(
                     [
-                      address.barangay,
-                      address.city,
+                      widget.address.barangay,
+                      widget.address.city,
                     ].where((part) => part.trim().isNotEmpty).join(', '),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
                     [
-                      address.province,
-                      address.country,
+                      widget.address.province,
+                      widget.address.country,
                     ].where((part) => part.trim().isNotEmpty).join(', '),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
@@ -143,15 +158,21 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
             _ReviewSectionCard(
               icon: Iconsax.card,
               title: 'Payment & fulfillment',
-              onEdit: onEditDetails,
+              onEdit: widget.onEditDetails,
               child: Column(
                 children: [
                   _LabeledValue(
                     label: 'Sponsor ID:',
-                    value: memberInfo.sponsorIdno ?? '',
+                    value: widget.memberInfo.sponsorIdno ?? '',
                   ),
-                  _LabeledValue(label: 'Payment provider:', value: paymentMethodName),
-                  _LabeledValue(label: 'Fulfillment:', value: fulfillmentLabel),
+                  _LabeledValue(
+                    label: 'Payment provider:',
+                    value: widget.paymentMethodName,
+                  ),
+                  _LabeledValue(
+                    label: 'Fulfillment:',
+                    value: widget.fulfillmentLabel,
+                  ),
                 ],
               ),
             ),
@@ -159,7 +180,7 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
             _ReviewSectionCard(
               icon: Iconsax.document,
               title: 'Valid ID',
-              onEdit: onEditDetails,
+              onEdit: widget.onEditDetails,
               child: Row(
                 children: [
                   ClipRRect(
@@ -167,10 +188,10 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
                     child: SizedBox(
                       width: 72,
                       height: 56,
-                      child: idImageBytes != null
-                          ? Image.memory(idImageBytes!, fit: BoxFit.cover)
-                          : idImageFile != null
-                          ? Image(image: idImageFile!, fit: BoxFit.cover)
+                      child: widget.idImageBytes != null
+                          ? Image.memory(widget.idImageBytes!, fit: BoxFit.cover)
+                          : widget.idImageFile != null
+                          ? Image(image: widget.idImageFile!, fit: BoxFit.cover)
                           : ColoredBox(color: IAMColors.light),
                     ),
                   ),
@@ -207,7 +228,7 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
             _ReviewSectionCard(
               icon: Iconsax.tick_circle,
               title: 'Terms accepted',
-              onEdit: onEditDetails,
+              onEdit: widget.onEditDetails,
               child: Text(
                 'I have read and agree to the Terms and Conditions.',
                 style: Theme.of(context).textTheme.bodyMedium,
@@ -220,16 +241,16 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
               showEdit: false,
               child: Column(
                 children: [
-                  _AmountRow(label: 'Package', value: feesData.packageAmount),
-                  _AmountRow(label: 'Shipping', value: feesData.shippingAmount),
+                  _AmountRow(label: 'Package', value: widget.feesData.packageAmount),
+                  _AmountRow(label: 'Shipping', value: widget.feesData.shippingAmount),
                   _AmountRow(
                     label: 'Processing fee',
-                    value: feesData.processingFee,
+                    value: widget.feesData.processingFee,
                   ),
-                  if (feesData.discountAmount != 0)
+                  if (widget.feesData.discountAmount != 0)
                     _AmountRow(
                       label: 'Discount',
-                      value: feesData.discountAmount,
+                      value: widget.feesData.discountAmount,
                     ),
                   const SizedBox(height: IAMSizes.sm),
                   Row(
@@ -242,7 +263,7 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        IAMFormatter.formatCurrency(feesData.totalAmount.toDouble()),
+                        IAMFormatter.formatCurrency(widget.feesData.totalAmount.toDouble()),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -268,7 +289,7 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onEditDetails,
+                  onPressed: _isProcessing ? null : widget.onEditDetails,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
                     side: const BorderSide(color: IAMColors.primary),
@@ -281,25 +302,35 @@ class MemberEnrollmentReviewScreen extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: onProceed,
+                  onPressed: _isProcessing ? null : _handleProceed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: IAMColors.primary,
+                    backgroundColor: _isProcessing ? Colors.grey : IAMColors.primary,
+                    disabledBackgroundColor: Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Proceed to Payment',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontWeight: FontWeight.w800),
+                  child: _isProcessing
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Proceed to Payment',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                            SizedBox(width: IAMSizes.xs),
+                            Icon(Iconsax.arrow_right_3, size: 16),
+                          ],
                         ),
-                      ),
-                      SizedBox(width: IAMSizes.xs),
-                      Icon(Iconsax.arrow_right_3, size: 16),
-                    ],
-                  ),
                 ),
               ),
             ],

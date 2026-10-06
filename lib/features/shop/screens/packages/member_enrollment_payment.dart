@@ -8,11 +8,13 @@ import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
 import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
+import 'package:iam_ecomm/common/widgets/payments/checkout_webview_sheet.dart';
+import 'package:iam_ecomm/common/widgets/payments/iam_wallet_pay_sheet.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_address_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/billing_fulfillment_section.dart';
 import 'package:iam_ecomm/features/shop/screens/checkout/widget/delivery_timeline_note.dart';
 import 'package:iam_ecomm/features/shop/screens/packages/member_enrollment_review.dart';
-import 'package:iam_ecomm/features/shop/screens/packages/package_registration.dart';
+import 'package:iam_ecomm/features/shop/screens/packages/package_registration_success.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
@@ -88,13 +90,17 @@ class _MemberEnrollmentPaymentScreenState
   File? _idImageFile;
   Uint8List? _idImageBytes;
   String? _idImageFileName;
-  String? _idImageBase64;
   bool _termsAccepted = false;
 
   bool _isComputingFees = false;
   String? _feesError;
   PackageComputeFeesData? _feesData;
   int _feeRequestId = 0;
+
+  bool _isRegistering = false;
+  bool _isProcessing = false;
+  String? _registrationError;
+  PackageRegistrationData? _registrationData;
 
   bool get _isPickupSelected =>
       _isPickupFulfillmentCode(_selectedFulfillmentTypeCode);
@@ -457,7 +463,6 @@ class _MemberEnrollmentPaymentScreenState
           _idImageFile = !kIsWeb ? File(image.path) : null;
           _idImageBytes = bytes;
           _idImageFileName = image.name;
-          _idImageBase64 = IAMHelperFunctions.bytesToBase64(bytes);
         });
       }
     } catch (e) {
@@ -570,47 +575,277 @@ class _MemberEnrollmentPaymentScreenState
           Get.back();
         },
         onProceed: _proceedToRegistration,
-        shippingAddressId: _useSavedAddress
-            ? _selectedAddress?.autoId
-            : _temporaryAddressId,
-        temporaryAddressId: _temporaryAddressId,
       ),
     );
   }
 
-  void _proceedToRegistration() {
+  Future<void> _proceedToRegistration(BuildContext paymentContext) async {
     if (_feesData == null) return;
 
-    final memberInfo = MemberEnrollmentInfo(
-      firstName: widget.memberInfo.firstName,
-      middleName: widget.memberInfo.middleName,
-      lastName: widget.memberInfo.lastName,
-      email: widget.memberInfo.email,
-      phone: widget.memberInfo.phone,
-      birthdate: widget.memberInfo.birthdate,
-      gender: widget.memberInfo.gender,
-      idImagePath: _idImagePath,
-      idImageBase64: _idImageBase64,
-      idImageBytes: _idImageBytes,
-      idImageFileName: _idImageFileName,
-      sponsorIdno: widget.memberInfo.sponsorIdno,
-      paymentMethodId: _selectedPaymentProvider?.autoId,
-      fulfillmentTypeId: _selectedFulfillmentTypeId,
-      areaCode: _isPickupSelected ? _selectedBranchAreaCode : null,
-      termsAccepted: _termsAccepted,
+    setState(() {
+      _isRegistering = true;
+      _isProcessing = true;
+      _registrationError = null;
+    });
+
+    try {
+      // Format birthdate as ISO date string (YYYY-MM-DD)
+      final birthDate = widget.memberInfo.birthdate.toIso8601String().split('T')[0];
+
+      final shippingAddressId = _useSavedAddress
+          ? _selectedAddress?.autoId
+          : _temporaryAddressId;
+
+      final res = await ApiMiddleware.packages.register(
+        firstName: widget.memberInfo.firstName,
+        middleName: widget.memberInfo.middleName,
+        lastName: widget.memberInfo.lastName,
+        country: widget.enrollmentAddress.country,
+        province: widget.enrollmentAddress.province,
+        city: widget.enrollmentAddress.city,
+        barangay: widget.enrollmentAddress.barangay,
+        completeAddress: widget.enrollmentAddress.completeAddress,
+        email: widget.memberInfo.email,
+        mobileNo: widget.memberInfo.phone,
+        birthDate: birthDate,
+        gender: widget.memberInfo.gender,
+        packageCode: widget.package.packageCode,
+        optionId: widget.selectedOption.optionId,
+        sponsorIdno: widget.memberInfo.sponsorIdno ?? '',
+        paymentMethodId: _selectedPaymentProvider?.autoId ?? 1,
+        fulfillmentTypeId: _selectedFulfillmentTypeId ?? 1,
+        areaCode: _isPickupSelected ? _selectedBranchAreaCode : null,
+        termsAccepted: _termsAccepted,
+        validIdPath: _idImagePath,
+        validIdBytes: _idImageBytes,
+        validIdFileName: _idImageFileName,
+        shippingAddressId: shippingAddressId,
+      );
+
+      // Cleanup temporary address after registration (success or failure)
+      await _cleanupTemporaryAddress();
+
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+          if (res.success) {
+            if (res.data != null) {
+              _registrationData = res.data;
+            } else {
+              _registrationError = 'Registration succeeded but no data received. Status: ${res.status}, Message: ${res.message}';
+            }
+          } else {
+            _registrationError = res.message.isNotEmpty ? res.message : 'Registration failed. Please try again.';
+          }
+        });
+      }
+
+      // If registration failed, stop here
+      if (!res.success || res.data == null) {
+        if (paymentContext.mounted) {
+          _snackAt(
+            paymentContext,
+            _registrationError ?? 'Registration failed. Please try again.',
+          );
+        }
+        return;
+      }
+
+      final providerCode =
+          (_selectedPaymentProvider?.providerCode ?? '').trim();
+      final orderRef = res.data!.orderRefno;
+      final totalAmount = res.data!.totalAmount;
+      var buyerIdno = res.data!.buyerIdno.trim();
+      if (buyerIdno.isEmpty) {
+        final memberRes = await ApiMiddleware.member.getMember();
+        buyerIdno = memberRes.data?.idno.trim() ?? '';
+      }
+
+      if (_isWalletProvider(providerCode)) {
+        if (!paymentContext.mounted) return;
+        await showIamWalletPaySheet(
+          context: paymentContext,
+          orderRef: orderRef,
+          totalAmount: totalAmount,
+        );
+        _showSuccessScreen();
+        return;
+      }
+
+      if (!paymentContext.mounted) return;
+      await _payWithCheckoutWebView(
+        paymentContext: paymentContext,
+        orderRef: orderRef,
+        buyerIdno: buyerIdno,
+        totalAmount: totalAmount,
+        providerCode: providerCode,
+      );
+    } catch (e) {
+      // Cleanup temporary address on error
+      await _cleanupTemporaryAddress();
+
+      if (mounted) {
+        setState(() {
+          _isRegistering = false;
+          _isProcessing = false;
+          _registrationError = 'An error occurred: ${e.toString()}';
+        });
+      }
+      if (paymentContext.mounted) {
+        _snackAt(paymentContext, 'An error occurred: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  bool _isWalletProvider(String providerCode) {
+    return providerCode.toUpperCase() == 'IAMWALLET';
+  }
+
+  bool _isMayaProvider(String providerCode) {
+    return providerCode.toUpperCase().contains('MAYA');
+  }
+
+  Future<void> _payWithCheckoutWebView({
+    required BuildContext paymentContext,
+    required String orderRef,
+    required String buyerIdno,
+    required num totalAmount,
+    required String providerCode,
+  }) async {
+    final paymentRes = await ApiMiddleware.payment.createPayment(
+      orderNo: orderRef,
+      idno: buyerIdno,
+      amount: totalAmount,
+      currency: 'PHP',
+      paymentProvider: providerCode,
+      paymentMethod: providerCode,
+      description: 'Package Registration',
+      clientReferenceNo: orderRef,
     );
 
-    Get.to(() => PackageRegistrationScreen(
-      package: widget.package,
-      selectedOption: widget.selectedOption,
-      memberInfo: memberInfo,
-      enrollmentAddress: _addressForFees,
-      optionItems: widget.optionItems,
-      feesData: _feesData!,
-      shippingAddressId: _useSavedAddress
-          ? _selectedAddress?.autoId
-          : _temporaryAddressId,
-      temporaryAddressId: _temporaryAddressId,
+    if (!paymentContext.mounted) return;
+
+    if (!paymentRes.success) {
+      _snackAt(
+        paymentContext,
+        paymentRes.message.isNotEmpty
+            ? paymentRes.message
+            : 'Unable to create payment. Please try again.',
+      );
+      return;
+    }
+
+    final checkoutUrl = paymentRes.data?.checkoutUrl ?? '';
+    if (checkoutUrl.isEmpty) {
+      _snackAt(
+        paymentContext,
+        'Payment checkout URL not received. Please try again.',
+      );
+      return;
+    }
+
+    await _showOpeningCheckoutSpinner(paymentContext);
+    if (!paymentContext.mounted) return;
+
+    await showCheckoutWebViewSheet(
+      context: paymentContext,
+      checkoutUrl: checkoutUrl,
+      orderRef: orderRef,
+      totalAmount: totalAmount,
+      redirectOnPaymentResult: _isMayaProvider(providerCode),
+    );
+
+    _showSuccessScreen();
+  }
+
+  Future<void> _showOpeningCheckoutSpinner(BuildContext overlayContext) async {
+    showDialog<void>(
+      context: overlayContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        final dark = IAMHelperFunctions.isDarkMode(dialogContext);
+        final surface = dark ? IAMColors.black : IAMColors.white;
+        final onSurface = dark ? IAMColors.white : IAMColors.black;
+        return PopScope(
+          canPop: false,
+          child: Dialog(
+            backgroundColor: surface,
+            elevation: 24,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Opening checkout page…',
+                          style: Theme.of(dialogContext).textTheme.titleMedium
+                              ?.copyWith(
+                                color: onSurface,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Please wait while we prepare your payment.',
+                          style: Theme.of(dialogContext).textTheme.bodySmall
+                              ?.copyWith(
+                                color: onSurface.withValues(alpha: 0.72),
+                                height: 1.2,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    await Future.delayed(const Duration(milliseconds: 650));
+    if (!overlayContext.mounted) return;
+    Navigator.of(overlayContext, rootNavigator: true).pop();
+  }
+
+  void _snackAt(BuildContext snackContext, String message) {
+    ScaffoldMessenger.of(snackContext).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red[300],
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    );
+  }
+
+  void _showSuccessScreen() {
+    final registrationData = _registrationData;
+    if (registrationData == null) return;
+    Get.off(() => PackageRegistrationSuccessScreen(
+      registrationData: registrationData,
+      packageImage: widget.package.imageUrl,
     ));
   }
 
@@ -629,39 +864,20 @@ class _MemberEnrollmentPaymentScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(IAMSizes.md),
-                decoration: BoxDecoration(
-                  color: dark ? IAMColors.dark : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.package.packageName,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: IAMSizes.sm),
-                    Text('Selected: ${widget.selectedOption.optionName}'),
-                    Text(
-                      'Enrollee: ${widget.memberInfo.fullName}',
-                    ),
-                  ],
-                ),
+              _PaymentHeroCard(
+                package: widget.package,
+                optionName: widget.selectedOption.optionName,
+                enrolleeName: widget.memberInfo.fullName,
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
               TextFormField(
                 initialValue: widget.memberInfo.sponsorIdno,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Sponsor ID',
-                  prefixIcon: Icon(Iconsax.user),
+                  prefixIcon: const Icon(Iconsax.user),
                   border: InputBorder.none,
                   filled: true,
-                  fillColor: Colors.grey,
+                  fillColor: Colors.grey[200],
                 ),
                 readOnly: true,
                 style: TextStyle(
@@ -911,10 +1127,40 @@ class _MemberEnrollmentPaymentScreenState
                 ),
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
+              
+              // Registration Loading State
+              if (_isRegistering)
+                Column(
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: IAMSizes.md),
+                    const Text('Submitting registration...'),
+                  ],
+                ),
+
+              // Registration Error State
+              if (_registrationError != null && !_isRegistering)
+                Column(
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: IAMSizes.md),
+                    Text(
+                      _registrationError!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: IAMSizes.md),
+                    ElevatedButton(
+                      onPressed: () => _proceedToRegistration(context),
+                      child: const Text('Retry Registration'),
+                    ),
+                  ],
+                ),
+              
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _continue,
+                  onPressed: _isProcessing ? null : _continue,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: IAMColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
@@ -1188,6 +1434,88 @@ class _AddressField extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.w500,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentHeroCard extends StatelessWidget {
+  const _PaymentHeroCard({
+    required this.package,
+    required this.optionName,
+    required this.enrolleeName,
+  });
+
+  final PackageItem package;
+  final String optionName;
+  final String enrolleeName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(IAMSizes.md),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+        image: const DecorationImage(
+          image: AssetImage(IAMImages.goldBg),
+          fit: BoxFit.cover,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(IAMSizes.xs),
+            child: ClipOval(
+              child: package.imageUrl.isNotEmpty
+                  ? IAMRoundedImage(
+                      imageUrl: package.imageUrl,
+                      width: 64,
+                      height: 64,
+                      applyImageRadius: true,
+                      borderRadius: 32,
+                      isNetworkImage: true,
+                      fit: BoxFit.cover,
+                    )
+                  : const Icon(Iconsax.box, color: Colors.white, size: 32),
+            ),
+          ),
+          const SizedBox(width: IAMSizes.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  package.packageName,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  optionName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+                const SizedBox(height: IAMSizes.xs),
+                Text(
+                  'Enrollee: $enrolleeName',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

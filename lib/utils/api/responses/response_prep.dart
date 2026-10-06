@@ -193,6 +193,8 @@ class PackageRegistrationData {
   final String message;
   final String orderRefno;
   final String registrationRefno;
+  final String buyerIdno;
+  final int paymentMethodId;
   final String packageCode;
   final String packageName;
   final String optionName;
@@ -209,6 +211,8 @@ class PackageRegistrationData {
     required this.message,
     required this.orderRefno,
     required this.registrationRefno,
+    required this.buyerIdno,
+    required this.paymentMethodId,
     required this.packageCode,
     required this.packageName,
     required this.optionName,
@@ -239,6 +243,8 @@ class PackageRegistrationData {
       message: m['message'] as String? ?? (isDirectData ? 'Registration successful' : ''),
       orderRefno: sourceData['orderRefno'] as String? ?? '',
       registrationRefno: sourceData['registrationRefno'] as String? ?? '',
+      buyerIdno: sourceData['buyerIdno'] as String? ?? '',
+      paymentMethodId: readIntValue(sourceData['paymentMethodId']),
       packageCode: sourceData['packageCode'] as String? ?? '',
       packageName: sourceData['packageName'] as String? ?? '',
       optionName: sourceData['optionName'] as String? ?? '',

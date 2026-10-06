@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iam_ecomm/common/texts/section_heading.dart';
 import 'package:iam_ecomm/common/widgets/appbar/appbar.dart';
+import 'package:iam_ecomm/common/widgets/images/iam_rounded_images.dart';
 import 'package:iam_ecomm/features/authentication/controllers/auth_controller.dart';
 import 'package:iam_ecomm/features/shop/screens/packages/member_enrollment_payment.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/constants/colors.dart';
+import 'package:iam_ecomm/utils/constants/image_strings.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iam_ecomm/utils/models/member_enrollment_info.dart';
 import 'package:iconsax/iconsax.dart';
@@ -289,29 +291,10 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(IAMSizes.md),
-                  decoration: BoxDecoration(
-                    color: dark ? IAMColors.dark : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(IAMSizes.cardRadiusMd),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.package.packageName,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: IAMSizes.sm),
-                      Text('Selected: ${widget.selectedOption.optionName}'),
-                      Text(
-                        'Price: ₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}',
-                      ),
-                    ],
-                  ),
+                _FormHeroCard(
+                  package: widget.package,
+                  optionName: widget.selectedOption.optionName,
+                  priceLabel: '₱${(widget.selectedOption.price ?? widget.package.packageAmount).toStringAsFixed(2)}',
                 ),
                 const SizedBox(height: IAMSizes.spaceBtwSections),
                 const IAMSectionHeading(
@@ -648,6 +631,89 @@ class _MemberEnrollmentFormState extends State<MemberEnrollmentForm> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FormHeroCard extends StatelessWidget {
+  const _FormHeroCard({
+    required this.package,
+    required this.optionName,
+    required this.priceLabel,
+  });
+
+  final PackageItem package;
+  final String optionName;
+  final String priceLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(IAMSizes.md),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(IAMSizes.cardRadiusLg),
+        image: const DecorationImage(
+          image: AssetImage(IAMImages.goldBg),
+          fit: BoxFit.cover,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(IAMSizes.xs),
+            child: ClipOval(
+              child: package.imageUrl.isNotEmpty
+                  ? IAMRoundedImage(
+                      imageUrl: package.imageUrl,
+                      width: 64,
+                      height: 64,
+                      applyImageRadius: true,
+                      borderRadius: 32,
+                      isNetworkImage: true,
+                      fit: BoxFit.cover,
+                    )
+                  : const Icon(Iconsax.box, color: Colors.white, size: 32),
+            ),
+          ),
+          const SizedBox(width: IAMSizes.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  package.packageName,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  optionName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+                const SizedBox(height: IAMSizes.xs),
+                Text(
+                  priceLabel,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
