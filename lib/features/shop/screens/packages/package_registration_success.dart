@@ -304,35 +304,41 @@ class _PackageRegistrationSuccessScreenState extends State<PackageRegistrationSu
                 ),
               ),
               const SizedBox(height: IAMSizes.spaceBtwSections),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Get.offAllNamed('/'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: IAMColors.primary,
-                    foregroundColor: IAMColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(IAMSizes.buttonRadius),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _getButtonText(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
+              SafeArea(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Get.offAllNamed('/'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: IAMColors.primary,
+                          foregroundColor: IAMColors.white,
+                          padding: const EdgeInsets.symmetric(vertical: IAMSizes.md),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(IAMSizes.buttonRadius),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _getButtonText(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            SizedBox(width: IAMSizes.xs),
+                            Icon(Iconsax.arrow_right_3, size: 18),
+                          ],
                         ),
                       ),
-                      SizedBox(width: IAMSizes.xs),
-                      Icon(Iconsax.arrow_right_3, size: 18),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: IAMSizes.defaultSpace),
+                  ],
                 ),
               ),
-              const SizedBox(height: IAMSizes.defaultSpace),
             ],
           ),
         ),

@@ -471,8 +471,9 @@ class _ReviewSectionCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
+                    fontSize: 16,
                   ),
                 ),
               ),
