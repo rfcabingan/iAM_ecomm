@@ -9,7 +9,11 @@ import 'package:iam_ecomm/utils/constants/sizes.dart';
 import 'package:iam_ecomm/utils/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_type.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/order_empty_state.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_summary_row.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_type_badge.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_detail_screen.dart';
 
 class CancelledTab extends StatelessWidget {
   const CancelledTab({super.key});
@@ -117,8 +121,17 @@ class CancelledTab extends StatelessWidget {
   ) {
     final dark = IAMHelperFunctions.isDarkMode(context);
     final items = orderDetail.items;
+    final isPackage = order.isPackageOrder;
 
-    return IAMRoundedContainer(
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => OrderDetailScreen(refNo: order.orderRefno),
+          ),
+        );
+      },
+      child: IAMRoundedContainer(
       padding: const EdgeInsets.all(IAMSizes.md),
       backgroundColor: dark ? IAMColors.dark : IAMColors.light,
       child: Column(
@@ -139,70 +152,59 @@ class CancelledTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: IAMSizes.spaceBtwItems / 2),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    order.orderStatusName.isNotEmpty
-                        ? order.orderStatusName
-                        : 'Cancelled',
-                    style: Theme.of(context).textTheme.bodyMedium!.apply(
-                          color: Colors.red.shade800,
-                          fontWeightDelta: 1,
-                        ),
-                  ),
-                  Text(
-                    DateFormat('dd-MMM-yyyy, hh:mma').format(
-                      DateTime.tryParse(order.orderDate) ?? DateTime.now(),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.orderStatusName.isNotEmpty
+                          ? order.orderStatusName
+                          : 'Cancelled',
+                      style: Theme.of(context).textTheme.bodyMedium!.apply(
+                            color: Colors.red.shade800,
+                            fontWeightDelta: 1,
+                          ),
                     ),
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                ],
+                    Text(
+                      DateFormat('dd-MMM-yyyy, hh:mma').format(
+                        DateTime.tryParse(order.orderDate) ?? DateTime.now(),
+                      ),
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ],
+                ),
               ),
+              OrderTypeBadge(kind: order.kind, compact: true),
             ],
           ),
           const SizedBox(height: IAMSizes.spaceBtwItems),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: dark ? IAMColors.darkerGrey : IAMColors.lightGrey,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Iconsax.hashtag,
-                  size: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Order ${order.orderRefno}',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Colors.grey[600],
-                    ),
-              ),
-            ],
+          Text(
+            '#${order.orderRefno}',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: IAMSizes.spaceBtwItems),
-          Column(
-            children: items.whereType<OrderProductItem>().map((line) {
-              return _itemRow(
-                dark: dark,
-                title: line.productName.isEmpty
-                    ? 'Unnamed Product'
-                    : line.productName,
-                price: NumberFormat.currency(
-                  locale: 'en_PH',
-                  symbol: '₱',
-                  decimalDigits: 2,
-                ).format(line.sellingPrice),
-                qty: 'x${line.qty}',
-                imageUrl: line.imageUrl.isEmpty ? null : line.imageUrl,
-              );
-            }).toList(),
-          ),
+          if (isPackage) ...[
+            OrderSummaryRow(order: order),
+          ] else
+            Column(
+              children: items.whereType<OrderProductItem>().map((line) {
+                return _itemRow(
+                  dark: dark,
+                  title: line.productName.isEmpty
+                      ? 'Unnamed Product'
+                      : line.productName,
+                  price: NumberFormat.currency(
+                    locale: 'en_PH',
+                    symbol: '₱',
+                    decimalDigits: 2,
+                  ).format(line.sellingPrice),
+                  qty: 'x${line.qty}',
+                  imageUrl: line.imageUrl.isEmpty ? null : line.imageUrl,
+                );
+              }).toList(),
+            ),
           const SizedBox(height: IAMSizes.spaceBtwItems * 2),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -219,6 +221,7 @@ class CancelledTab extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }

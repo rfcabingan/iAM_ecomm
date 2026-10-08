@@ -11,7 +11,12 @@ import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_type.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_accent_theme.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/order_empty_state.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_summary_row.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_type_badge.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_detail_screen.dart';
 
 class DeliveredTab extends StatelessWidget {
   const DeliveredTab({super.key});
@@ -133,8 +138,18 @@ class DeliveredTab extends StatelessWidget {
         ? items.whereType<OrderProductItem>().first
         : null;
     final firstProductCode = firstItem?.productCode ?? '';
+    final theme = OrderAccentTheme.forKind(order.kind);
+    final isPackage = order.isPackageOrder;
 
-    return IAMRoundedContainer(
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => OrderDetailScreen(refNo: order.orderRefno),
+          ),
+        );
+      },
+      child: IAMRoundedContainer(
       padding: const EdgeInsets.all(IAMSizes.md),
       backgroundColor: dark ? IAMColors.dark : IAMColors.light,
       child: Column(
@@ -144,83 +159,72 @@ class DeliveredTab extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: IAMColors.primary,
+                decoration: BoxDecoration(
+                  color: theme.accentColor.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Iconsax.tick_circle,
                   size: 20,
-                  color: IAMColors.grey,
+                  color: theme.accentColor,
                 ),
               ),
               const SizedBox(width: IAMSizes.spaceBtwItems / 2),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    order.orderStatusName,
-                    style: Theme.of(context).textTheme.bodyMedium!.apply(
-                      color: IAMColors.primary,
-                      fontWeightDelta: 1,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.orderStatusName,
+                      style: Theme.of(context).textTheme.bodyMedium!.apply(
+                        color: theme.accentColor,
+                        fontWeightDelta: 1,
+                      ),
                     ),
-                  ),
-                  Text(
-                    DateFormat(
-                      'dd-MMM-yyyy, hh:mma',
-                    ).format(DateTime.parse(order.orderDate)),
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                ],
+                    Text(
+                      DateFormat(
+                        'dd-MMM-yyyy, hh:mma',
+                      ).format(DateTime.parse(order.orderDate)),
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                  ],
+                ),
               ),
+              OrderTypeBadge(kind: order.kind, compact: true),
             ],
           ),
 
           const SizedBox(height: IAMSizes.spaceBtwItems),
 
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: dark ? IAMColors.darkerGrey : IAMColors.lightGrey,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Iconsax.hashtag,
-                  size: 16,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Order ${order.orderRefno}',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall!.copyWith(color: Colors.grey[600]),
-              ),
-            ],
+          Text(
+            '#${order.orderRefno}',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
 
           const SizedBox(height: IAMSizes.spaceBtwItems),
 
-          Column(
-            children: items.whereType<OrderProductItem>().map((nonNullItem) {
-              return _itemRow(
-                nonNullItem.productName.isNotEmpty
-                    ? nonNullItem.productName
-                    : 'Unnamed Product',
-                NumberFormat.currency(
-                  locale: 'en_PH',
-                  symbol: '₱',
-                  decimalDigits: 2,
-                ).format(nonNullItem.sellingPrice),
-                'x${nonNullItem.qty}',
-                nonNullItem.imageUrl,
-                dark: dark,
-              );
-            }).toList(),
-          ),
+          if (isPackage) ...[
+            OrderSummaryRow(order: order),
+          ] else
+            Column(
+              children: items.whereType<OrderProductItem>().map((nonNullItem) {
+                return _itemRow(
+                  nonNullItem.productName.isNotEmpty
+                      ? nonNullItem.productName
+                      : 'Unnamed Product',
+                  NumberFormat.currency(
+                    locale: 'en_PH',
+                    symbol: '₱',
+                    decimalDigits: 2,
+                  ).format(nonNullItem.sellingPrice),
+                  'x${nonNullItem.qty}',
+                  nonNullItem.imageUrl,
+                  dark: dark,
+                );
+              }).toList(),
+            ),
 
           const SizedBox(height: IAMSizes.spaceBtwItems * 2),
 
@@ -326,6 +330,7 @@ class DeliveredTab extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }
