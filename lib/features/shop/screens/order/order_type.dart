@@ -64,13 +64,7 @@ extension OrderDetailItemKindX on OrderDetailItem {
           ? packageName
           : (firstItem?.productName ?? ''),
       optionName: optionName.isNotEmpty ? optionName : '',
-      imageUrl: _firstNonEmptyImage(imageUrl, firstItem?.imageUrl ?? ''),
+      imageUrl: imageUrl.trim(),
     );
   }
-}
-
-String _firstNonEmptyImage(String a, String b) {
-  if (a.trim().isNotEmpty) return a.trim();
-  if (b.trim().isNotEmpty) return b.trim();
-  return '';
 }
