@@ -160,8 +160,12 @@ This sends a JSON body to `POST /Packages/Register`. `birthDate` must use `YYYY-
 
 ## Orders
 
-- `ApiMiddleware.orders.getOrders()` → `ApiResponse<List<OrderItem?>>`
-- `ApiMiddleware.orders.getOrderDetail(refNo)` → `ApiResponse<OrderDetailItem?>`
+- `ApiMiddleware.orders.getOrders()` → `ApiResponse<List<OrderItem?>>` (GET `/Orders`) — each list item includes order identity and summary fields used to distinguish **product** vs **package** orders in the app:
+  - `orderRefno`, `orderDate`, `totalAmount`, `orderStatusId`, `orderStatusName`, `paymentStatusId`, `paymentStatusName`, `itemCount`, `paymentProvider`
+  - `orderType` — `PRODUCT` or `PACKAGE`
+  - Package-only (when `orderType` is `PACKAGE`): `packageCode`, `packageName`, `optionId`, `optionName`
+  - Thumbnail: first non-empty of `imageUrl`, `imageUrl1` (legacy typo `imageUr1` tolerated in the client)
+- `ApiMiddleware.orders.getOrderDetail(refNo)` → `ApiResponse<OrderDetailItem?>` (GET `/Orders/{orderRefNo}`) — includes line `items[]` plus optional top-level `orderType` and package fields (`packageCode`, `packageName`, `optionId`, `optionName`, image URL keys as on the list) when the API provides them; the UI falls back to the first line item when package fields are missing.
 - `ApiMiddleware.orders.getOrderHistory(refNo)` → `ApiResponse<List<OrderStatusHistoryItem?>>` (GET `/Orders/{orderRefNo}/History`) — status timeline (e.g. `Delivered`, `In Transit`, with `trackingNo`, `remarks`, `userName`, `tranDate`)
 - `ApiMiddleware.orders.getReferralOrders(status: 'PENDING')` → `ApiResponse<List<ReferralOrderItem?>>` (GET `/Orders/ReferralOrders?status={status}`) — returns referral-linked orders with `buyerIdNo` and `referralId` in each item.
 

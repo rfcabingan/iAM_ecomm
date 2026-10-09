@@ -36,6 +36,7 @@ class PackageItem {
   final String packageDescription;
   final num packageAmount;
   final String imageUrl;
+  final int displayOrder;
 
   PackageItem({
     required this.packageId,
@@ -44,6 +45,7 @@ class PackageItem {
     required this.packageDescription,
     required this.packageAmount,
     required this.imageUrl,
+    required this.displayOrder,
   });
 
   static PackageItem? fromJson(dynamic json) {
@@ -56,6 +58,7 @@ class PackageItem {
       packageDescription: m['packageDescription'] as String? ?? '',
       packageAmount: (m['packageAmount'] as num?) ?? 0,
       imageUrl: m['imageUrl'] as String? ?? '',
+      displayOrder: readIntValue(m['displayOrder']),
     );
   }
 }
@@ -100,6 +103,7 @@ class PackageOptionItemDetail {
   final String productName;
   final int qty;
   final int displayOrder;
+  final String imageUrl;
 
   PackageOptionItemDetail({
     required this.packageCode,
@@ -110,6 +114,7 @@ class PackageOptionItemDetail {
     required this.productName,
     required this.qty,
     required this.displayOrder,
+    this.imageUrl = '',
   });
 
   static PackageOptionItemDetail? fromJson(dynamic json) {
@@ -124,6 +129,7 @@ class PackageOptionItemDetail {
       productName: m['productName'] as String? ?? '',
       qty: readIntValue(m['qty']),
       displayOrder: readIntValue(m['displayOrder']),
+      imageUrl: m['imageUrl'] as String? ?? '',
     );
   }
 }
@@ -187,6 +193,8 @@ class PackageRegistrationData {
   final String message;
   final String orderRefno;
   final String registrationRefno;
+  final String buyerIdno;
+  final int paymentMethodId;
   final String packageCode;
   final String packageName;
   final String optionName;
@@ -203,6 +211,8 @@ class PackageRegistrationData {
     required this.message,
     required this.orderRefno,
     required this.registrationRefno,
+    required this.buyerIdno,
+    required this.paymentMethodId,
     required this.packageCode,
     required this.packageName,
     required this.optionName,
@@ -233,6 +243,8 @@ class PackageRegistrationData {
       message: m['message'] as String? ?? (isDirectData ? 'Registration successful' : ''),
       orderRefno: sourceData['orderRefno'] as String? ?? '',
       registrationRefno: sourceData['registrationRefno'] as String? ?? '',
+      buyerIdno: sourceData['buyerIdno'] as String? ?? '',
+      paymentMethodId: readIntValue(sourceData['paymentMethodId']),
       packageCode: sourceData['packageCode'] as String? ?? '',
       packageName: sourceData['packageName'] as String? ?? '',
       optionName: sourceData['optionName'] as String? ?? '',
@@ -1335,10 +1347,25 @@ class AddressItem {
 
 // Orders API Response Classes
 
+String _parseOrderListImageUrl(Map<String, dynamic> m) {
+  for (final key in ['imageUrl', 'imageUrl1', 'imageUr1']) {
+    final value = m[key];
+    if (value is String && value.trim().isNotEmpty) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
 class OrderItem {
   final String orderRefno;
   final String orderDate;
   final num totalAmount;
+  final String orderType;
+  final String packageCode;
+  final String packageName;
+  final int optionId;
+  final String optionName;
   final int orderStatusId;
   final String orderStatusName;
   final int paymentStatusId;
@@ -1351,6 +1378,11 @@ class OrderItem {
     required this.orderRefno,
     required this.orderDate,
     required this.totalAmount,
+    required this.orderType,
+    required this.packageCode,
+    required this.packageName,
+    required this.optionId,
+    required this.optionName,
     required this.orderStatusId,
     required this.orderStatusName,
     required this.paymentStatusId,
@@ -1367,13 +1399,18 @@ class OrderItem {
       orderRefno: m['orderRefno'] as String? ?? '',
       orderDate: m['orderDate'] as String? ?? '',
       totalAmount: (m['totalAmount'] as num?) ?? 0,
+      orderType: m['orderType'] as String? ?? 'PRODUCT',
+      packageCode: m['packageCode'] as String? ?? '',
+      packageName: m['packageName'] as String? ?? '',
+      optionId: (m['optionId'] as int?) ?? 0,
+      optionName: m['optionName'] as String? ?? '',
       orderStatusId: (m['orderStatusId'] as int?) ?? 0,
       orderStatusName: m['orderStatusName'] as String? ?? '',
       paymentStatusId: (m['paymentStatusId'] as int?) ?? 0,
       paymentStatusName: m['paymentStatusName'] as String? ?? '',
       itemCount: (m['itemCount'] as int?) ?? 0,
       paymentProvider: m['paymentProvider'] as String? ?? '',
-      imageUrl: m['imageUrl'] as String? ?? '',
+      imageUrl: _parseOrderListImageUrl(m),
     );
   }
 }
@@ -1431,6 +1468,12 @@ class OrderDetailItem {
   final String orderRefno;
   final String cartRefno;
   final String orderDate;
+  final String orderType;
+  final String packageCode;
+  final String packageName;
+  final int optionId;
+  final String optionName;
+  final String imageUrl;
   final num subtotalAmount;
   final num shippingAmount;
   final num processingFeeAmount;
@@ -1457,6 +1500,12 @@ class OrderDetailItem {
     required this.orderRefno,
     required this.cartRefno,
     required this.orderDate,
+    required this.orderType,
+    required this.packageCode,
+    required this.packageName,
+    required this.optionId,
+    required this.optionName,
+    required this.imageUrl,
     required this.subtotalAmount,
     required this.shippingAmount,
     required this.processingFeeAmount,
@@ -1491,6 +1540,12 @@ class OrderDetailItem {
       orderRefno: m['orderRefno'] as String? ?? '',
       cartRefno: m['cartRefno'] as String? ?? '',
       orderDate: m['orderDate'] as String? ?? '',
+      orderType: m['orderType'] as String? ?? 'PRODUCT',
+      packageCode: m['packageCode'] as String? ?? '',
+      packageName: m['packageName'] as String? ?? '',
+      optionId: (m['optionId'] as int?) ?? 0,
+      optionName: m['optionName'] as String? ?? '',
+      imageUrl: _parseOrderListImageUrl(m),
       subtotalAmount: (m['subtotalAmount'] as num?) ?? 0,
       shippingAmount: (m['shippingAmount'] as num?) ?? 0,
       processingFeeAmount: (m['processingFeeAmount'] as num?) ?? 0,

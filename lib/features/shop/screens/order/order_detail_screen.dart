@@ -5,6 +5,11 @@ import 'package:iam_ecomm/common/widgets/container/rounded_container.dart';
 import 'package:iam_ecomm/common/widgets/payments/checkout_webview_sheet.dart';
 import 'package:iam_ecomm/common/widgets/payments/iam_wallet_pay_sheet.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
+import 'package:iam_ecomm/features/shop/screens/order/order_type.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_accent_theme.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_package_included_items_section.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_package_info_section.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_type_badge.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/track_order_screen.dart';
 import 'package:iam_ecomm/utils/api/api.dart';
 import 'package:iam_ecomm/utils/api/core/api_response.dart';
@@ -65,6 +70,9 @@ class OrderDetailScreen extends StatelessWidget {
           final dark = IAMHelperFunctions.isDarkMode(context);
           final items = order.items;
           final paymentCard = _PaymentCardModel.from(order);
+          final accentTheme = OrderAccentTheme.forKind(order.kind);
+          final accentColor = accentTheme.accentColor;
+          final packageDisplay = order.packageDisplay;
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               IAMSizes.defaultSpace,
@@ -167,9 +175,9 @@ class OrderDetailScreen extends StatelessWidget {
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.local_shipping,
-                                        color: IAMColors.primary,
+                                        color: accentColor,
                                       ),
                                       const SizedBox(width: 8),
                                       Column(
@@ -187,7 +195,7 @@ class OrderDetailScreen extends StatelessWidget {
                                                 .bodyMedium!
                                                 .copyWith(
                                                   fontSize: 12,
-                                                  color: IAMColors.primary,
+                                                  color: accentColor,
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                           ),
@@ -213,20 +221,41 @@ class OrderDetailScreen extends StatelessWidget {
                           Container(
                             width: MediaQuery.of(context).size.width,
                             height: 40,
-                            color: IAMColors.primary,
+                            color: accentColor,
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'Order #${order.orderRefno}',
-                              style: Theme.of(context).textTheme.titleLarge!
-                                  .apply(
-                                    color: Colors.white,
-                                    fontWeightDelta: 2,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Order #${order.orderRefno}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge!
+                                        .apply(
+                                          color: Colors.white,
+                                          fontWeightDelta: 2,
+                                        ),
                                   ),
+                                ),
+                                OrderTypeBadge(
+                                  kind: order.kind,
+                                  compact: true,
+                                  onColoredHeader: true,
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
+
+                      if (order.isPackageOrder) ...[
+                        const SizedBox(height: 16),
+                        OrderPackageInfoSection(
+                          display: packageDisplay,
+                          packageCode: order.packageCode,
+                        ),
+                      ],
 
                       const SizedBox(height: 16),
 
@@ -251,9 +280,9 @@ class OrderDetailScreen extends StatelessWidget {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.store_mall_directory,
-                                    color: IAMColors.primary,
+                                    color: accentColor,
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
@@ -345,9 +374,9 @@ class OrderDetailScreen extends StatelessWidget {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.location_pin,
-                                    color: IAMColors.primary,
+                                    color: accentColor,
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
@@ -458,64 +487,71 @@ class OrderDetailScreen extends StatelessWidget {
                 ),
                 const Divider(height: 32),
 
-                Text('Items', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  order.isPackageOrder ? 'Included items' : 'Items',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
 
-                ...items.map((item) {
-                  if (item == null) return const SizedBox.shrink();
+                if (order.isPackageOrder)
+                  OrderPackageIncludedItemsSection(
+                    packageCode: order.packageCode,
+                    optionId: order.optionId,
+                    accentColor: accentColor,
+                    fallbackItems: items,
+                  )
+                else
+                  ...items.map((item) {
+                    if (item == null) return const SizedBox.shrink();
 
-                  return Card(
-                    color: IAMColors.primary.withOpacity(0.08),
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                    return Card(
+                      color: accentColor.withOpacity(0.08),
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-
-                      leading: item.imageUrl.isNotEmpty
-                          ? CachedNetworkImage( // [IEC-121]
-                              imageUrl: item.imageUrl,
-                              width: 48,
-                              height: 48,
-                              fit: BoxFit.cover,
-                            )
-                          : const Icon(Icons.inventory_2_outlined),
-
-                      title: Text(
-                        item.productName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        leading: item.imageUrl.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: item.imageUrl,
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                              )
+                            : const Icon(Icons.inventory_2_outlined),
+                        title: Text(
+                          item.productName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Quantity: ${item.qty}',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        trailing: Text(
+                          NumberFormat.currency(
+                            locale: 'en_PH',
+                            symbol: '₱',
+                            decimalDigits: 2,
+                          ).format(item.lineTotal),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-
-                      subtitle: Text(
-                        'Quantity: ${item.qty}',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-
-                      trailing: Text(
-                        NumberFormat.currency(
-                          locale: 'en_PH',
-                          symbol: '₱',
-                          decimalDigits: 2,
-                        ).format(item.lineTotal),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
 
                 const Divider(height: 32),
 
@@ -996,8 +1032,7 @@ class _PaymentCardModel {
     final expired = OrderFilters.isPaymentExpiredDetail(order);
     final paid = !expired &&
         (order.paymentStatusName.toUpperCase() == 'PAID' ||
-            (order.paymentStatusId != 0 &&
-                order.paymentStatusId != PaymentStatusIds.expired));
+            order.paymentStatusId == PaymentStatusIds.paid);
 
     if (expired) {
       return _PaymentCardModel(

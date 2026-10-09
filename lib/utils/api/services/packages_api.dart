@@ -45,6 +45,7 @@ class PackagesApi {
     required String city,
     required String barangay,
     String? areaCode,
+    int? shippingAddressId,
   }) {
     return _client.post<PackageComputeFeesData?>(
       ApiEndpoints.packagesComputeFees,
@@ -58,6 +59,7 @@ class PackagesApi {
         'city': city,
         'barangay': barangay,
         'areaCode': areaCode,
+        'shippingAddressId': shippingAddressId,
       },
       fromJsonData: PackageComputeFeesData.fromJson,
     );
@@ -86,6 +88,7 @@ class PackagesApi {
     String? validIdPath,
     List<int>? validIdBytes,
     String? validIdFileName,
+    int? shippingAddressId,
   }) {
     return _registerMultipart(
       firstName: firstName,
@@ -110,6 +113,7 @@ class PackagesApi {
       validIdPath: validIdPath,
       validIdBytes: validIdBytes,
       validIdFileName: validIdFileName,
+      shippingAddressId: shippingAddressId,
     );
   }
 
@@ -136,6 +140,7 @@ class PackagesApi {
     String? validIdPath,
     List<int>? validIdBytes,
     String? validIdFileName,
+    int? shippingAddressId,
   }) async {
     final body = {
       'firstName': firstName,
@@ -157,6 +162,7 @@ class PackagesApi {
       'fulfillmentTypeId': fulfillmentTypeId,
       'areaCode': areaCode ?? '',
       'termsAccepted': termsAccepted,
+      'shippingAddressId': shippingAddressId ?? 0,
     };
 
     // Only include validId if there's a file to upload

@@ -15,6 +15,7 @@ import 'package:iam_ecomm/features/shop/screens/order/order_detail_screen.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_filters.dart';
 import 'package:iam_ecomm/features/shop/screens/order/order_status_ids.dart';
 import 'package:iam_ecomm/features/shop/screens/order/widgets/order_empty_state.dart';
+import 'package:iam_ecomm/features/shop/screens/order/widgets/order_list_card.dart';
 import 'package:iam_ecomm/utils/api/responses/response_prep.dart';
 import 'package:iam_ecomm/navigation_menu.dart';
 import 'package:iconsax/iconsax.dart';
@@ -132,17 +133,15 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
     );
   }
 
-  /// ---------------- ORDER CARD ----------------
   Widget _orderCard(
     BuildContext context,
     OrderItem order,
     NumberFormat formatter,
     bool dark,
   ) {
-    final isUnpaid =
-        order.paymentStatusId == 0 ||
-        order.paymentStatusName.toLowerCase() == 'not paid';
-    return GestureDetector(
+    return OrderListCard(
+      order: order,
+      formatter: formatter,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -150,229 +149,12 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
           ),
         );
       },
-      child: IAMRoundedContainer(
-        padding: const EdgeInsets.all(IAMSizes.md),
-        backgroundColor: dark ? IAMColors.dark : IAMColors.light,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// ORDER NUMBER + COPY
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '#${order.orderRefno}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium!.apply(fontWeightDelta: 2),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: order.orderRefno));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'Order number copied!',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor: Colors.green[300],
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Iconsax.copy),
-                  iconSize: IAMSizes.iconSm,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems / 2),
-
-            /// STATUS
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: IAMColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Iconsax.routing,
-                    size: 20,
-                    color: IAMColors.grey,
-                  ),
-                ),
-
-                const SizedBox(width: IAMSizes.spaceBtwItems / 2),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              order.orderStatusName,
-                              style: Theme.of(context).textTheme.bodyMedium!
-                                  .apply(
-                                    color: IAMColors.primary,
-                                    fontWeightDelta: 1,
-                                  ),
-                            ),
-                          ),
-
-                          Tooltip(
-                            message: 'Click on the card to View Details',
-                            child: const Icon(
-                              Iconsax.arrow_right_3,
-                              size: 18,
-                              color: IAMColors.darkGrey,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 2),
-
-                      Text(
-                        "We're processing your order now!",
-                        style: Theme.of(context).textTheme.labelMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems),
-
-            /// DATE
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: IAMColors.grey,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Iconsax.calendar,
-                    size: 20,
-                    color: IAMColors.darkGrey,
-                  ),
-                ),
-                const SizedBox(width: IAMSizes.spaceBtwItems / 2),
-                Text(
-                  DateFormat(
-                    'dd-MMM-yyyy, hh:mma',
-                  ).format(DateTime.parse(order.orderDate)),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: IAMSizes.spaceBtwItems),
-            Divider(color: Colors.grey[400], thickness: 1),
-            const SizedBox(height: IAMSizes.spaceBtwItems / 2),
-
-            /// TOTAL + PAYMENT STATUS
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Total: ${formatter.format(order.totalAmount)}',
-                    style: Theme.of(context).textTheme.titleMedium!.apply(
-                      fontWeightDelta: 1,
-                      color: IAMColors.dark,
-                    ),
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isUnpaid ? Iconsax.clock : Iconsax.tick_circle,
-                          size: 18,
-                          color: isUnpaid
-                              ? IAMColors.warning
-                              : IAMColors.success,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isUnpaid ? 'Awaiting payment' : 'Paid',
-                          style: Theme.of(context).textTheme.labelLarge!.apply(
-                            color: isUnpaid
-                                ? IAMColors.warning
-                                : IAMColors.success,
-                            fontWeightDelta: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (isUnpaid) ...[
-                      const SizedBox(height: 4),
-                      TextButton(
-                        onPressed: () async {
-                          final didPay = await _showPayNowFlow(
-                            context,
-                            order,
-                            formatter,
-                          );
-                          if (!context.mounted) return;
-                          if (didPay) {
-                            _refresh();
-                          }
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: IAMColors.primary,
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: const Text('Pay now'),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 6),
-
-            /// VIEW DETAILS (moved below)
-            // /// VIEW DETAILS (full width with border)
-            // SizedBox(
-            //   width: double.infinity,
-            //   child: OutlinedButton.icon(
-            //     onPressed: () {
-            //       Navigator.of(context).push(
-            //         MaterialPageRoute(
-            //           builder: (_) =>
-            //               OrderDetailScreen(refNo: order.orderRefno),
-            //         ),
-            //       );
-            //     },
-            //     icon: const Icon(Iconsax.arrow_right_3, size: 20),
-            //     label: const Text('View Details'),
-            //     style: OutlinedButton.styleFrom(
-            //       foregroundColor: IAMColors.primary,
-            //       side: const BorderSide(color: IAMColors.primary, width: 1),
-            //       padding: const EdgeInsets.symmetric(vertical: 12),
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(10),
-            //       ),
-            //     ),
-            //   ),
-            // ),
-          ],
-        ),
-      ),
+      onPayNow: () async {
+        final didPay = await _showPayNowFlow(context, order, formatter);
+        if (!context.mounted) return false;
+        if (didPay) _refresh();
+        return didPay;
+      },
     );
   }
 
@@ -541,10 +323,10 @@ class _PipelineStageTabState extends State<PipelineStageTab> {
       if (_statusTextLooksPaid(text)) return true;
 
       final statusId = value['paymentStatusId'] ?? value['statusId'];
-      if (statusId is num && statusId != 0) return true;
+      if (statusId is num && statusId == PaymentStatusIds.paid) return true;
       if (statusId is String) {
         final parsedStatusId = int.tryParse(statusId);
-        if (parsedStatusId != null && parsedStatusId != 0) return true;
+        if (parsedStatusId != null && parsedStatusId == PaymentStatusIds.paid) return true;
       }
 
       return value.entries

@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (res.success) {
           _packages = res.data ?? [];
           // Sort by packageId for consistent ordering
-          _packages.sort((a, b) => a?.packageId.compareTo(b?.packageId ?? 0) ?? 0);
+          _packages.sort((a, b) => a?.displayOrder.compareTo(b?.displayOrder ?? 0) ?? 0);
         } else {
           _packagesError = 'Unable to load packages. Please check your internet connection and try again.';
         }

@@ -463,6 +463,8 @@ class TrackingOrderScreen extends StatelessWidget {
   }
 
   Widget _bottomButtons() {
+    // Commented out - Cancel Order button functionality not implemented yet
+    /*
     final canCancel = _canUserCancelOrder(order);
     return SafeArea(
       top: false,
@@ -491,6 +493,8 @@ class TrackingOrderScreen extends StatelessWidget {
         ),
       ),
     );
+    */
+    return const SizedBox.shrink();
   }
 }
 
@@ -535,13 +539,6 @@ class _StepModel {
     this.dangerTerminal = false,
     this.warningTerminal = false,
   });
-}
-
-/// Only **Pending** (`orderStatusId` **1**) may cancel; not after Verified / Ready to Ship.
-bool _canUserCancelOrder(OrderDetailItem o) {
-  if (_negativeTerminal(o) != null) return false;
-  if (o.orderStatusId == OrderStatusIds.pending) return true;
-  return o.orderStatusName.toLowerCase().trim() == 'pending';
 }
 
 _NegativeTerminal? _negativeTerminal(OrderDetailItem o) {

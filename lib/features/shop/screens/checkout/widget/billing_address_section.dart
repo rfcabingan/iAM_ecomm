@@ -15,10 +15,12 @@ class IAMBillingAddressSection extends StatefulWidget {
     super.key,
     this.onAddressSelected,
     this.onAddressAvailabilityChanged,
+    this.fallbackAddress,
   });
 
   final ValueChanged<AddressItem?>? onAddressSelected;
   final ValueChanged<bool>? onAddressAvailabilityChanged;
+  final AddressItem? fallbackAddress;
 
   @override
   State<IAMBillingAddressSection> createState() =>
@@ -52,7 +54,10 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
         _error = res.message.isNotEmpty
             ? res.message
             : 'Unable to load addresses.';
+        _selectedAddress = widget.fallbackAddress;
       });
+      widget.onAddressAvailabilityChanged?.call(_selectedAddress != null);
+      widget.onAddressSelected?.call(_selectedAddress);
       return;
     }
 
@@ -74,7 +79,7 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
         }
       }
     }
-    selected ??= list.isNotEmpty ? list.first : null;
+    selected ??= list.isNotEmpty ? list.first : widget.fallbackAddress;
 
     setState(() {
       _loading = false;
@@ -84,13 +89,15 @@ class _IAMBillingAddressSectionState extends State<IAMBillingAddressSection> {
       _selectedAddress = selected;
     });
 
-    widget.onAddressAvailabilityChanged?.call(list.isNotEmpty);
+    widget.onAddressAvailabilityChanged?.call(list.isNotEmpty || selected != null);
     widget.onAddressSelected?.call(_selectedAddress);
   }
 
   Future<void> _setAsDefaultAndSelect(AddressItem address) async {
     setState(() => _selectedAddress = address);
     widget.onAddressSelected?.call(address);
+
+    if (address.autoId <= 0) return;
 
     final res = await ApiMiddleware.address.setDefaultAddress(address.autoId);
     if (!mounted) return;
